@@ -1,0 +1,23 @@
+/* 定义全局配色 */
+$bg-color: #fcfcf0;       // 设计图主背景色
+$text-main: #333333;      // 主标题颜色
+$text-sub: #999999;       // 辅助文字颜色
+$theme-green: #5a8d46;    // 品牌绿色
+
+/* 定义统一的卡片阴影效果 (这是还原高级感的关键) */
+@mixin card-shadow {
+  background: #ffffff;
+  border-radius: 24rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.05);
+}
+
+/* 定义标题栏样式 */
+@mixin section-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: $text-main;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 0;
+}
