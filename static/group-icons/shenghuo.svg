@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <rect width="120" height="120" rx="24" fill="#f0f7ff"/>
+  <g transform="translate(60,46)">
+    <rect x="-28" y="-18" width="56" height="36" rx="8" fill="#c5e1ff"/>
+    <path d="M-14,0 L0,-12 L14,0" fill="#6fa3e6"/>
+  </g>
+  <text x="60" y="100" font-size="14" font-family="sans-serif" text-anchor="middle" fill="#346e9a">生活</text>
+</svg>

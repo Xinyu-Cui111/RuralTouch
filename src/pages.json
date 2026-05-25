@@ -1,0 +1,40 @@
+{
+    "easycom": {
+        "autoscan": true,
+        "custom": {
+            "^app-icons$": "@/components/uni-icons/uni-icons.vue"
+        }
+    },
+    "pages": [
+        {
+            "path": "pages/law/law",
+            "style": {
+                "navigationBarTitleText": "法治服务"
+            }
+        },
+        {
+            "path": "pages/village/village",
+            "style": {
+                "navigationBarTitleText": "村民议事厅"
+            }
+        },
+        {
+            "path": "pages/moral/moral",
+            "style": {
+                "navigationBarTitleText": "道德银行"
+            }
+        },
+        {
+            "path": "pages/group/group",
+            "style": {
+                "navigationBarTitleText": "惠民团购"
+            }
+        }
+    ],
+    "globalStyle": {
+        "navigationBarTextStyle": "black",
+        "navigationBarTitleText": "RuralTouch",
+        "navigationBarBackgroundColor": "#F8F8F8",
+        "backgroundColor": "#F8F8F8"
+    }
+}

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <rect width="120" height="120" rx="24" fill="#fff5fb"/>
+  <g transform="translate(60,44)">
+    <path d="M-18,6 L-6,-20 L6,-20 L18,6 Z" fill="#f5b7d1"/>
+    <rect x="-10" y="6" width="20" height="12" rx="6" fill="#d16a9a"/>
+  </g>
+  <text x="60" y="100" font-size="14" font-family="sans-serif" text-anchor="middle" fill="#9a3f66">服饰</text>
+</svg>
