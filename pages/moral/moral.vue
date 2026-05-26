@@ -1,16 +1,16 @@
 <template>
   <view class="page">
     <view class="banner">
-      <image class="banner-bg" src="/static/banner/profit.png" mode="widthFix" />
+      <image class="banner-bg" :src="$cloudAssetUrl('static/banner/profit.png')" mode="widthFix" />
       <view class="banner-topbar">
         <view class="logo-area">
-          <image class="logo" src="/static/banner/logo.svg" mode="aspectFit" />
+          <image class="logo" :src="$cloudAssetUrl('static/banner/logo.svg')" mode="aspectFit" />
           <text class="brand">智慧村务</text>
         </view>
         <view class="icon-group">
-          <image class="mini-icon" src="/static/icons/search.svg" mode="aspectFit" />
-          <image class="mini-icon" src="/static/icons/bell.svg" mode="aspectFit" />
-          <image class="mini-icon" src="/static/icons/user.svg" mode="aspectFit" />
+          <image class="mini-icon" :src="$cloudAssetUrl('static/icons/search.svg')" mode="aspectFit" />
+          <image class="mini-icon" :src="$cloudAssetUrl('static/icons/bell.svg')" mode="aspectFit" />
+          <image class="mini-icon" :src="$cloudAssetUrl('static/icons/user.svg')" mode="aspectFit" />
         </view>
       </view>
       <view class="banner-copy">
@@ -32,12 +32,12 @@
       <view class="score-bottom">
         <view class="score-btn-row">
           <view class="score-btn" @click="onDeclare">
-            <image class="btn-icon-img" src="/static/moral-icons/cun.svg" mode="aspectFill" />
+            <image class="btn-icon-img" :src="$cloudAssetUrl('static/moral-icons/cun.svg')" mode="aspectFill" />
             <text class="btn-text">积分申报</text>
           </view>
           <view class="line"></view>
           <view class="score-btn" @click="onMall">
-            <image class="btn-icon-img" src="/static/moral-icons/fangzi.svg" mode="aspectFill" />
+            <image class="btn-icon-img" :src="$cloudAssetUrl('static/moral-icons/fangzi.svg')" mode="aspectFill" />
             <text class="btn-text">积分商城</text>
           </view>
         </view>
@@ -49,11 +49,11 @@
     </view>
 
     <view class="record-box">
-      <image class="section-bg" src="/static/banner/law.jpg" mode="aspectFill" />
+      <image class="section-bg" :src="$cloudAssetUrl('static/banner/law.jpg')" mode="aspectFill" />
       <view class="card-content">
       <view class="record-item">
         <view class="record-left">
-          <image class="record-icon-img" src="/static/moral-icons/chuizi.svg" mode="aspectFill" />
+          <image class="record-icon-img" :src="$cloudAssetUrl('static/moral-icons/chuizi.svg')" mode="aspectFill" />
           <view class="record-text">
             <text class="record-name">普法活动</text>
             <text class="record-time">2025-10-20</text>
@@ -64,7 +64,7 @@
 
       <view class="record-item">
         <view class="record-left">
-          <image class="record-icon-img" src="/static/moral-icons/woshou.svg" mode="aspectFill" />
+          <image class="record-icon-img" :src="$cloudAssetUrl('static/moral-icons/woshou.svg')" mode="aspectFill" />
           <view class="record-text">
             <text class="record-name">纠纷调解成功</text>
             <text class="record-time">2025-10-18</text>
@@ -75,7 +75,7 @@
 
       <view class="record-item">
         <view class="record-left">
-          <image class="record-icon-img" src="/static/moral-icons/sanjiao.svg" mode="aspectFill" />
+          <image class="record-icon-img" :src="$cloudAssetUrl('static/moral-icons/sanjiao.svg')" mode="aspectFill" />
           <view class="record-text">
             <text class="record-name">团购推广成功</text>
             <text class="record-time">2025-10-15</text>
@@ -91,11 +91,11 @@
     </view>
 
     <view class="record-box goods-box">
-      <image class="section-bg" src="/static/banner/law.jpg" mode="aspectFill" />
+      <image class="section-bg" :src="$cloudAssetUrl('static/banner/law.jpg')" mode="aspectFill" />
       <view class="card-content">
       <view class="goods-list">
         <view class="goods-item">
-          <image class="goods-icon-img" src="/static/moral-icons/shui.svg" mode="aspectFill" />
+          <image class="goods-icon-img" :src="$cloudAssetUrl('static/moral-icons/shui.svg')" mode="aspectFill" />
           <view class="goods-text">
             <text class="goods-name">洗衣液</text>
             <text class="goods-time record-add">100分</text>
@@ -103,7 +103,7 @@
         </view>
 
         <view class="goods-item">
-          <image class="goods-icon-img" src="/static/moral-icons/mi.svg" mode="aspectFill" />
+          <image class="goods-icon-img" :src="$cloudAssetUrl('static/moral-icons/mi.svg')" mode="aspectFill" />
           <view class="goods-text">
             <text class="goods-name">大米</text>
             <text class="goods-time record-add">200分</text>
@@ -111,7 +111,7 @@
         </view>
 
         <view class="goods-item">
-          <image class="goods-icon-img" src="/static/moral-icons/miao.svg" mode="aspectFill" />
+          <image class="goods-icon-img" :src="$cloudAssetUrl('static/moral-icons/miao.svg')" mode="aspectFill" />
           <view class="goods-text">
             <text class="goods-name">茶叶</text>
             <text class="goods-time record-add">500分</text>
@@ -119,7 +119,7 @@
         </view>
 
         <view class="goods-item">
-          <image class="goods-icon-img" src="/static/moral-icons/banshou.svg" mode="aspectFill" />
+          <image class="goods-icon-img" :src="$cloudAssetUrl('static/moral-icons/banshou.svg')" mode="aspectFill" />
           <view class="goods-text">
             <text class="goods-name">农具套装</text>
             <text class="goods-time record-add">800分</text>

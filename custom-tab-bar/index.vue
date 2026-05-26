@@ -12,7 +12,7 @@
           <image
             class="tab-icon"
             :class="{ active: currentPath === item.path }"
-            :src="item.icon"
+            :src="$cloudAssetUrl(item.icon)"
             mode="aspectFill"
           />
         </view>
@@ -28,10 +28,10 @@ export default {
     return {
       iconVersion: '20260523a',
       items: [
-        { path: '/pages/law/law', text: '法治服务', icon: '/static/icons/lawi.svg' },
-        { path: '/pages/village/village', text: '村民议事厅', icon: '/static/icons/villagei.svg' },
-        { path: '/pages/moral/moral', text: '道德银行', icon: '/static/icons/morali.svg' },
-        { path: '/pages/group/group', text: '惠民团购', icon: '/static/icons/groupi.svg' }
+        { path: '/pages/law/law', text: '法治服务', icon: 'static/icons/lawi.svg' },
+        { path: '/pages/village/village', text: '村民议事厅', icon: 'static/icons/villagei.svg' },
+        { path: '/pages/moral/moral', text: '道德银行', icon: 'static/icons/morali.svg' },
+        { path: '/pages/group/group', text: '惠民团购', icon: 'static/icons/groupi.svg' }
       ],
       currentPath: '/pages/law/law'
     }

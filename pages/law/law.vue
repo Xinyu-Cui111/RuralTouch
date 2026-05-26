@@ -1,16 +1,16 @@
 <template>
   <view class="page-container">
     <view class="banner">
-      <image class="banner-bg" src="/static/banner/profit.png" mode="widthFix" />
+      <image class="banner-bg" :src="$cloudAssetUrl('static/banner/profit.png')" mode="widthFix" />
       <view class="banner-topbar">
         <view class="logo-area">
-          <image class="logo" src="/static/banner/logo.svg" mode="aspectFit" />
+          <image class="logo" :src="$cloudAssetUrl('static/banner/logo.svg')" mode="aspectFit" />
           <text class="brand">智慧村务</text>
         </view>
         <view class="icon-group">
-          <image class="mini-icon" src="/static/icons/search.svg" mode="aspectFit" />
-          <image class="mini-icon" src="/static/icons/bell.svg" mode="aspectFit" />
-          <image class="mini-icon" src="/static/icons/user.svg" mode="aspectFit" />
+          <image class="mini-icon" :src="$cloudAssetUrl('static/icons/search.svg')" mode="aspectFit" />
+          <image class="mini-icon" :src="$cloudAssetUrl('static/icons/bell.svg')" mode="aspectFit" />
+          <image class="mini-icon" :src="$cloudAssetUrl('static/icons/user.svg')" mode="aspectFit" />
         </view>
       </view>
       <view class="banner-copy">
@@ -22,15 +22,15 @@
     <view class="section-block">
       <view class="sec-header">法治知识库</view>
       <view class="section-card">
-        <image class="section-bg" src="/static/banner/law.jpg" mode="aspectFill" />
+        <image class="section-bg" :src="$cloudAssetUrl('static/banner/law.jpg')" mode="aspectFill" />
         <view class="card-content">
           <view class="nav-grid">
             <view class="grid-item">
-              <image class="grid-icon" src="/static/law-icons/rules.svg" mode="aspectFill" />
+              <image class="grid-icon" :src="$cloudAssetUrl('static/law-icons/rules.svg')" mode="aspectFill" />
               <text class="grid-text">法律条文</text>
             </view>
             <view class="grid-item">
-              <image class="grid-icon" src="/static/law-icons/stories.svg" mode="aspectFill" />
+              <image class="grid-icon" :src="$cloudAssetUrl('static/law-icons/stories.svg')" mode="aspectFill" />
               <text class="grid-text">典型案例</text>
             </view>
           </view>
@@ -41,10 +41,10 @@
     <view class="section-block">
       <view class="sec-header">法律法规速查</view>
       <view class="section-card">
-        <image class="section-bg" src="/static/banner/law.jpg" mode="aspectFill" />
+        <image class="section-bg" :src="$cloudAssetUrl('static/banner/law.jpg')" mode="aspectFill" />
         <view class="card-content">
           <view class="search-box">
-            <image class="search-icon" src="/static/law-icons/search.svg" mode="aspectFit" />
+            <image class="search-icon" :src="$cloudAssetUrl('static/law-icons/search.svg')" mode="aspectFit" />
             <input placeholder="搜索..." placeholder-style="color:#999" />
           </view>
           <view class="tabs">
@@ -68,11 +68,11 @@
     <view class="section-block">
       <view class="sec-header">普法宣传专栏</view>
       <view class="section-card">
-        <image class="section-bg" src="/static/banner/law.jpg" mode="aspectFill" />
+        <image class="section-bg" :src="$cloudAssetUrl('static/banner/law.jpg')" mode="aspectFill" />
         <view class="card-content">
           <view class="video-card">
             <view class="video-cover video-poster" @click="openLawVideo">
-              <image class="video-poster-image" src="/static/banner/law.jpg" mode="aspectFill" />
+              <image class="video-poster-image" :src="$cloudAssetUrl('static/banner/law.jpg')" mode="aspectFill" />
               <view class="video-play-mask">
                 <view class="video-play-btn">▶</view>
                 <text class="video-play-text">点击播放</text>
@@ -84,7 +84,7 @@
               <view class="meta">
                 <view class="meta-item">
                   <view class="meta-icon-frame">
-                    <image class="meta-icon" src="/static/law-icons/eye.svg" mode="aspectFill" />
+                    <image class="meta-icon" :src="$cloudAssetUrl('static/law-icons/eye.svg')" mode="aspectFill" />
                   </view>
                   <text>2.5k浏览</text>
                 </view>
@@ -105,11 +105,11 @@
         <video
           id="lawVideo"
           class="video-modal-player"
-          src="/static/law-videos/law.mp4"
+          :src="$cloudAssetUrl('static/law-videos/law.mp4')"
           controls
           autoplay
           object-fit="contain"
-          poster="/static/banner/law.jpg"
+          :poster="$cloudAssetUrl('static/banner/law.jpg')"
         ></video>
       </view>
     </view>

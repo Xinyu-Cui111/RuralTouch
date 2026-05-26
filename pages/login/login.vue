@@ -5,7 +5,7 @@
 
     <view class="hero">
       <view class="brand-mark">
-        <image class="brand-logo" src="/static/banner/logo.svg" mode="aspectFill" />
+        <image class="brand-logo" :src="$cloudAssetUrl('static/banner/logo.svg')" mode="aspectFill" />
       </view>
       <text class="brand-desc">登录后查看村务公告、纠纷调解、积分商城等服务</text>
     </view>
@@ -15,7 +15,7 @@
       <view class="card-subtitle">输入手机号与验证码即可快速进入</view>
 
       <view class="form-item">
-        <image class="field-icon" src="/static/icons/user.svg" mode="aspectFit" />
+        <image class="field-icon" :src="$cloudAssetUrl('static/icons/user.svg')" mode="aspectFit" />
         <input
           class="field-input"
           type="number"
@@ -27,7 +27,7 @@
       </view>
 
       <view class="form-item code-item">
-        <image class="field-icon" src="/static/icons/bell.svg" mode="aspectFit" />
+        <image class="field-icon" :src="$cloudAssetUrl('static/icons/bell.svg')" mode="aspectFit" />
         <input
           class="field-input"
           type="number"

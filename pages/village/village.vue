@@ -1,16 +1,16 @@
 <template>
   <view class="page">
     <view class="banner">
-      <image class="banner-bg" src="/static/banner/profit.png" mode="widthFix" />
+      <image class="banner-bg" :src="$cloudAssetUrl('static/banner/profit.png')" mode="widthFix" />
       <view class="banner-topbar">
         <view class="logo-area">
-          <image class="logo" src="/static/banner/logo.svg" mode="aspectFit" />
+          <image class="logo" :src="$cloudAssetUrl('static/banner/logo.svg')" mode="aspectFit" />
           <text class="brand">智慧村务</text>
         </view>
         <view class="icon-group">
-          <image class="mini-icon" src="/static/icons/search.svg" mode="aspectFit" />
-          <image class="mini-icon" src="/static/icons/bell.svg" mode="aspectFit" />
-          <image class="mini-icon" src="/static/icons/user.svg" mode="aspectFit" />
+          <image class="mini-icon" :src="$cloudAssetUrl('static/icons/search.svg')" mode="aspectFit" />
+          <image class="mini-icon" :src="$cloudAssetUrl('static/icons/bell.svg')" mode="aspectFit" />
+          <image class="mini-icon" :src="$cloudAssetUrl('static/icons/user.svg')" mode="aspectFit" />
         </view>
       </view>
       <view class="banner-copy">
@@ -24,7 +24,7 @@
         <text>线上调解室</text>
       </view>
       <view class="module-box management-box section-card">
-        <image class="section-bg" src="/static/banner/law.jpg" mode="aspectFill" />
+        <image class="section-bg" :src="$cloudAssetUrl('static/banner/law.jpg')" mode="aspectFill" />
         <view class="card-content">
           <view class="btn-row">
             <view class="func-btn" @click="goSubmit">
@@ -51,31 +51,31 @@
         <text>村务管理</text>
       </view>
       <view class="module-box management-box section-card">
-        <image class="section-bg" src="/static/banner/law.jpg" mode="aspectFill" />
+        <image class="section-bg" :src="$cloudAssetUrl('static/banner/law.jpg')" mode="aspectFill" />
         <view class="card-content">
           <view class="list-item" @click="goPage('/pages/village/notice')">
             <view class="item-left">
               <view class="village-icon-wrap">
-                <image class="village-icon-img" src="/static/village-icons/laba.svg" mode="aspectFill" />
+                <image class="village-icon-img" :src="$cloudAssetUrl('static/village-icons/laba.svg')" mode="aspectFill" />
               </view>
               <view class="entry-text">
                 <text class="item-title">村务通知</text>
                 <text class="item-subdesc">查看最新村务与公告</text>
               </view>
             </view>
-            <image class="entry-arrow" src="/static/icons/arrow-right.svg" mode="aspectFit" />
+            <image class="entry-arrow" :src="$cloudAssetUrl('static/icons/arrow-right.svg')" mode="aspectFit" />
           </view>
           <view class="list-item" @click="goPage('/pages/village/feedback')">
             <view class="item-left">
               <view class="village-icon-wrap">
-                <image class="village-icon-img" src="/static/village-icons/xinxi.svg" mode="aspectFill" />
+                <image class="village-icon-img" :src="$cloudAssetUrl('static/village-icons/xinxi.svg')" mode="aspectFill" />
               </view>
               <view class="entry-text">
                 <text class="item-title">村民反馈</text>
                 <text class="item-subdesc">提交您的建议与意见</text>
               </view>
             </view>
-            <image class="entry-arrow" src="/static/icons/arrow-right.svg" mode="aspectFit" />
+            <image class="entry-arrow" :src="$cloudAssetUrl('static/icons/arrow-right.svg')" mode="aspectFit" />
           </view>
         </view>
       </view>
@@ -88,12 +88,12 @@
         <text class="section-more-outside">☰</text>
       </view>
       <view class="module-box management-box section-card recent-card">
-        <image class="section-bg" src="/static/banner/law.jpg" mode="aspectFill" />
+        <image class="section-bg" :src="$cloudAssetUrl('static/banner/law.jpg')" mode="aspectFill" />
         <view class="card-content">
           <view class="case-item" @click="goToDisputeDetail">
             <view class="case-left">
               <view class="village-icon-wrap">
-                <image class="village-icon-img" src="/static/village-icons/che.svg" mode="aspectFill" />
+                <image class="village-icon-img" :src="$cloudAssetUrl('static/village-icons/che.svg')" mode="aspectFill" />
               </view>
               <view>
                 <text class="case-name">张某与李某土地争议</text>
@@ -105,7 +105,7 @@
           <view class="case-item">
             <view class="case-left">
               <view class="village-icon-wrap">
-                <image class="village-icon-img" src="/static/village-icons/ling.svg" mode="aspectFill" />
+                <image class="village-icon-img" :src="$cloudAssetUrl('static/village-icons/ling.svg')" mode="aspectFill" />
               </view>
               <view>
                 <text class="case-name">王某劳动纠纷</text>

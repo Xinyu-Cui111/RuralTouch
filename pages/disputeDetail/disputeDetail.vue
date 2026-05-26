@@ -1,10 +1,10 @@
 <template>
   <view class="container">
       <view class="top-card detail-card">
-      <image class="section-bg" src="/static/banner/law.jpg" mode="aspectFill" />
+      <image class="section-bg" :src="$cloudAssetUrl('static/banner/law.jpg')" mode="aspectFill" />
       <view class="card-content">
       <view class="user-info">
-        <image class="avatar" src="/static/village-icons/touxiang.jpg" mode="aspectFill"></image>
+        <image class="avatar" :src="$cloudAssetUrl('static/village-icons/touxiang.jpg')" mode="aspectFill"></image>
         <view>
           <text class="user-name">某某村民</text>
           <view class="user-tag">某某村村民</view>
@@ -25,11 +25,11 @@
       <view class="timeline-item">
         <view class="timeline-dot"></view>
         <view class="timeline-card detail-card">
-          <image class="section-bg" src="/static/banner/law.jpg" mode="aspectFill" />
+          <image class="section-bg" :src="$cloudAssetUrl('static/banner/law.jpg')" mode="aspectFill" />
           <view class="card-content">
           <view class="card-header">
             <view class="card-title-left">
-              <image class="mini-avatar" src="/static/village-icons/touxiang.jpg" mode="aspectFill" />
+              <image class="mini-avatar" :src="$cloudAssetUrl('static/village-icons/touxiang.jpg')" mode="aspectFill" />
               <text class="card-title">书记回复</text>
             </view>
             <text class="card-tag">已评价</text>
@@ -43,11 +43,11 @@
       <view class="timeline-item">
         <view class="timeline-dot"></view>
         <view class="timeline-card detail-card">
-          <image class="section-bg" src="/static/banner/law.jpg" mode="aspectFill" />
+          <image class="section-bg" :src="$cloudAssetUrl('static/banner/law.jpg')" mode="aspectFill" />
           <view class="card-content">
           <view class="card-header">
             <view class="card-title-left">
-              <image class="mini-avatar" src="/static/village-icons/touxiang.jpg" mode="aspectFill" />
+              <image class="mini-avatar" :src="$cloudAssetUrl('static/village-icons/touxiang.jpg')" mode="aspectFill" />
               <text class="card-title">集体议</text>
             </view>
             <text class="card-tag done">已完成</text>
@@ -61,11 +61,11 @@
       <view class="timeline-item">
         <view class="timeline-dot"></view>
         <view class="timeline-card detail-card">
-          <image class="section-bg" src="/static/banner/law.jpg" mode="aspectFill" />
+          <image class="section-bg" :src="$cloudAssetUrl('static/banner/law.jpg')" mode="aspectFill" />
           <view class="card-content">
           <view class="card-header">
             <view class="card-title-left">
-              <image class="mini-avatar" src="/static/village-icons/touxiang.jpg" mode="aspectFill" />
+              <image class="mini-avatar" :src="$cloudAssetUrl('static/village-icons/touxiang.jpg')" mode="aspectFill" />
               <text class="card-title">干部办</text>
             </view>
             <text class="card-tag ing">办理中</text>
@@ -79,11 +79,11 @@
       <view class="timeline-item">
         <view class="timeline-dot"></view>
         <view class="timeline-card detail-card">
-          <image class="section-bg" src="/static/banner/law.jpg" mode="aspectFill" />
+          <image class="section-bg" :src="$cloudAssetUrl('static/banner/law.jpg')" mode="aspectFill" />
           <view class="card-content">
           <view class="card-header">
             <view class="card-title-left">
-              <image class="mini-avatar" src="/static/village-icons/touxiang.jpg" mode="aspectFill" />
+              <image class="mini-avatar" :src="$cloudAssetUrl('static/village-icons/touxiang.jpg')" mode="aspectFill" />
               <text class="card-title">办理结果</text>
             </view>
             <text class="card-tag done">已完成</text>
@@ -97,11 +97,11 @@
       <view class="timeline-item">
         <view class="timeline-dot"></view>
         <view class="timeline-card detail-card">
-          <image class="section-bg" src="/static/banner/law.jpg" mode="aspectFill" />
+          <image class="section-bg" :src="$cloudAssetUrl('static/banner/law.jpg')" mode="aspectFill" />
           <view class="card-content">
           <view class="card-header">
             <view class="card-title-left">
-              <image class="mini-avatar" src="/static/village-icons/touxiang.jpg" mode="aspectFill" />
+              <image class="mini-avatar" :src="$cloudAssetUrl('static/village-icons/touxiang.jpg')" mode="aspectFill" />
               <text class="card-title">居民评</text>
             </view>
             <text class="card-tag">已评价</text>

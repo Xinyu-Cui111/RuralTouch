@@ -1,7 +1,7 @@
 <template>
   <view class="product-card" @click="handleItemClick">
     <view class="media-wrap">
-      <image v-if="product.img" class="product-img" :src="product.img" mode="aspectFill"></image>
+      <image v-if="product.img" class="product-img" :src="$cloudAssetUrl(product.img)" mode="aspectFill"></image>
       <view v-else class="product-img placeholder">
         <text class="placeholder-text">暂无图片</text>
       </view>

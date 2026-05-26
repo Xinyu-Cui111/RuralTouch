@@ -15,6 +15,7 @@ const root = path.resolve(__dirname, '..')
 const staticDir = path.join(root, 'static')
 const devOutputDir = path.join(root, 'unpackage', 'dist', 'dev', 'mp-weixin')
 const buildOutputDir = path.join(root, 'dist', 'build', 'mp-weixin')
+const generatedCommonDir = path.join(buildOutputDir, 'common')
 const isBuild = cliArgs[0] === 'build'
 
 function copyStaticAssets() {
@@ -33,6 +34,23 @@ function copyDevOutputToBuild() {
     if (!fs.existsSync(devOutputDir)) return
     fs.rmSync(buildOutputDir, { recursive: true, force: true })
     fs.cpSync(devOutputDir, buildOutputDir, { recursive: true, force: true })
+}
+
+function syncGeneratedCommonAssets() {
+    const assetsFile = path.join(generatedCommonDir, 'assets.js')
+    const devCommonDir = path.join(devOutputDir, 'common')
+
+    if (!fs.existsSync(assetsFile)) {
+        return
+    }
+
+    fs.mkdirSync(devCommonDir, { recursive: true })
+    fs.copyFileSync(assetsFile, path.join(devCommonDir, 'assets.js'))
+
+    const assetsMapFile = path.join(generatedCommonDir, 'assets.js.map')
+    if (fs.existsSync(assetsMapFile)) {
+        fs.copyFileSync(assetsMapFile, path.join(devCommonDir, 'assets.js.map'))
+    }
 }
 
 const commandArgs = isBuild
@@ -56,7 +74,7 @@ if (isBuild) {
     }
 
     if (platform === 'mp-weixin' && result.status === 0) {
-        copyDevOutputToBuild()
+        syncGeneratedCommonAssets()
     }
 
     process.exit(result.status === null ? 1 : result.status)
@@ -70,6 +88,7 @@ const child = spawn(process.execPath, commandArgs, {
 if (platform === 'mp-weixin') {
     const syncStatic = () => {
         copyStaticAssets()
+        syncGeneratedCommonAssets()
     }
 
     syncStatic()

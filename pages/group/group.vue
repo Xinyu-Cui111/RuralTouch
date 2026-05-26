@@ -1,16 +1,16 @@
 <template>
   <view class="container">
     <view class="banner">
-      <image class="banner-bg" src="/static/banner/profit.png" mode="widthFix" />
+      <image class="banner-bg" :src="$cloudAssetUrl('static/banner/profit.png')" mode="widthFix" />
       <view class="banner-topbar">
         <view class="logo-area">
-          <image class="logo" src="/static/banner/logo.svg" mode="aspectFit" />
+          <image class="logo" :src="$cloudAssetUrl('static/banner/logo.svg')" mode="aspectFit" />
           <text class="brand">智慧村务</text>
         </view>
         <view class="icon-group">
-          <image class="mini-icon" src="/static/icons/search.svg" mode="aspectFit" />
-          <image class="mini-icon" src="/static/icons/bell.svg" mode="aspectFit" />
-          <image class="mini-icon" src="/static/icons/user.svg" mode="aspectFit" />
+          <image class="mini-icon" :src="$cloudAssetUrl('static/icons/search.svg')" mode="aspectFit" />
+          <image class="mini-icon" :src="$cloudAssetUrl('static/icons/bell.svg')" mode="aspectFit" />
+          <image class="mini-icon" :src="$cloudAssetUrl('static/icons/user.svg')" mode="aspectFit" />
         </view>
       </view>
       <view class="banner-copy">
@@ -24,7 +24,7 @@
         <text class="sec-title">热门团购</text>
         <view class="more">
           <text class="more-text">查看更多</text>
-          <image class="more-icon" src="/static/icons/arrow-right.svg" mode="aspectFit" />
+          <image class="more-icon" :src="$cloudAssetUrl('static/icons/arrow-right.svg')" mode="aspectFit" />
         </view>
       </view>
     </view>
@@ -40,7 +40,7 @@
     <view class="nav-section">
       <view class="nav-grid">
         <view class="nav-item" v-for="n in navList" :key="n.text">
-          <image class="nav-bg" :src="n.icon" mode="aspectFill" />
+          <image class="nav-bg" :src="$cloudAssetUrl(n.icon)" mode="aspectFill" />
           <view class="nav-shade"></view>
           <text class="nav-text">{{ n.text }}</text>
         </view>
@@ -48,7 +48,7 @@
     </view>
 
     <view class="profit-card">
-      <image class="profit-bg" src="/static/banner/banner.png" mode="aspectFill" />
+      <image class="profit-bg" :src="$cloudAssetUrl('static/banner/banner.png')" mode="aspectFill" />
       <view class="overlay"></view>
       <view class="card-content">
         <view class="profit-text">
@@ -78,16 +78,16 @@ export default {
   data() {
     return {
       hotProducts: [
-        { id: 1, name: '黑豆粉 500g', desc: '低温烘焙细磨，豆香浓郁，早餐冲饮更方便', price: '32.8', img: '/static/products/heidoufen.jpg' },
-        { id: 2, name: '花糕粉 1kg', desc: '传统配方复配粉，做蒸糕松软细腻，口感香甜', price: '26.9', img: '/static/products/huagaofen.jpg' },
-        { id: 3, name: '桑葚鲜果 2斤装', desc: '现摘现发，酸甜多汁，适合鲜食与自制果饮', price: '39.9', img: '/static/products/sangshen.jpg' },
-        { id: 4, name: '三文鱼切片 300g', desc: '冷链直达，纹理细嫩，煎烤刺身都很合适', price: '59.0', img: '/static/products/sanwenyu.jpg' }
+        { id: 1, name: '黑豆粉 500g', desc: '低温烘焙细磨，豆香浓郁，早餐冲饮更方便', price: '32.8', img: 'static/products/heidoufen.jpg' },
+        { id: 2, name: '花糕粉 1kg', desc: '传统配方复配粉，做蒸糕松软细腻，口感香甜', price: '26.9', img: 'static/products/huagaofen.jpg' },
+        { id: 3, name: '桑葚鲜果 2斤装', desc: '现摘现发，酸甜多汁，适合鲜食与自制果饮', price: '39.9', img: 'static/products/sangshen.jpg' },
+        { id: 4, name: '三文鱼切片 300g', desc: '冷链直达，纹理细嫩，煎烤刺身都很合适', price: '59.0', img: 'static/products/sanwenyu.jpg' }
       ],
       navList: [
-        { icon: '/static/group-icons/nongzinongju.jpg', text: '农资农具' },
-        { icon: '/static/group-icons/nongchanpin.jpg', text: '农产品' },
-        { icon: '/static/group-icons/shenghuoyongpin.jpg', text: '生活用品' },
-        { icon: '/static/group-icons/fuzhuangxiemao.jpg', text: '服装鞋帽' }
+        { icon: 'static/group-icons/nongzinongju.jpg', text: '农资农具' },
+        { icon: 'static/group-icons/nongchanpin.jpg', text: '农产品' },
+        { icon: 'static/group-icons/shenghuoyongpin.jpg', text: '生活用品' },
+        { icon: 'static/group-icons/fuzhuangxiemao.jpg', text: '服装鞋帽' }
       ]
     }
   }

@@ -1,7 +1,10 @@
 <script>
+import { loadCloudAssets } from '@/utils/cloudAssetRuntime.js'
+
 export default {
   onLaunch() {
     console.log('智慧村务小程序启动')
+    loadCloudAssets()
   }
 }
 </script>
