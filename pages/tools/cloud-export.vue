@@ -100,7 +100,7 @@
 <script>
 import {
   STATIC_FILE_COUNT,
-  buildCloudFileIds
+  buildCloudFileIds,
 } from "@/utils/cloudStaticPaths.js";
 import { WX_CLOUD_ENV_ID } from "@/utils/cloudAssetRuntime.js";
 
@@ -161,7 +161,8 @@ export default {
       const items = rawResults.map((item) => {
         const status = Number(item.status);
         const hasUrl = Boolean(item.tempFileURL);
-        const state = hasUrl || status === 0 ? "success" : status ? "failed" : "missing";
+        const state =
+          hasUrl || status === 0 ? "success" : status ? "failed" : "missing";
 
         return {
           relativePath: item.relativePath,

@@ -5,9 +5,15 @@
 
     <view class="hero">
       <view class="brand-mark">
-        <image class="brand-logo" :src="$cloudAssetUrl('static/banner/logo.svg')" mode="aspectFill" />
+        <image
+          class="brand-logo"
+          :src="$cloudAssetUrl('static/banner/logo.svg')"
+          mode="aspectFill"
+        />
       </view>
-      <text class="brand-desc">登录后查看村务公告、纠纷调解、积分商城等服务</text>
+      <text class="brand-desc"
+        >登录后查看村务公告、纠纷调解、积分商城等服务</text
+      >
     </view>
 
     <view class="login-card">
@@ -15,7 +21,11 @@
       <view class="card-subtitle">输入手机号与验证码即可快速进入</view>
 
       <view class="form-item">
-        <image class="field-icon" :src="$cloudAssetUrl('static/icons/user.svg')" mode="aspectFit" />
+        <image
+          class="field-icon"
+          :src="$cloudAssetUrl('static/icons/user.svg')"
+          mode="aspectFit"
+        />
         <input
           class="field-input"
           type="number"
@@ -27,7 +37,11 @@
       </view>
 
       <view class="form-item code-item">
-        <image class="field-icon" :src="$cloudAssetUrl('static/icons/bell.svg')" mode="aspectFit" />
+        <image
+          class="field-icon"
+          :src="$cloudAssetUrl('static/icons/bell.svg')"
+          mode="aspectFit"
+        />
         <input
           class="field-input"
           type="number"
@@ -37,7 +51,7 @@
           placeholder-class="placeholder"
         />
         <button class="code-btn" :disabled="countdown > 0" @click="onGetCode">
-          {{ countdown > 0 ? `${countdown}s` : '获取验证码' }}
+          {{ countdown > 0 ? `${countdown}s` : "获取验证码" }}
         </button>
       </view>
 
@@ -56,7 +70,9 @@
       <view class="wechat-btn" @click="onWechatLogin">微信一键登录</view>
     </view>
 
-    <view class="footer-note">登录即代表您同意平台规范，建议使用村级常用手机号登录</view>
+    <view class="footer-note"
+      >登录即代表您同意平台规范，建议使用村级常用手机号登录</view
+    >
   </view>
 </template>
 
@@ -64,65 +80,65 @@
 export default {
   data() {
     return {
-      phone: '',
-      code: '',
+      phone: "",
+      code: "",
       checked: true,
       countdown: 0,
-      timer: null
-    }
+      timer: null,
+    };
   },
   onUnload() {
     if (this.timer) {
-      clearInterval(this.timer)
-      this.timer = null
+      clearInterval(this.timer);
+      this.timer = null;
     }
   },
   methods: {
     onGetCode() {
       if (!this.phone || this.phone.length !== 11) {
-        uni.showToast({ title: '请输入正确手机号', icon: 'none' })
-        return
+        uni.showToast({ title: "请输入正确手机号", icon: "none" });
+        return;
       }
-      if (this.countdown > 0) return
-      uni.showToast({ title: '验证码已发送', icon: 'none' })
-      this.countdown = 60
+      if (this.countdown > 0) return;
+      uni.showToast({ title: "验证码已发送", icon: "none" });
+      this.countdown = 60;
       this.timer = setInterval(() => {
         if (this.countdown <= 1) {
-          clearInterval(this.timer)
-          this.timer = null
-          this.countdown = 0
-          return
+          clearInterval(this.timer);
+          this.timer = null;
+          this.countdown = 0;
+          return;
         }
-        this.countdown -= 1
-      }, 1000)
+        this.countdown -= 1;
+      }, 1000);
     },
     onLogin() {
       if (!this.checked) {
-        uni.showToast({ title: '请先同意协议', icon: 'none' })
-        return
+        uni.showToast({ title: "请先同意协议", icon: "none" });
+        return;
       }
       if (!this.phone || this.phone.length !== 11) {
-        uni.showToast({ title: '请输入正确手机号', icon: 'none' })
-        return
+        uni.showToast({ title: "请输入正确手机号", icon: "none" });
+        return;
       }
       if (!this.code || this.code.length < 4) {
-        uni.showToast({ title: '请输入验证码', icon: 'none' })
-        return
+        uni.showToast({ title: "请输入验证码", icon: "none" });
+        return;
       }
-      uni.showToast({ title: '登录成功', icon: 'success' })
+      uni.showToast({ title: "登录成功", icon: "success" });
     },
     onTestLogin() {
-      uni.reLaunch({ url: '/pages/law/law' })
+      uni.reLaunch({ url: "/pages/law/law" });
     },
     onWechatLogin() {
       if (!this.checked) {
-        uni.showToast({ title: '请先同意协议', icon: 'none' })
-        return
+        uni.showToast({ title: "请先同意协议", icon: "none" });
+        return;
       }
-      uni.showToast({ title: '微信登录待接入', icon: 'none' })
-    }
-  }
-}
+      uni.showToast({ title: "微信登录待接入", icon: "none" });
+    },
+  },
+};
 </script>
 
 <style lang="scss" scoped>
@@ -134,9 +150,16 @@ export default {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  background:
-    radial-gradient(circle at top left, rgba(93, 139, 58, 0.18), transparent 34%),
-    radial-gradient(circle at right 18%, rgba(230, 126, 34, 0.16), transparent 28%),
+  background: radial-gradient(
+      circle at top left,
+      rgba(93, 139, 58, 0.18),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at right 18%,
+      rgba(230, 126, 34, 0.16),
+      transparent 28%
+    ),
     linear-gradient(180deg, #fdfcf6 0%, #f7f4eb 100%);
 }
 

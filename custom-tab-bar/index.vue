@@ -8,7 +8,10 @@
         :class="{ active: currentPath === item.path }"
         @click="switchTo(item.path)"
       >
-        <view class="tab-icon-wrap" :class="{ active: currentPath === item.path }">
+        <view
+          class="tab-icon-wrap"
+          :class="{ active: currentPath === item.path }"
+        >
           <image
             class="tab-icon"
             :class="{ active: currentPath === item.path }"
@@ -26,35 +29,54 @@
 export default {
   data() {
     return {
-      iconVersion: '20260523a',
+      iconVersion: "20260523a",
       items: [
-        { path: '/pages/law/law', text: '法治服务', icon: 'static/icons/lawi.svg' },
-        { path: '/pages/village/village', text: '村民议事厅', icon: 'static/icons/villagei.svg' },
-        { path: '/pages/moral/moral', text: '道德银行', icon: 'static/icons/morali.svg' },
-        { path: '/pages/group/group', text: '惠民团购', icon: 'static/icons/groupi.svg' }
+        {
+          path: "/pages/law/law",
+          text: "法治服务",
+          icon: "static/icons/lawi.svg",
+        },
+        {
+          path: "/pages/village/village",
+          text: "村民议事厅",
+          icon: "static/icons/villagei.svg",
+        },
+        {
+          path: "/pages/moral/moral",
+          text: "道德银行",
+          icon: "static/icons/morali.svg",
+        },
+        {
+          path: "/pages/group/group",
+          text: "惠民团购",
+          icon: "static/icons/groupi.svg",
+        },
       ],
-      currentPath: '/pages/law/law'
-    }
+      currentPath: "/pages/law/law",
+    };
   },
   mounted() {
-    this.syncCurrentPath()
+    this.syncCurrentPath();
   },
   methods: {
     syncCurrentPath() {
-      const pages = getCurrentPages()
-      const currentPage = pages[pages.length - 1]
-      const route = currentPage && currentPage.route ? `/${currentPage.route}` : '/pages/law/law'
-      this.currentPath = route
+      const pages = getCurrentPages();
+      const currentPage = pages[pages.length - 1];
+      const route =
+        currentPage && currentPage.route
+          ? `/${currentPage.route}`
+          : "/pages/law/law";
+      this.currentPath = route;
     },
     switchTo(path) {
       if (this.currentPath === path) {
-        return
+        return;
       }
-      this.currentPath = path
-      uni.reLaunch({ url: path })
-    }
-  }
-}
+      this.currentPath = path;
+      uni.reLaunch({ url: path });
+    },
+  },
+};
 </script>
 
 <style lang="scss" scoped>
@@ -105,7 +127,11 @@ export default {
 }
 
 .tab-icon-wrap.active {
-  background: linear-gradient(180deg, rgba(235, 245, 238, 0.98) 0%, rgba(214, 232, 219, 0.98) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(235, 245, 238, 0.98) 0%,
+    rgba(214, 232, 219, 0.98) 100%
+  );
   box-shadow: 0 10rpx 22rpx rgba(47, 93, 58, 0.12);
   transform: translateY(-2rpx);
 }

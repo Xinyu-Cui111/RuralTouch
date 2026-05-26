@@ -1,7 +1,12 @@
 <template>
   <view class="product-card" @click="handleItemClick">
     <view class="media-wrap">
-      <image v-if="product.img" class="product-img" :src="$cloudAssetUrl(product.img)" mode="aspectFill"></image>
+      <image
+        v-if="product.img"
+        class="product-img"
+        :src="$cloudAssetUrl(product.img)"
+        mode="aspectFill"
+      ></image>
       <view v-else class="product-img placeholder">
         <text class="placeholder-text">暂无图片</text>
       </view>
@@ -27,20 +32,20 @@ export default {
     // 传入商品对象，包含 img, name, desc, price 等字段
     product: {
       type: Object,
-      required: true
-    }
+      required: true,
+    },
   },
   methods: {
     handleItemClick() {
-      this.$emit('click', this.product);
+      this.$emit("click", this.product);
     },
     handleAddToCart() {
       // 阻止事件冒泡
-      uni.showToast({ title: '已加入购物车', icon: 'none' });
-      this.$emit('add', this.product);
-    }
-  }
-}
+      uni.showToast({ title: "已加入购物车", icon: "none" });
+      this.$emit("add", this.product);
+    },
+  },
+};
 </script>
 
 <style lang="scss" scoped>
@@ -53,8 +58,7 @@ export default {
   overflow: hidden;
   margin: 0 auto;
   border: 1rpx solid rgba(255, 255, 255, 0.92);
-  box-shadow:
-    0 22rpx 44rpx rgba(15, 23, 42, 0.08),
+  box-shadow: 0 22rpx 44rpx rgba(15, 23, 42, 0.08),
     0 6rpx 14rpx rgba(15, 23, 42, 0.05);
   display: flex;
   flex-direction: row;
@@ -96,7 +100,7 @@ export default {
     flex-direction: column;
     justify-content: space-between;
     min-width: 0;
-    
+
     .name {
       font-size: 28rpx;
       font-weight: 700;
@@ -107,7 +111,7 @@ export default {
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    
+
     .desc {
       font-size: 18rpx;
       line-height: 1.5;
@@ -120,18 +124,18 @@ export default {
       -webkit-line-clamp: 2;
       overflow: hidden;
     }
-    
+
     .footer {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      
+
       .price {
         font-size: 28rpx;
         color: #0b7a3e;
         font-weight: 700;
       }
-      
+
       .cart-btn {
         width: 50rpx;
         height: 50rpx;
@@ -143,7 +147,7 @@ export default {
         justify-content: center;
         color: #fff;
         box-shadow: 0 6rpx 14rpx rgba(32, 138, 73, 0.34);
-        
+
         .plus-icon {
           font-size: 30rpx;
           line-height: 1;
