@@ -83,32 +83,60 @@ export async function loadCloudAssets() {
 
     const fileIds = buildCloudFileIds(WX_CLOUD_ENV_ID);
     const batches = chunkArray(fileIds, 50);
+    const failedPaths = [];
 
     for (const batch of batches) {
-      const response = await wx.cloud.getTempFileURL({
-        fileList: batch.map((item) => item.fileID),
-      });
+      try {
+        const response = await wx.cloud.getTempFileURL({
+          fileList: batch.map((item) => item.fileID),
+        });
 
-      const responseMap = new Map(
-        (response.fileList || []).map((item) => [item.fileID, item])
-      );
+        const responseMap = new Map(
+          (response.fileList || []).map((item) => [item.fileID, item])
+        );
 
-      batch.forEach((item) => {
-        const matched = responseMap.get(item.fileID);
-        if (matched && matched.tempFileURL) {
-          writeCloudAssetUrl(item.relativePath, matched.tempFileURL);
+        batch.forEach((item) => {
+          const matched = responseMap.get(item.fileID);
+          if (matched && matched.tempFileURL) {
+            writeCloudAssetUrl(item.relativePath, matched.tempFileURL);
+          } else {
+            failedPaths.push(item.relativePath);
+          }
+        });
+      } catch (batchError) {
+        for (const item of batch) {
+          try {
+            const response = await wx.cloud.getTempFileURL({
+              fileList: [item.fileID],
+            });
+
+            const matched = response.fileList && response.fileList[0];
+            if (matched && matched.tempFileURL) {
+              writeCloudAssetUrl(item.relativePath, matched.tempFileURL);
+            } else {
+              failedPaths.push(item.relativePath);
+            }
+          } catch (itemError) {
+            failedPaths.push(item.relativePath);
+          }
         }
-      });
+      }
     }
 
     cloudAssetState.ready = true;
+
+    if (failedPaths.length) {
+      const preview = failedPaths.slice(0, 5).join(", ");
+      const suffix =
+        failedPaths.length > 5 ? ` 等 ${failedPaths.length} 个文件` : "";
+      cloudAssetState.error = `部分云资源未解析成功：${preview}${suffix}`;
+    }
   } catch (error) {
     const message = error && error.message ? error.message : "load failed";
     const code = error && (error.errCode || error.code);
 
     cloudAssetState.error =
       code === 6000100 ? "云存储文件未绑定到当前环境或未完成上传。" : message;
-
     cloudAssetState.ready = false;
   } finally {
     cloudAssetState.loading = false;

@@ -5,6 +5,42 @@ export default {
   onLaunch() {
     console.log("智慧村务小程序启动");
     loadCloudAssets();
+
+    // 数据预拉取：注册回调并尝试读取已缓存的数据（如果微信客户端已预拉取）
+    if (typeof wx !== "undefined" && wx.onBackgroundFetchData) {
+      try {
+        wx.onBackgroundFetchData(function (res) {
+          // res: { fetchedData, timeStamp, path, query, scene }
+          console.log("onBackgroundFetchData:", res);
+          // 将数据缓存到全局，页面可通过 getApp().globalData 读取
+          try {
+            const app = getApp();
+            app.globalData = app.globalData || {};
+            app.globalData.backgroundFetch = res;
+          } catch (e) {
+            // ignore
+          }
+        });
+
+        // 主动读取预拉取缓存（fetchType 可为 'pre' 或 'periodic'）
+        wx.getBackgroundFetchData({
+          fetchType: "pre",
+          success(res) {
+            console.log("getBackgroundFetchData success:", res);
+            try {
+              const app = getApp();
+              app.globalData = app.globalData || {};
+              app.globalData.backgroundFetch = res;
+            } catch (e) {}
+          },
+          fail(err) {
+            console.warn("getBackgroundFetchData fail:", err);
+          },
+        });
+      } catch (e) {
+        console.warn("background fetch APIs not available:", e);
+      }
+    }
   },
 };
 </script>

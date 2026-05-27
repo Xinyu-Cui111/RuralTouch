@@ -104,18 +104,6 @@ import {
 } from "@/utils/cloudStaticPaths.js";
 import { WX_CLOUD_ENV_ID } from "@/utils/cloudAssetRuntime.js";
 
-const MAX_BATCH_SIZE = 50;
-
-function chunkArray(list, size) {
-  const chunks = [];
-
-  for (let index = 0; index < list.length; index += size) {
-    chunks.push(list.slice(index, index + size));
-  }
-
-  return chunks;
-}
-
 export default {
   data() {
     return {
@@ -212,20 +200,15 @@ export default {
         wx.cloud.init({ env: envId, traceUser: true });
 
         const fileIds = buildCloudFileIds(envId);
-        const batches = chunkArray(fileIds, MAX_BATCH_SIZE);
         const mergedResults = [];
 
-        for (const batch of batches) {
-          const response = await wx.cloud.getTempFileURL({
-            fileList: batch.map((item) => item.fileID),
-          });
+        for (const item of fileIds) {
+          try {
+            const response = await wx.cloud.getTempFileURL({
+              fileList: [item.fileID],
+            });
 
-          const responseMap = new Map(
-            (response.fileList || []).map((item) => [item.fileID, item])
-          );
-
-          batch.forEach((item) => {
-            const matched = responseMap.get(item.fileID);
+            const matched = response.fileList && response.fileList[0];
 
             mergedResults.push({
               relativePath: item.relativePath,
@@ -235,7 +218,16 @@ export default {
               status: matched && matched.status ? matched.status : "unknown",
               errMsg: matched && matched.errMsg ? matched.errMsg : "",
             });
-          });
+          } catch (error) {
+            mergedResults.push({
+              relativePath: item.relativePath,
+              fileID: item.fileID,
+              tempFileURL: "",
+              status:
+                (error && (error.errCode || error.code)) || "request-failed",
+              errMsg: error && error.message ? error.message : "导出失败",
+            });
+          }
         }
 
         this.results = this.normalizeResults(mergedResults);

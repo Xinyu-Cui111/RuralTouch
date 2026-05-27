@@ -126,6 +126,16 @@ export default {
         return;
       }
       uni.showToast({ title: "登录成功", icon: "success" });
+      // 登录成功后，设置 background fetch token（可选）
+      try {
+        if (typeof wx !== "undefined" && wx.setBackgroundFetchToken) {
+          // 这里使用手机号作为示例 token，实际应使用服务器生成的安全 token
+          wx.setBackgroundFetchToken({ token: `user-${this.phone}` });
+          console.log("setBackgroundFetchToken: user-" + this.phone);
+        }
+      } catch (e) {
+        console.warn("setBackgroundFetchToken not available", e);
+      }
     },
     onTestLogin() {
       uni.reLaunch({ url: "/pages/law/law" });
