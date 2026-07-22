@@ -1,258 +1,423 @@
 <template>
-  <view class="page">
-    <view class="banner">
-      <image class="banner-bg" src="/static/banner/profit.png" mode="widthFix" />
-      <view class="banner-topbar">
-        <view class="logo-area">
-          <image class="logo" src="/static/banner/logo.svg" mode="aspectFit" />
-          <text class="brand">智慧村务</text>
-        </view>
-        <view class="icon-group">
-          <image class="mini-icon" src="/static/icons/search.svg" mode="aspectFit" />
-          <image class="mini-icon" src="/static/icons/bell.svg" mode="aspectFit" />
-          <image class="mini-icon" src="/static/icons/user.svg" mode="aspectFit" />
-        </view>
-      </view>
-      <view class="banner-copy">
-        <text class="title">道德银行</text>
-        <text class="sub-title">积分记录善行，激励共建美好乡村</text>
-      </view>
-    </view>
+  <view class="page" :class="{ elder: elderOn }">
+    <page-hero compact variant="moral" title="调解激励" />
 
-    <view class="score-header">
-      <text class="score-header-title">我的积分</text>
-    </view>
-
-    <view class="score-box">
-      <view class="score-top">
-        <view class="score-num">1,250</view>
-        <view class="score-tip">当前可用积分</view>
+    <!-- 简洁模式：大按钮清单 -->
+    <view v-if="elderOn" class="elder-lite">
+      <view class="lite-points">
+        <text class="lite-kicker">当前积分</text>
+        <text class="lite-num">{{ pointsText }}</text>
       </view>
-
-      <view class="score-bottom">
-        <view class="score-btn-row">
-          <view class="score-btn" @click="onDeclare">
-            <image class="btn-icon-img" src="/static/moral-icons/cun.svg" mode="aspectFill" />
-            <text class="btn-text">积分申报</text>
-          </view>
-          <view class="line"></view>
-          <view class="score-btn" @click="onMall">
-            <image class="btn-icon-img" src="/static/moral-icons/fangzi.svg" mode="aspectFill" />
-            <text class="btn-text">积分商城</text>
-          </view>
-        </view>
+      <view
+        class="lite-btn primary"
+        hover-class="lite-press"
+        :hover-stay-time="80"
+        @click="onMall"
+      >
+        <text class="lite-btn-title">去积分商城兑换</text>
+        <text class="lite-btn-desc">日用品兑换</text>
+      </view>
+      <view
+        class="lite-btn"
+        hover-class="lite-press"
+        :hover-stay-time="80"
+        @click="onDeclare"
+      >
+        <text class="lite-btn-title">申报善行</text>
+        <text class="lite-btn-desc">村内公益加分</text>
+      </view>
+      <view
+        class="lite-btn"
+        hover-class="lite-press"
+        :hover-stay-time="80"
+        @click="goSubmit"
+      >
+        <text class="lite-btn-title">去说事建档</text>
+        <text class="lite-btn-desc">办结后可得积分</text>
       </view>
     </view>
 
-    <view class="record-header">
-      <text class="record-header-title">积分获取记录</text>
-    </view>
-
-    <view class="record-box">
-      <image class="section-bg" src="/static/banner/law.jpg" mode="aspectFill" />
-      <view class="card-content">
-      <view class="record-item">
-        <view class="record-left">
-          <image class="record-icon-img" src="/static/moral-icons/chuizi.svg" mode="aspectFill" />
-          <view class="record-text">
-            <text class="record-name">普法活动</text>
-            <text class="record-time">2025-10-20</text>
-          </view>
-        </view>
-        <text class="record-add">+50分</text>
-      </view>
-
-      <view class="record-item">
-        <view class="record-left">
-          <image class="record-icon-img" src="/static/moral-icons/woshou.svg" mode="aspectFill" />
-          <view class="record-text">
-            <text class="record-name">纠纷调解成功</text>
-            <text class="record-time">2025-10-18</text>
-          </view>
-        </view>
-        <text class="record-add">+100分</text>
-      </view>
-
-      <view class="record-item">
-        <view class="record-left">
-          <image class="record-icon-img" src="/static/moral-icons/sanjiao.svg" mode="aspectFill" />
-          <view class="record-text">
-            <text class="record-name">团购推广成功</text>
-            <text class="record-time">2025-10-15</text>
-          </view>
-        </view>
-        <text class="record-add">+30分</text>
-      </view>
-      </view>
-    </view>
-
-    <view class="record-header goods-header">
-      <text class="record-header-title">可兑换商品</text>
-    </view>
-
-    <view class="record-box goods-box">
-      <image class="section-bg" src="/static/banner/law.jpg" mode="aspectFill" />
-      <view class="card-content">
-      <view class="goods-list">
-        <view class="goods-item">
-          <image class="goods-icon-img" src="/static/moral-icons/shui.svg" mode="aspectFill" />
-          <view class="goods-text">
-            <text class="goods-name">洗衣液</text>
-            <text class="goods-time record-add">100分</text>
-          </view>
-        </view>
-
-        <view class="goods-item">
-          <image class="goods-icon-img" src="/static/moral-icons/mi.svg" mode="aspectFill" />
-          <view class="goods-text">
-            <text class="goods-name">大米</text>
-            <text class="goods-time record-add">200分</text>
-          </view>
-        </view>
-
-        <view class="goods-item">
-          <image class="goods-icon-img" src="/static/moral-icons/miao.svg" mode="aspectFill" />
-          <view class="goods-text">
-            <text class="goods-name">茶叶</text>
-            <text class="goods-time record-add">500分</text>
-          </view>
-        </view>
-
-        <view class="goods-item">
-          <image class="goods-icon-img" src="/static/moral-icons/banshou.svg" mode="aspectFill" />
-          <view class="goods-text">
-            <text class="goods-name">农具套装</text>
-            <text class="goods-time record-add">800分</text>
+    <template v-else>
+      <!-- 积分本 / 兑换凭证（器物化，去游戏币） -->
+      <view class="ledger-card enter">
+        <view class="ledger-spine" />
+        <view class="ledger-body">
+          <text class="ledger-stamp">积分本</text>
+          <text class="ledger-kicker">当前可用积分</text>
+          <text class="ledger-num" :class="{ pulse: pointsPulse }">{{
+            pointsText
+          }}</text>
+          <text class="ledger-hint">办结评价、善行申报可入账；可换日用品</text>
+          <view
+            class="ledger-cta"
+            hover-class="press"
+            :hover-stay-time="80"
+            @click="onMall"
+          >
+            <text class="ledger-cta-text">去兑换</text>
           </view>
         </view>
       </view>
-      </view>
-    </view>
+
+      <rt-section title="积分服务">
+        <view class="svc-grid">
+          <view
+            class="svc-card"
+            hover-class="svc-press"
+            :hover-stay-time="80"
+            @click="goSubmit"
+          >
+            <view class="svc-icon-wrap">
+              <rt-icon name="dispute" tone="gold" size="sm" />
+            </view>
+            <text class="svc-title">说事建档</text>
+            <text class="svc-desc">办结得积分</text>
+          </view>
+          <view
+            class="svc-card"
+            hover-class="svc-press"
+            :hover-stay-time="80"
+            @click="onDeclare"
+          >
+            <view class="svc-icon-wrap">
+              <rt-icon name="declare" tone="gold" size="sm" />
+            </view>
+            <text class="svc-title">申报善行</text>
+            <text class="svc-desc">村内公益</text>
+          </view>
+          <view
+            class="svc-card hot"
+            hover-class="svc-press"
+            :hover-stay-time="80"
+            @click="onMall"
+          >
+            <view class="svc-icon-wrap">
+              <rt-icon name="mall" tone="gold" size="sm" />
+            </view>
+            <text class="svc-title">积分兑换</text>
+            <text class="svc-desc">日用品</text>
+          </view>
+        </view>
+      </rt-section>
+
+      <rt-section title="积分明细">
+        <rt-card compact elevated tone="gold">
+          <rt-skeleton v-if="loading" variant="cell" :count="3" />
+          <empty-state
+            v-else-if="loadError"
+            icon-type="moral"
+            icon-tone="gold"
+            title="加载失败"
+            action-text="点击重试"
+            @action="loadProfile()"
+          />
+          <empty-state
+            v-else-if="!records.length"
+            icon-type="moral"
+            icon-tone="gold"
+            title="暂无积分记录"
+            desc="办结调解或申报善行后会显示在这里"
+            action-text="去说事"
+            @action="goSubmit"
+          />
+          <rt-cell
+            v-else
+            v-for="(item, idx) in records"
+            :key="item._id"
+            :title="item.title"
+            :desc="item.createTimeText"
+            icon="moral"
+            icon-tone="gold"
+            :tag="
+              item.status === 'pending'
+                ? '审核中'
+                : `${item.points > 0 ? '+' : ''}${item.points}分`
+            "
+            :tag-type="item.status === 'pending' ? 'pending' : 'done'"
+            :show-arrow="false"
+            :last="idx === records.length - 1"
+          />
+        </rt-card>
+      </rt-section>
+    </template>
 
     <tab-bar />
   </view>
 </template>
 
 <script>
-import TabBar from '@/components/tab-bar/bar.vue'
+import TabBar from "@/components/tab-bar/bar.vue";
+import EmptyState from "@/components/empty-state/empty-state.vue";
+import PageHero from "@/components/page-hero/page-hero.vue";
+import RtCard from "@/components/rt-card/rt-card.vue";
+import RtSection from "@/components/rt-section/rt-section.vue";
+import RtCell from "@/components/rt-cell/rt-cell.vue";
+import RtIcon from "@/components/rt-icon/rt-icon.vue";
+import RtSkeleton from "@/components/rt-skeleton/rt-skeleton.vue";
+import { api } from "@/api/index.js";
+import { ensureLoggedIn } from "@/utils/auth.js";
+import { goNavigate } from "@/utils/nav.js";
+import { isElderMode } from "@/utils/elder-mode.js";
 
 export default {
-  components: { TabBar },
+  components: {
+    TabBar,
+    EmptyState,
+    PageHero,
+    RtCard,
+    RtSection,
+    RtCell,
+    RtIcon,
+    RtSkeleton,
+  },
   data() {
-    return {}
+    return {
+      elderOn: false,
+      loading: true,
+      loadError: false,
+      points: 0,
+      records: [],
+      pointsPulse: false,
+    };
+  },
+  computed: {
+    pointsText() {
+      return Number(this.points || 0).toLocaleString();
+    },
+  },
+  onShow() {
+    this.elderOn = isElderMode();
+    if (!ensureLoggedIn()) return;
+    this.loadProfile();
+    this.pointsPulse = false;
+    this.$nextTick(() => {
+      this.pointsPulse = true;
+    });
+  },
+  onPullDownRefresh() {
+    this.loadProfile(true).finally(() => uni.stopPullDownRefresh());
   },
   methods: {
+    async loadProfile(isRefresh = false) {
+      if (!isRefresh) this.loading = true;
+      this.loadError = false;
+      try {
+        const res = await api.getMoralProfile();
+        this.points = res.data.points || 0;
+        this.records = res.data.records || [];
+      } catch (e) {
+        this.loadError = !this.records.length;
+        uni.showToast({ title: e.message || "加载失败", icon: "none" });
+      } finally {
+        this.loading = false;
+      }
+    },
+    goSubmit() {
+      goNavigate("/pages/village/submit");
+    },
     onDeclare() {
-      uni.navigateTo({ url: '/pages/moral/declare' })
+      goNavigate("/pages/moral/declare");
     },
     onMall() {
-      uni.navigateTo({ url: '/pages/moral/mall' })
-    }
-  }
-}
+      goNavigate("/pages/moral/mall");
+    },
+  },
+};
 </script>
 
 <style lang="scss" scoped>
-/* Page base */
-.page { padding: 0 24rpx 220rpx; box-sizing: border-box; background-color: #fcfcf0; min-height: 100vh; }
+@import "@/styles/theme.scss";
 
-/* Banner (copied from pages/group for consistent notch layout) */
-.banner {
-  height: 360rpx;
-  margin: 0 -24rpx 0;
-  position: relative;
-  overflow: hidden;
+.page {
+  @include rt-page;
+  padding: 0 $rt-page-x $rt-page-bottom;
 }
 
-.banner-bg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+.enter {
+  @include rt-enter(0s);
+}
+
+.elder-lite {
+  margin-bottom: 24rpx;
+}
+.lite-points {
+  margin-bottom: 24rpx;
+  padding: 32rpx 28rpx;
+  border-radius: $rt-radius-md;
+  background: #fff;
+  border: 1rpx solid rgba(201, 162, 74, 0.22);
+  box-shadow: $rt-shadow-sm;
+}
+.lite-kicker {
   display: block;
-  z-index: 0;
+  font-size: $rt-type-caption;
+  font-weight: 700;
+  color: $rt-gold-label;
+}
+.lite-num {
+  display: block;
+  margin-top: 10rpx;
+  font-family: $rt-font-title;
+  font-size: 64rpx;
+  font-weight: 800;
+  color: $rt-gold-value;
+  line-height: 1;
+}
+.lite-btn {
+  margin-bottom: 16rpx;
+  padding: 32rpx 28rpx;
+  min-height: 120rpx;
+  border-radius: $rt-radius-md;
+  background: #fff;
+  border: 1rpx solid rgba(50, 40, 30, 0.06);
+  box-shadow: $rt-shadow-sm;
+  box-sizing: border-box;
+}
+.lite-btn.primary {
+  background: linear-gradient(145deg, #fffef9 0%, #fff4d7 100%);
+  border-color: rgba(201, 162, 74, 0.28);
+}
+.lite-press {
+  opacity: 0.92;
+}
+.lite-btn-title {
+  display: block;
+  font-size: 34rpx;
+  font-weight: 800;
+  color: $rt-text;
+}
+.lite-btn-desc {
+  display: block;
+  margin-top: 8rpx;
+  font-size: $rt-type-caption;
+  color: $rt-text-secondary;
 }
 
-.banner-topbar {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 44rpx;
-  z-index: 2;
-  height: 88rpx;
+.ledger-card {
+  position: relative;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 40rpx 28rpx 0 24rpx;
+  margin-bottom: 28rpx;
+  border-radius: $rt-radius-lg;
+  overflow: hidden;
+  background: #fff;
+  border: 1rpx solid rgba(201, 162, 74, 0.28);
+  box-shadow: $rt-shadow-card;
 }
-
-.logo-area { display: flex; align-items: center; gap: 22rpx; }
-.logo { width: 104rpx; height: 104rpx; border-radius: 50%; overflow: hidden; background: rgba(255,255,255,0.55); backdrop-filter: blur(2px); display:block; }
-.brand { font-size: 32rpx; font-weight: 500; color: #2b3a23; }
-.icon-group { display:flex; gap:22rpx; align-items:center; }
-.mini-icon { width:54rpx; height:54rpx; }
-
-.banner-copy { position: absolute; left: 10vw; top: 176rpx; z-index: 2; max-width: 70%; }
-.title { display:block; font-size: 64rpx; font-weight: 600; line-height: 1.0; color: #2b3a23; }
-.sub-title { display:block; margin-top: 10rpx; font-size: 28rpx; font-weight:500; color:#4a5f3e; white-space:nowrap; }
-
-.score-header { padding: 0 6rpx; }
-.score-header-title { display: flex; align-items: center; font-size: 34rpx; font-weight: 700; color: #2c4a30; margin: 18rpx 0 6rpx; }
-.score-header-title::before {
-  content: '';
-  width: 6rpx;
-  height: 22rpx;
-  margin-right: 12rpx;
-  background: #2c4a30;
-  border-radius: 999rpx;
+.ledger-spine {
+  width: 18rpx;
   flex-shrink: 0;
+  background: linear-gradient(180deg, #c9a24a 0%, #8f6e24 100%);
+}
+.ledger-body {
+  flex: 1;
+  padding: 36rpx 32rpx 32rpx;
+  background: radial-gradient(
+      ellipse 70% 50% at 100% 0%,
+      rgba(255, 249, 230, 0.9) 0%,
+      transparent 55%
+    ),
+    linear-gradient(180deg, #fffefa 0%, #fff9ec 100%);
+}
+.ledger-stamp {
+  display: inline-block;
+  padding: 4rpx 14rpx;
+  border-radius: 8rpx;
+  border: 2rpx solid rgba(143, 110, 36, 0.45);
+  color: $rt-gold-label;
+  font-size: 20rpx;
+  font-weight: 800;
+  letter-spacing: 4rpx;
+  margin-bottom: 16rpx;
+}
+.ledger-kicker {
+  display: block;
+  font-size: $rt-type-caption;
+  font-weight: 700;
+  color: $rt-gold-label;
+}
+.ledger-num {
+  display: block;
+  margin-top: 12rpx;
+  font-family: $rt-font-title;
+  font-size: 72rpx;
+  font-weight: 800;
+  line-height: 1;
+  color: $rt-gold-value;
+}
+.ledger-num.pulse {
+  animation: points-pulse 0.75s ease-out 1;
+}
+@keyframes points-pulse {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.ledger-hint {
+  display: block;
+  margin-top: 14rpx;
+  font-size: $rt-type-micro;
+  color: $rt-text-secondary;
+  line-height: 1.45;
+}
+.ledger-cta {
+  margin-top: 24rpx;
+  display: inline-flex;
+  padding: 16rpx 32rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, $rt-accent-dark, $rt-accent);
+}
+.ledger-cta-text {
+  font-size: $rt-type-body;
+  font-weight: 800;
+  color: #fff;
+}
+.press {
+  opacity: 0.92;
 }
 
-  .score-box { margin: 0 0 24rpx; background:
-  linear-gradient(135deg, #ffffff 0%, #fffef9 16%, #fff4d7 42%, #f4e3b0 64%, #fffdf5 100%);
-  border-radius: 28rpx; padding: 20rpx; text-align: center; border: 1rpx solid rgba(255, 255, 255, 0.98); box-shadow:
-  0 22rpx 44rpx rgba(15, 23, 42, 0.08),
-  0 6rpx 14rpx rgba(15, 23, 42, 0.05); display:flex; flex-direction:column; justify-content:space-between; height:360rpx; overflow: hidden; }
-.score-top { display:flex; flex-direction:column; align-items:center; justify-content:flex-start; margin-top:6rpx; }
-.score-num { font-size: 84rpx; font-weight: 800; color: #c48b38; margin: 6rpx 0 6rpx; }
-.score-tip { font-size: 28rpx; color: #9a8a6a; margin-bottom: 6rpx; }
-
-.score-bottom { display:flex; align-items:flex-end; justify-content:center; }
-.score-btn-row { display: flex; align-items: center; gap: 18rpx; width: 100%; max-width: 680rpx; justify-content: center; }
-.score-btn { width: 44%; display: flex; align-items: center; justify-content: center; gap: 14rpx; padding: 8rpx 12rpx; background: transparent; border-radius: 14rpx; }
-.btn-icon-img { width: 96rpx; height: 96rpx; display: block; border-radius: 18rpx; overflow: hidden; object-fit: cover; background: #ffffff; box-shadow: 0 6rpx 20rpx rgba(16,24,40,0.06); }
-.btn-text { font-size: 36rpx; color: #2b3a23; font-weight: 800; }
-.line { width: 1rpx; height: 160rpx; background: #eee; border-radius: 1rpx; }
-  .record-box, .goods-box { margin: 0; position: relative; overflow: hidden; background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); border-radius: 28rpx; padding: 30rpx; border: 1rpx solid rgba(255, 255, 255, 0.92); box-shadow:
-  0 22rpx 44rpx rgba(15, 23, 42, 0.08),
-  0 6rpx 14rpx rgba(15, 23, 42, 0.05); }
-
-  .record-header { padding: 0 6rpx; margin: 24rpx 0 12rpx; display:flex; justify-content:flex-start; align-items:center; }
-  .record-header-title { display: flex; align-items: center; font-size: 34rpx; font-weight: 700; color: #2c4a30; margin: 0; }
-  .record-header-title::before {
-    content: '';
-    width: 6rpx;
-    height: 22rpx;
-    margin-right: 12rpx;
-    background: #2c4a30;
-    border-radius: 999rpx;
-    flex-shrink: 0;
-  }
-.record-item { display: flex; justify-content: space-between; align-items: center; padding: 20rpx 0; border-bottom: 1rpx solid #eee; }
-.record-item:last-child { border-bottom: none; }
-.record-left { display:flex; align-items:center; gap: 20rpx; flex: 1; min-width: 0; }
-.record-text { display:flex; flex-direction:column; justify-content:center; min-width: 0; }
-.record-name { display:block; font-size: 30rpx; font-weight: 700; color: #111827; line-height: 1.2; }
-.record-time { display:block; margin-top: 8rpx; font-size: 24rpx; color: #8f9688; line-height: 1.2; }
-.record-icon-img { width: 96rpx; height: 96rpx; display: block; border-radius: 18rpx; overflow: hidden; background: #ffffff; box-shadow: 0 6rpx 20rpx rgba(16,24,40,0.06); object-fit: cover; }
-.record-add { font-size: 34rpx; color: #c48b38; font-weight: 800; flex-shrink: 0; }
-.goods-header { margin-top: 24rpx; margin-bottom: 12rpx; }
-.goods-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20rpx 18rpx; }
-.goods-item { display: flex; align-items: center; gap: 18rpx; padding: 18rpx 6rpx; box-sizing: border-box; min-width: 0; }
-.goods-icon-img { width: 96rpx; height: 96rpx; display: block; border-radius: 18rpx; overflow: hidden; background: #ffffff; box-shadow: 0 6rpx 20rpx rgba(16,24,40,0.06); object-fit: cover; flex-shrink: 0; }
-.goods-text { display: flex; flex-direction: column; justify-content: center; min-width: 0; }
-.goods-name { display:block; font-size: 30rpx; font-weight: 700; color: #111827; line-height: 1.2; }
-.goods-time { display:block; margin-top: 8rpx; line-height: 1.2; }
-.section-bg { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 1; z-index: 0; }
-.card-content { position: relative; z-index: 1; background: transparent; }
+.svc-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16rpx;
+}
+.svc-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28rpx 12rpx 24rpx;
+  border-radius: $rt-radius-md;
+  background: #fff;
+  border: 1rpx solid rgba(201, 162, 74, 0.22);
+  box-shadow: $rt-shadow-sm;
+  text-align: center;
+}
+.svc-card.hot {
+  background: linear-gradient(160deg, #fffef5 0%, #fff4d7 100%);
+  border: 2rpx solid rgba(201, 162, 74, 0.4);
+}
+.svc-press {
+  opacity: 0.9;
+  transform: scale(0.98);
+}
+.svc-icon-wrap {
+  @include rt-icon-tile(72rpx);
+  margin-bottom: 14rpx;
+  background: $rt-accent-soft;
+}
+.svc-title {
+  font-size: 26rpx;
+  font-weight: 800;
+  color: $rt-text;
+}
+.svc-desc {
+  margin-top: 6rpx;
+  font-size: 20rpx;
+  color: $rt-text-muted;
+}
 </style>

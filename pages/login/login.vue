@@ -1,363 +1,404 @@
 <template>
   <view class="page">
-    <view class="bg-orb orb-one"></view>
-    <view class="bg-orb orb-two"></view>
-
-    <view class="hero">
-      <view class="brand-mark">
-        <image class="brand-logo" src="/static/banner/logo.svg" mode="aspectFill" />
-      </view>
-      <text class="brand-desc">登录后查看村务公告、纠纷调解、积分商城等服务</text>
+    <view class="bg-layer">
+      <view class="mesh" />
+      <view class="orb o1" />
+      <view class="orb o2" />
     </view>
 
-    <view class="login-card">
-      <view class="card-title">手机号登录</view>
-      <view class="card-subtitle">输入手机号与验证码即可快速进入</view>
-
-      <view class="form-item">
-        <image class="field-icon" src="/static/icons/user.svg" mode="aspectFit" />
-        <input
-          class="field-input"
-          type="number"
-          maxlength="11"
-          v-model="phone"
-          placeholder="请输入手机号"
-          placeholder-class="placeholder"
-        />
+    <view class="content" :style="{ paddingTop: safePadTop + 'px' }">
+      <view class="brand-block">
+        <view class="logo-mark">
+          <image
+            class="logo-img"
+            src="/static/lite/logo.jpg"
+            mode="aspectFit"
+            lazy-load
+          />
+        </view>
+        <text class="brand-name">指尖善治</text>
+        <text class="brand-tagline">{{ tagline }}</text>
       </view>
 
-      <view class="form-item code-item">
-        <image class="field-icon" src="/static/icons/bell.svg" mode="aspectFit" />
-        <input
-          class="field-input"
-          type="number"
-          maxlength="6"
-          v-model="code"
-          placeholder="请输入验证码"
-          placeholder-class="placeholder"
-        />
-        <button class="code-btn" :disabled="countdown > 0" @click="onGetCode">
-          {{ countdown > 0 ? `${countdown}s` : '获取验证码' }}
+      <view class="login-card">
+        <text class="card-title">{{ welcome }}</text>
+        <text class="card-sub">{{ cardSub }}</text>
+
+        <view class="field">
+          <view class="field-icon-wrap">
+            <view class="phone-body" />
+            <view class="phone-btn" />
+          </view>
+          <input
+            class="field-input"
+            type="number"
+            maxlength="11"
+            v-model="phone"
+            placeholder="请输入手机号"
+            placeholder-class="ph"
+          />
+        </view>
+
+        <view class="agreement">
+          <view
+            class="check"
+            :class="{ on: checked }"
+            @click="checked = !checked"
+          >
+            <view v-if="checked" class="check-mark" />
+          </view>
+          <text class="agree-text">我已阅读并同意</text>
+          <text class="agree-link" @click="openAgreement('user')"
+            >《用户协议》</text
+          >
+          <text class="agree-text">和</text>
+          <text class="agree-link" @click="openAgreement('privacy')"
+            >《隐私政策》</text
+          >
+        </view>
+
+        <button class="btn-primary" :loading="loading" @click="onPhoneLogin">
+          手机号登录
+        </button>
+        <button class="btn-ghost" :loading="loading" @click="onWechatLogin">
+          <view class="wechat-dot" />
+          微信一键登录
         </button>
       </view>
-
-      <view class="agreement-row" @click="checked = !checked">
-        <view class="checkbox" :class="{ active: checked }">
-          <text v-if="checked">✓</text>
-        </view>
-        <text class="agreement-text">我已阅读并同意</text>
-        <text class="agreement-link">《用户协议》</text>
-        <text class="agreement-text">和</text>
-        <text class="agreement-link">《隐私政策》</text>
-      </view>
-
-      <button class="login-btn" @click="onLogin">登录</button>
-      <view class="test-login-btn" @click="onTestLogin">测试登录</view>
-      <view class="wechat-btn" @click="onWechatLogin">微信一键登录</view>
     </view>
-
-    <view class="footer-note">登录即代表您同意平台规范，建议使用村级常用手机号登录</view>
   </view>
 </template>
 
 <script>
+import { wxLogin, isLoggedIn } from "@/utils/cloud.js";
+import { api } from "@/api/index.js";
+import { goAfterLogin } from "@/utils/auth.js";
+import { getSafeLayout } from "@/utils/safe-area.js";
+import { COPY } from "@/utils/copy-voice.js";
+
 export default {
   data() {
     return {
-      phone: '',
-      code: '',
-      checked: true,
-      countdown: 0,
-      timer: null
-    }
+      phone: "",
+      checked: false,
+      loading: false,
+      safePadTop: 48,
+      tagline: COPY.loginTagline,
+      welcome: COPY.loginWelcome,
+      cardSub: COPY.loginSub,
+    };
   },
-  onUnload() {
-    if (this.timer) {
-      clearInterval(this.timer)
-      this.timer = null
-    }
+  onLoad() {
+    const layout = getSafeLayout();
+    this.safePadTop = layout.contentTop + 24;
+  },
+  onShow() {
+    if (isLoggedIn()) goAfterLogin();
   },
   methods: {
-    onGetCode() {
-      if (!this.phone || this.phone.length !== 11) {
-        uni.showToast({ title: '请输入正确手机号', icon: 'none' })
-        return
+    openAgreement(type) {
+      const path =
+        type === "privacy"
+          ? "/pages/agreement/privacy"
+          : "/pages/agreement/user";
+      uni.navigateTo({ url: path });
+    },
+    ensureAgreement() {
+      if (!this.checked) {
+        uni.showToast({ title: "请先同意协议", icon: "none" });
+        return false;
       }
-      if (this.countdown > 0) return
-      uni.showToast({ title: '验证码已发送', icon: 'none' })
-      this.countdown = 60
-      this.timer = setInterval(() => {
-        if (this.countdown <= 1) {
-          clearInterval(this.timer)
-          this.timer = null
-          this.countdown = 0
-          return
+      return true;
+    },
+    enterApp() {
+      goAfterLogin();
+    },
+    async onPhoneLogin() {
+      if (!this.ensureAgreement()) return;
+      if (!this.phone || this.phone.length !== 11) {
+        uni.showToast({ title: "请输入正确手机号", icon: "none" });
+        return;
+      }
+      this.loading = true;
+      try {
+        await wxLogin();
+        const res = await api.login({ phone: this.phone });
+        if (res.data && res.data.user) {
+          uni.setStorageSync("rt_user", res.data.user);
         }
-        this.countdown -= 1
-      }, 1000)
+        uni.showToast({ title: "登录成功", icon: "success" });
+        setTimeout(() => this.enterApp(), 500);
+      } catch (e) {
+        uni.showToast({ title: e.message || "登录失败", icon: "none" });
+      } finally {
+        this.loading = false;
+      }
     },
-    onLogin() {
-      if (!this.checked) {
-        uni.showToast({ title: '请先同意协议', icon: 'none' })
-        return
+    async onWechatLogin() {
+      if (!this.ensureAgreement()) return;
+      this.loading = true;
+      try {
+        await wxLogin();
+        uni.showToast({ title: "登录成功", icon: "success" });
+        setTimeout(() => this.enterApp(), 500);
+      } catch (e) {
+        uni.showModal({
+          title: "登录失败",
+          content: e.message || "请检查云函数与数据库集合是否已配置",
+          showCancel: false,
+        });
+      } finally {
+        this.loading = false;
       }
-      if (!this.phone || this.phone.length !== 11) {
-        uni.showToast({ title: '请输入正确手机号', icon: 'none' })
-        return
-      }
-      if (!this.code || this.code.length < 4) {
-        uni.showToast({ title: '请输入验证码', icon: 'none' })
-        return
-      }
-      uni.showToast({ title: '登录成功', icon: 'success' })
     },
-    onTestLogin() {
-      uni.reLaunch({ url: '/pages/law/law' })
-    },
-    onWechatLogin() {
-      if (!this.checked) {
-        uni.showToast({ title: '请先同意协议', icon: 'none' })
-        return
-      }
-      uni.showToast({ title: '微信登录待接入', icon: 'none' })
-    }
-  }
-}
+  },
+};
 </script>
 
 <style lang="scss" scoped>
+@import "@/styles/theme.scss";
+
 .page {
   position: relative;
   min-height: 100vh;
-  padding: 48rpx 40rpx 72rpx;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  background:
-    radial-gradient(circle at top left, rgba(93, 139, 58, 0.18), transparent 34%),
-    radial-gradient(circle at right 18%, rgba(230, 126, 34, 0.16), transparent 28%),
-    linear-gradient(180deg, #fdfcf6 0%, #f7f4eb 100%);
 }
 
-.bg-orb {
+.bg-layer {
+  position: absolute;
+  inset: 0;
+  @include rt-hero-mesh(#9e3428, #c9a24a, #5a6b38);
+}
+
+.orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(6rpx);
-  opacity: 0.65;
+  filter: blur(50rpx);
 }
-
-.orb-one {
-  top: -60rpx;
-  left: -40rpx;
-  width: 220rpx;
-  height: 220rpx;
-  background: rgba(93, 139, 58, 0.16);
+.o1 {
+  width: 320rpx;
+  height: 320rpx;
+  top: -100rpx;
+  right: -60rpx;
+  background: rgba(158, 52, 40, 0.16);
 }
-
-.orb-two {
-  right: -70rpx;
-  top: 220rpx;
+.o2 {
   width: 260rpx;
   height: 260rpx;
-  background: rgba(230, 126, 34, 0.12);
+  bottom: 120rpx;
+  left: -80rpx;
+  background: rgba(201, 162, 74, 0.18);
 }
 
-.hero {
+.content {
   position: relative;
   z-index: 1;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  margin-bottom: 36rpx;
-  text-align: center;
+  justify-content: center;
+  padding: 48rpx 48rpx calc(64rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
 }
 
-.brand-mark {
-  width: 192rpx;
-  height: 192rpx;
-  border-radius: 50rpx;
-  overflow: hidden;
+.brand-block {
+  text-align: center;
+  margin-bottom: 48rpx;
+}
+
+.logo-mark {
+  width: 176rpx;
+  height: 176rpx;
+  margin: 0 auto 32rpx;
+  border-radius: 48rpx;
+  background: linear-gradient(145deg, $rt-primary, $rt-primary-mid);
+  box-shadow: $rt-shadow-glow, 0 0 0 8rpx rgba(255, 255, 255, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.78);
-  box-shadow: 0 18rpx 40rpx rgba(64, 84, 43, 0.12);
-  margin-bottom: 24rpx;
+  overflow: hidden;
 }
 
-.brand-logo {
+.logo-img {
   width: 100%;
   height: 100%;
 }
 
 .brand-name {
-  font-size: 44rpx;
+  display: block;
+  font-size: 52rpx;
   font-weight: 800;
-  color: #23411f;
-  letter-spacing: 2rpx;
+  color: $rt-text;
+  letter-spacing: 6rpx;
 }
 
-.brand-desc {
-  margin-top: 16rpx;
-  font-size: 26rpx;
-  line-height: 1.7;
-  color: #6a735f;
-  max-width: 560rpx;
+.brand-tagline {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 28rpx;
+  color: $rt-text-secondary;
+}
+
+.feature-chips {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 24rpx;
+}
+
+.chip {
+  padding: 10rpx 20rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1rpx solid rgba(255, 255, 255, 0.9);
+  font-size: 22rpx;
+  color: $rt-primary-mid;
+  font-weight: 600;
 }
 
 .login-card {
   position: relative;
-  z-index: 1;
-  padding: 38rpx 30rpx 34rpx;
-  border-radius: 34rpx;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1rpx solid rgba(255, 255, 255, 0.95);
-  box-shadow: 0 24rpx 60rpx rgba(32, 45, 26, 0.1);
-  backdrop-filter: blur(8rpx);
+  overflow: hidden;
+  padding: 44rpx 40rpx;
+  border-radius: $rt-radius-lg;
+  @include rt-card-tone(gold);
+  backdrop-filter: blur(24rpx);
+  box-shadow: $rt-shadow-card, 0 12rpx 40rpx rgba(201, 162, 74, 0.1);
 }
 
 .card-title {
-  font-size: 36rpx;
+  display: block;
+  font-size: 38rpx;
   font-weight: 800;
-  color: #23331d;
+  color: $rt-text;
 }
 
-.card-subtitle {
-  margin-top: 10rpx;
-  margin-bottom: 28rpx;
-  font-size: 24rpx;
-  color: #7a846e;
+.card-sub {
+  display: block;
+  margin-top: 8rpx;
+  margin-bottom: 32rpx;
+  font-size: 26rpx;
+  color: $rt-text-muted;
 }
 
-.form-item {
+.field {
   display: flex;
   align-items: center;
-  gap: 18rpx;
-  min-height: 98rpx;
+  gap: 20rpx;
   padding: 0 24rpx;
-  margin-bottom: 20rpx;
-  border-radius: 28rpx;
-  background: #f9f7f0;
-  border: 1rpx solid rgba(93, 139, 58, 0.12);
+  height: 104rpx;
+  border-radius: $rt-radius-sm;
+  background: $rt-bg;
+  border: 1rpx solid $rt-border;
+  margin-bottom: 24rpx;
 }
 
-.field-icon {
-  width: 34rpx;
-  height: 34rpx;
-  opacity: 0.9;
+.field-icon-wrap {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 14rpx;
+  background: $rt-primary-soft;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.phone-body {
+  width: 18rpx;
+  height: 26rpx;
+  border: 3rpx solid $rt-primary-mid;
+  border-radius: 6rpx;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.phone-btn {
+  position: absolute;
+  bottom: 7rpx;
+  left: 50%;
+  width: 6rpx;
+  height: 3rpx;
+  margin-left: -3rpx;
+  background: $rt-primary-mid;
+  border-radius: 999rpx;
 }
 
 .field-input {
   flex: 1;
-  height: 98rpx;
   font-size: 30rpx;
-  color: #25311f;
+  color: $rt-text;
 }
 
-.placeholder {
-  color: #a6b0a0;
+.ph {
+  color: $rt-text-muted;
 }
 
-.code-item {
-  padding-right: 14rpx;
-}
-
-.code-btn {
-  min-width: 168rpx;
-  height: 66rpx;
-  line-height: 66rpx;
-  padding: 0 18rpx;
-  border-radius: 18rpx;
-  background: linear-gradient(135deg, #5b8c3a 0%, #4c7a2e 100%);
-  color: #fff;
-  font-size: 24rpx;
-  font-weight: 700;
-}
-
-.code-btn[disabled] {
-  background: #c8d2bd;
-  color: #f8fbf5;
-}
-
-.agreement-row {
+.agreement {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8rpx;
-  margin: 8rpx 0 26rpx;
-  color: #6f7768;
+  margin-bottom: 32rpx;
   font-size: 24rpx;
+  color: $rt-text-muted;
 }
 
-.checkbox {
-  width: 28rpx;
-  height: 28rpx;
-  border-radius: 50%;
-  border: 2rpx solid #b6c2aa;
+.check {
+  width: 32rpx;
+  height: 32rpx;
+  border-radius: 10rpx;
+  border: 2rpx solid $rt-border-strong;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: transparent;
-  font-size: 20rpx;
   margin-right: 4rpx;
 }
 
-.checkbox.active {
-  background: #5b8c3a;
-  border-color: #5b8c3a;
-  color: #fff;
+.check.on {
+  background: $rt-primary;
+  border-color: $rt-primary;
 }
 
-.agreement-link {
-  color: #2f5f28;
+.check-mark {
+  width: 10rpx;
+  height: 16rpx;
+  border-right: 3rpx solid #fff;
+  border-bottom: 3rpx solid #fff;
+  transform: rotate(45deg) translateY(-2rpx);
 }
 
-.login-btn {
-  height: 92rpx;
-  line-height: 92rpx;
+.agree-link {
+  color: $rt-primary-mid;
+  font-weight: 600;
+}
+
+.btn-primary {
+  @include rt-btn-primary;
+  width: 100%;
+}
+
+.btn-ghost {
+  @include rt-btn-reset;
+  margin-top: 20rpx;
+  height: 96rpx;
   border-radius: 999rpx;
-  background: linear-gradient(135deg, #3f7a29 0%, #5b8c3a 100%);
-  color: #fff;
-  font-size: 32rpx;
-  font-weight: 800;
-  box-shadow: 0 18rpx 32rpx rgba(91, 140, 58, 0.22);
-}
-
-.test-login-btn {
-  margin-top: 16rpx;
-  height: 84rpx;
-  line-height: 84rpx;
-  border-radius: 999rpx;
-  border: 1rpx solid rgba(91, 140, 58, 0.22);
-  background: rgba(91, 140, 58, 0.06);
-  color: #3f7a29;
-  text-align: center;
-  font-size: 28rpx;
-  font-weight: 700;
-}
-
-.wechat-btn {
-  margin-top: 18rpx;
-  height: 88rpx;
-  line-height: 88rpx;
-  border-radius: 999rpx;
-  border: 1rpx solid rgba(91, 140, 58, 0.2);
-  background: rgba(255, 255, 255, 0.86);
-  color: #3a5c2f;
-  text-align: center;
+  background: $rt-surface;
+  border: 1rpx solid $rt-border-strong;
+  color: $rt-text;
   font-size: 30rpx;
-  font-weight: 700;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
 }
 
-.footer-note {
-  position: relative;
-  z-index: 1;
-  margin-top: 28rpx;
-  padding: 0 20rpx;
-  font-size: 22rpx;
-  line-height: 1.7;
-  text-align: center;
-  color: #8b9181;
+.wechat-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background: #07c160;
 }
 </style>

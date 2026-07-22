@@ -1,0 +1,90 @@
+/** 统一「村委协办员」口语人设文案 · V7 再口语半档 */
+
+export const COPY = {
+  brandHelper: "村委协办员",
+  aiDisclaimer: "协办建议仅供参考，正式办理以村委受理为准",
+  emergency: "人身安全请先拨打 110 / 120",
+  callVillage: "联系村委",
+  goSubmit: "去说事建档",
+  goSubmitShort: "去说事",
+  goProgress: "查看进度",
+  nextStep: "下一步该做什么",
+  conclusion: "结论",
+  basis: "依据",
+  act: "去办事",
+  homeKicker: "有事找村委",
+  homeSayTitle: "把事情说清楚就行",
+  homeSayDesc: "说完经过，协办员帮您整理成案，村委接着办",
+  homeNoticeTitle: "有新通知，先看一眼",
+  sectionCases: "我的调解",
+  sectionCasesEmpty: "还没有办件",
+  sectionCasesEmptyDesc: "有事可以说，我们帮您整理成案",
+  elderAskTitle: "开启老年简洁模式？",
+  elderAskContent:
+    "底栏改为「办事 / 办件 / 我的」，字更大；商城与团购进「我的→更多」。关闭后恢复五入口。",
+  elderOn: "已开启老年模式",
+  elderOff: "保持标准界面",
+  elderBanner: "简洁模式 · 办事 / 办件 / 我的",
+  elderExit: "恢复完整底栏",
+  elderExitToast: "已恢复标准界面（5 个底栏）",
+  elderOnToast: "已开启简洁三路径",
+  ceremonyTitle: "办结完成",
+  ceremonySub: "感谢您的反馈，激励积分可用于兑换日用品",
+  ceremonyPoints: "本次办结激励 +30 积分",
+  casePushPrefix: "办件有新消息",
+  bootBackHome: "回办事首页",
+  profileTodoEmpty: "暂无待办，有事就说",
+  profileRecent: "最近办件",
+  adminWorkbench: "今日工单",
+
+  // V8 · 双 AI 人设
+  aiVillageTitle: "村务协办",
+  aiVillageWelcome: "我是村委协办员，帮您把事说明白、办下去",
+  aiVillageHint: "问进度、问材料、问下一步；要正式调解请去说事建档",
+  aiVillageCta: "去说事建档",
+  aiLegalTitle: "普法顾问",
+  aiLegalWelcome: "我帮您把常见规矩说清楚",
+  aiLegalHint: "看土地、邻里、欠薪、防诈等要点；正式调解请走说事建档",
+  aiLegalCta: "去说事建档",
+  aiSwitchLegal: "去看法条顾问",
+  aiSwitchVillage: "去问村务协办",
+  homeWeakAi: "问协办",
+  profileAiVillage: "村务协办",
+  profileAiVillageDesc: "办件进度与下一步",
+  profileAiLegal: "普法顾问",
+  profileAiLegalDesc: "土地邻里等常见问题",
+
+  // V8 · 登录 / 引导
+  loginTagline: "有事，说给村委听",
+  loginSub: "登录后可说事建档、查看进度",
+  loginWelcome: "欢迎使用指尖善治",
+  onboarding1Title: "有事就说",
+  onboarding1Desc: "把经过说清楚，协办员帮您整理成案",
+  onboarding1Points: [
+    "按住可以说，也能打字",
+    "整理好再提交给村委",
+    "人身安全先打 110 / 120",
+  ],
+  onboarding2Title: "看着办到哪一步",
+  onboarding2Desc: "受理、办理、办结，进度一眼明白",
+  onboarding2Points: [
+    "首页主卡提醒您跟进",
+    "可催办、可补充材料",
+    "村委更新您能看见",
+  ],
+  onboarding3Title: "办结有激励",
+  onboarding3Desc: "办结评价后得积分，可换日用品",
+  onboarding3Points: ["积分进账户", "商城兑换日用品", "简洁模式字更大更好用"],
+};
+
+export function sourceLabelOf(source) {
+  const map = {
+    llm: "大模型建议",
+    rule: "规则引擎",
+    rule_fallback: "规则降级（模型暂不可用）",
+    rag: "知识检索",
+    rag_llm: "检索 + 大模型",
+    cache: "短缓存",
+  };
+  return map[source] || (source ? String(source) : "协办建议");
+}

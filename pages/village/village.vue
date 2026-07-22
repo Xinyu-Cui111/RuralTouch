@@ -1,267 +1,824 @@
 <template>
-  <view class="page">
-    <view class="banner">
-      <image class="banner-bg" src="/static/banner/profit.png" mode="widthFix" />
-      <view class="banner-topbar">
-        <view class="logo-area">
-          <image class="logo" src="/static/banner/logo.svg" mode="aspectFit" />
-          <text class="brand">智慧村务</text>
-        </view>
-        <view class="icon-group">
-          <image class="mini-icon" src="/static/icons/search.svg" mode="aspectFit" />
-          <image class="mini-icon" src="/static/icons/bell.svg" mode="aspectFit" />
-          <image class="mini-icon" src="/static/icons/user.svg" mode="aspectFit" />
-        </view>
-      </view>
-      <view class="banner-copy">
-        <text class="title">村民议事厅</text>
-        <text class="sub-title">民主议事聚民智，共建共享促和谐</text>
+  <view class="page" :class="{ elder: elderOn }">
+    <page-hero brand-only compact variant="village" title="指尖善治" />
+
+    <view v-if="elderOn" class="elder-bar">
+      <text class="elder-bar-text">{{ elderBanner }}</text>
+      <view
+        class="elder-bar-btn"
+        hover-class="elder-bar-press"
+        :hover-stay-time="80"
+        @click="onExitElder"
+      >
+        <text class="elder-bar-btn-text">{{ elderExitLabel }}</text>
       </view>
     </view>
 
-    <view class="section-block">
-      <view class="section-header">
-        <text>线上调解室</text>
-      </view>
-      <view class="module-box management-box section-card">
-        <image class="section-bg" src="/static/banner/law.jpg" mode="aspectFill" />
-        <view class="card-content">
-          <view class="btn-row">
-            <view class="func-btn" @click="goSubmit">
-              <view class="func-inner">
-                <view class="func-icon primary">+</view>
-                <text class="func-title">提交纠纷</text>
-                <text class="func-sub">快速提交并上传证据</text>
-              </view>
-            </view>
-            <view class="func-btn secondary" @click="goRecord">
-              <view class="func-inner">
-                <view class="func-icon">↻</view>
-                <text class="func-title">调解记录</text>
-                <text class="func-sub">查看历史进展</text>
-              </view>
-            </view>
-          </view>
-        </view>
-      </view>
+    <view class="hero-motion enter">
+      <rt-case-hero
+        :mode="heroMode"
+        :kicker="heroKicker"
+        :title="heroTitle"
+        :desc="heroDesc"
+        :cta="heroCta"
+        :flash="heroFlash"
+        @primary="onHeroPrimary"
+      />
     </view>
-    <!-- 村务管理 区块 -->
-    <view class="section-block">
-      <view class="section-header">
-        <text>村务管理</text>
+
+    <view
+      v-if="homeMode !== 'say'"
+      class="secondary-link"
+      hover-class="secondary-press"
+      :hover-stay-time="80"
+      @click="goSubmit"
+    >
+      <text class="secondary-text">另有新事？去说事建档</text>
+      <text class="secondary-arrow">›</text>
+    </view>
+    <view
+      v-else-if="noticeUnread && !elderOn"
+      class="ticker"
+      hover-class="ticker-press"
+      :hover-stay-time="80"
+      @click="goPage('/pages/village/notice')"
+    >
+      <text class="ticker-text">{{ latestNoticeTitle }}</text>
+      <text class="ticker-badge">{{
+        noticeUnread > 99 ? "99+" : noticeUnread
+      }}</text>
+      <text class="ticker-arrow">通知</text>
+    </view>
+
+    <view v-if="elderOn" class="elder-paths">
+      <view
+        class="path"
+        hover-class="path-press"
+        :hover-stay-time="80"
+        @click="goSubmit"
+      >
+        <text class="path-title">去说事</text>
+        <text class="path-desc">把事情告诉村委</text>
       </view>
-      <view class="module-box management-box section-card">
-        <image class="section-bg" src="/static/banner/law.jpg" mode="aspectFill" />
-        <view class="card-content">
-          <view class="list-item" @click="goPage('/pages/village/notice')">
-            <view class="item-left">
-              <view class="village-icon-wrap">
-                <image class="village-icon-img" src="/static/village-icons/laba.svg" mode="aspectFill" />
-              </view>
-              <view class="entry-text">
-                <text class="item-title">村务通知</text>
-                <text class="item-subdesc">查看最新村务与公告</text>
-              </view>
-            </view>
-            <image class="entry-arrow" src="/static/icons/arrow-right.svg" mode="aspectFit" />
-          </view>
-          <view class="list-item" @click="goPage('/pages/village/feedback')">
-            <view class="item-left">
-              <view class="village-icon-wrap">
-                <image class="village-icon-img" src="/static/village-icons/xinxi.svg" mode="aspectFill" />
-              </view>
-              <view class="entry-text">
-                <text class="item-title">村民反馈</text>
-                <text class="item-subdesc">提交您的建议与意见</text>
-              </view>
-            </view>
-            <image class="entry-arrow" src="/static/icons/arrow-right.svg" mode="aspectFit" />
-          </view>
-        </view>
+      <view
+        class="path"
+        hover-class="path-press"
+        :hover-stay-time="80"
+        @click="goRecord"
+      >
+        <text class="path-title">我的办件</text>
+        <text class="path-desc">{{
+          handlingCount ? `进行中 ${handlingCount} 件` : "查看进度"
+        }}</text>
+      </view>
+      <view
+        class="path"
+        hover-class="path-press"
+        :hover-stay-time="80"
+        @click="onCallVillage"
+      >
+        <text class="path-title">联系村委</text>
+        <text class="path-desc">电话沟通</text>
       </view>
     </view>
 
-    <!-- 近期调解中 区块 -->
-    <view class="section-block recent-section">
-      <view class="section-header recent-header">
-        <text>近期调解中</text>
-        <text class="section-more-outside">☰</text>
-      </view>
-      <view class="module-box management-box section-card recent-card">
-        <image class="section-bg" src="/static/banner/law.jpg" mode="aspectFill" />
-        <view class="card-content">
-          <view class="case-item" @click="goToDisputeDetail">
-            <view class="case-left">
-              <view class="village-icon-wrap">
-                <image class="village-icon-img" src="/static/village-icons/che.svg" mode="aspectFill" />
-              </view>
-              <view>
-                <text class="case-name">张某与李某土地争议</text>
-                <text class="case-time">提交时间：2025-10-28</text>
-              </view>
-            </view>
-            <view class="case-status">处理中</view>
-          </view>
-          <view class="case-item">
-            <view class="case-left">
-              <view class="village-icon-wrap">
-                <image class="village-icon-img" src="/static/village-icons/ling.svg" mode="aspectFill" />
-              </view>
-              <view>
-                <text class="case-name">王某劳动纠纷</text>
-                <text class="case-time">提交时间：2025-10-25</text>
-              </view>
-            </view>
-            <view class="status-tag">处理中</view>
-          </view>
+    <view v-if="!elderOn" class="svc-lite enter delay-1">
+      <view class="svc-main">
+        <view
+          v-for="item in primaryServices"
+          :key="item.title"
+          class="svc-main-card"
+          hover-class="svc-active"
+          :hover-stay-time="80"
+          @click="goPage(item.path)"
+        >
+          <text class="svc-title">{{ item.title }}</text>
+          <text class="svc-desc">{{ item.desc }}</text>
+          <text v-if="item.badge" class="svc-badge-inline">{{
+            item.badge
+          }}</text>
         </view>
       </view>
     </view>
 
+    <rt-section
+      v-if="!elderOn || disputes.length"
+      title="我的调解"
+      :badge="handlingBadge"
+      :link="disputes.length ? '全部' : ''"
+      @link="goRecord"
+    >
+      <rt-card compact elevated>
+        <rt-skeleton v-if="loading" variant="case" :count="2" />
+        <empty-state
+          v-else-if="loadError"
+          compact
+          icon-type="dispute"
+          icon-tone="green"
+          title="加载失败"
+          action-text="点击重试"
+          @action="loadDisputes()"
+        />
+        <empty-state
+          v-else-if="!disputes.length"
+          compact
+          icon-type="dispute"
+          icon-tone="green"
+          title="还没有办件"
+          desc="有事可以说，AI 帮您整理成案"
+          action-text="去说事"
+          @action="goSubmit"
+        />
+        <view
+          v-else
+          v-for="(item, index) in disputes"
+          :key="item._id"
+          class="case-item"
+          :class="{ last: index === disputes.length - 1 }"
+          hover-class="case-active"
+          :hover-stay-time="80"
+          @click="goToDisputeDetail(item._id)"
+        >
+          <view class="case-top">
+            <text class="case-title">{{ caseObj(item).title }}</text>
+            <text class="case-tag" :class="caseObj(item).phaseTone">
+              {{ caseObj(item).phaseLabel }}
+            </text>
+          </view>
+          <text class="case-tip">{{ caseObj(item).oral }}</text>
+        </view>
+      </rt-card>
+    </rt-section>
+
+    <rt-trust-bar
+      v-if="!elderOn"
+      tip="人身安全请先求助；办件进度以村委更新为准"
+    />
     <tab-bar />
   </view>
 </template>
 
 <script>
-import TabBar from '@/components/tab-bar/bar.vue'
+import TabBar from "@/components/tab-bar/bar.vue";
+import PageHero from "@/components/page-hero/page-hero.vue";
+import RtCard from "@/components/rt-card/rt-card.vue";
+import RtSection from "@/components/rt-section/rt-section.vue";
+import RtSkeleton from "@/components/rt-skeleton/rt-skeleton.vue";
+import EmptyState from "@/components/empty-state/empty-state.vue";
+import RtTrustBar from "@/components/rt-trust-bar/rt-trust-bar.vue";
+import RtCaseHero from "@/components/rt-case-hero/rt-case-hero.vue";
+import { api } from "@/api/index.js";
+import { ensureLoggedIn, goAiAssistant } from "@/utils/auth.js";
+import { countUnreadNotices } from "@/utils/notice-read.js";
+import { writeTabBadges } from "@/utils/tab-badges.js";
+import { goNavigate, goReLaunch } from "@/utils/nav.js";
+import {
+  isElderMode,
+  maybeAskElderMode,
+  exitElderMode,
+} from "@/utils/elder-mode.js";
+import {
+  latestUnreadPush,
+  markPushRead,
+  syncCasePushFromDisputes,
+} from "@/utils/case-push.js";
+import { COPY } from "@/utils/copy-voice.js";
+import { VILLAGE_CONTACT_PHONE } from "@/config/env.js";
+import { buildCaseObject } from "@/utils/case-object.js";
 
 export default {
-  components: { TabBar },
+  components: {
+    TabBar,
+    PageHero,
+    RtCard,
+    RtSection,
+    RtSkeleton,
+    EmptyState,
+    RtTrustBar,
+    RtCaseHero,
+  },
   data() {
-    return {}
+    return {
+      elderOn: false,
+      loading: true,
+      loadError: false,
+      disputes: [],
+      handlingList: [],
+      handlingCount: 0,
+      noticeUnread: 0,
+      latestNoticeTitle: "暂无新通知，点此查看村务公示",
+      casePush: null,
+      heroFlash: false,
+      primaryServices: [
+        {
+          title: "我的办件",
+          desc: "看看办到哪一步了",
+          path: "/pages/village/records",
+          badge: "",
+        },
+        { title: "问协办", desc: "先问清楚再去办", path: "__ai__", badge: "" },
+        {
+          title: "意见箱",
+          desc: "有建议随时说",
+          path: "/pages/village/feedback",
+          badge: "",
+        },
+        {
+          title: "村务通知",
+          desc: "村里最新公示",
+          path: "/pages/village/notice",
+          badge: "",
+        },
+      ],
+      serviceGroups: [],
+    };
+  },
+  computed: {
+    handlingBadge() {
+      return this.handlingCount > 0 ? String(this.handlingCount) : "";
+    },
+    homeMode() {
+      if (this.casePush) return "casePush";
+      if (this.handlingCount > 0) return "handling";
+      if (this.noticeUnread > 0 && !this.elderOn) return "notice";
+      return "say";
+    },
+    heroMode() {
+      if (this.homeMode === "casePush") return "push";
+      if (this.homeMode === "handling") return "handling";
+      if (this.homeMode === "notice") return "notice";
+      return "say";
+    },
+    heroKicker() {
+      if (this.homeMode === "casePush") return COPY.casePushPrefix;
+      if (this.homeMode === "handling")
+        return `进行中 · ${this.handlingCount} 件`;
+      if (this.homeMode === "notice") return `未读通知 · ${this.noticeUnread}`;
+      return COPY.homeKicker;
+    },
+    heroTitle() {
+      if (this.homeMode === "casePush") return this.casePushTitle;
+      if (this.homeMode === "handling") return this.latestHandlingTitle;
+      if (this.homeMode === "notice") return COPY.homeNoticeTitle;
+      return COPY.homeSayTitle;
+    },
+    heroDesc() {
+      if (this.homeMode === "casePush") return this.casePushDesc;
+      if (this.homeMode === "handling") {
+        const d = this.handlingList[0];
+        return buildCaseObject(d).oral;
+      }
+      if (this.homeMode === "notice") return this.latestNoticeTitle;
+      return COPY.homeSayDesc;
+    },
+    heroCta() {
+      if (this.homeMode === "casePush" || this.homeMode === "handling")
+        return COPY.goProgress;
+      if (this.homeMode === "notice") return "去看通知";
+      return COPY.goSubmitShort;
+    },
+    latestHandlingTitle() {
+      const d = this.handlingList[0];
+      return (d && d.title) || "办理中的调解";
+    },
+    casePushTitle() {
+      return (this.casePush && this.casePush.title) || "办件有新进展";
+    },
+    casePushDesc() {
+      return (
+        (this.casePush && this.casePush.message) ||
+        "村委已更新办理状态，点此查看"
+      );
+    },
+    elderBanner() {
+      return COPY.elderBanner;
+    },
+    elderExitLabel() {
+      return COPY.elderExit;
+    },
+  },
+  async onShow() {
+    this.elderOn = isElderMode();
+    if (!ensureLoggedIn()) return;
+    this.refreshCasePush();
+    this.loadDisputes();
+    this.loadLatestNotice();
+    const elder = await maybeAskElderMode();
+    this.elderOn = elder;
+  },
+  onPullDownRefresh() {
+    Promise.all([this.loadDisputes(true), this.loadLatestNotice()]).finally(
+      () => {
+        uni.stopPullDownRefresh();
+      }
+    );
   },
   methods: {
-    goToDisputeDetail() {
-      uni.navigateTo({ url: '/pages/disputeDetail/disputeDetail' })
+    onHeroPrimary() {
+      if (this.homeMode === "casePush") return this.goCasePush();
+      if (this.homeMode === "handling") return this.goLatestHandling();
+      if (this.homeMode === "notice")
+        return this.goPage("/pages/village/notice");
+      return this.goSubmit();
+    },
+    onExitElder() {
+      this.elderOn = exitElderMode();
+    },
+    onCallVillage() {
+      const phone = VILLAGE_CONTACT_PHONE || "";
+      if (!phone) {
+        uni.showToast({ title: "暂未配置村委电话", icon: "none" });
+        return;
+      }
+      uni.makePhoneCall({ phoneNumber: String(phone).replace(/\D/g, "") });
+    },
+    caseObj(item) {
+      return buildCaseObject(item);
+    },
+    syncServiceBadges() {
+      this.primaryServices = this.primaryServices.map((item) => {
+        if (item.path === "/pages/village/records") {
+          return {
+            ...item,
+            badge: this.handlingCount ? String(this.handlingCount) : "",
+          };
+        }
+        if (item.path === "/pages/village/notice") {
+          return {
+            ...item,
+            badge: this.noticeUnread
+              ? String(this.noticeUnread > 99 ? "99+" : this.noticeUnread)
+              : "",
+          };
+        }
+        return item;
+      });
+    },
+    triggerHeroFlash() {
+      this.heroFlash = false;
+      this.$nextTick(() => {
+        this.heroFlash = true;
+      });
+    },
+    async loadLatestNotice() {
+      try {
+        const res = await api.listNotices();
+        const list = res.data.list || [];
+        const first = list[0];
+        if (first && first.title) this.latestNoticeTitle = first.title;
+        this.noticeUnread = countUnreadNotices(list);
+        this.syncServiceBadges();
+        writeTabBadges({
+          noticeUnread: this.noticeUnread,
+          handling: this.handlingCount,
+        });
+      } catch (e) {
+        /* keep */
+      }
+    },
+    async loadDisputes(isRefresh = false) {
+      if (!isRefresh) this.loading = true;
+      this.loadError = false;
+      try {
+        const res = await api.listDisputes();
+        const list = res.data.list || [];
+        this.handlingList = list.filter((d) => d && d.status !== "completed");
+        this.handlingCount = this.handlingList.length;
+        this.disputes = list.slice(0, 3);
+        this.casePush = syncCasePushFromDisputes(list) || latestUnreadPush();
+        this.syncServiceBadges();
+        writeTabBadges({
+          noticeUnread: this.noticeUnread,
+          handling: this.handlingCount,
+        });
+        if (this.casePush) this.triggerHeroFlash();
+      } catch (e) {
+        this.loadError = !this.disputes.length;
+        uni.showToast({ title: e.message || "加载失败", icon: "none" });
+      } finally {
+        this.loading = false;
+      }
+    },
+    goToDisputeDetail(id) {
+      goNavigate(`/pages/disputeDetail/disputeDetail?id=${id}`);
+    },
+    refreshCasePush() {
+      this.casePush = latestUnreadPush();
+    },
+    goCasePush() {
+      const p = this.casePush;
+      if (!p) return;
+      markPushRead(p.id);
+      this.casePush = null;
+      if (p.disputeId) this.goToDisputeDetail(p.disputeId);
+      else this.goRecord();
+    },
+    goLatestHandling() {
+      const d = this.handlingList[0];
+      if (d && d._id) this.goToDisputeDetail(d._id);
+      else this.goRecord();
     },
     goSubmit() {
-      uni.showToast({ title: '跳转提交纠纷', icon: 'none' })
+      goNavigate("/pages/village/submit");
     },
     goRecord() {
-      uni.showToast({ title: '跳转调解记录', icon: 'none' })
+      goNavigate("/pages/village/records");
+    },
+    goAi() {
+      if (this.handlingList[0] && this.handlingList[0]._id) {
+        const d = this.handlingList[0];
+        uni.setStorageSync("rt_ai_dispute_ctx", {
+          id: d._id,
+          title: d.title,
+          status: d.status,
+          phase: d.phase,
+          category: (d.aiMeta && d.aiMeta.category) || "",
+          riskLevel: (d.aiMeta && d.aiMeta.riskLevel) || "",
+          summary:
+            (d.aiMeta && d.aiMeta.summary) || (d.content || "").slice(0, 160),
+        });
+        uni.setStorageSync(
+          "rt_ai_prefill",
+          `请根据我正在办理的「${d.title || "本案"}」说明下一步要注意什么`
+        );
+      }
+      goAiAssistant();
     },
     goPage(path) {
-      if (!path) return
-      uni.navigateTo({ url: path })
-    }
-  }
-}
+      if (!path) return;
+      if (path === "__ai__") {
+        goAiAssistant();
+        return;
+      }
+      if (
+        path === "/pages/law/law" ||
+        path === "/pages/moral/moral" ||
+        path === "/pages/group/group" ||
+        path === "/pages/village/village" ||
+        path === "/pages/profile/profile" ||
+        path === "/pages/benefit/benefit"
+      ) {
+        goReLaunch(path);
+        return;
+      }
+      goNavigate(path);
+    },
+  },
+};
 </script>
 
 <style lang="scss" scoped>
-.page { padding: 0 24rpx 220rpx; box-sizing: border-box; background-color: #fcfcf0; min-height: 100vh; }
+@import "@/styles/theme.scss";
 
-/* Banner (copied from pages/group for consistent notch layout) */
-.banner {
-  height: 360rpx;
-  margin: 0 -24rpx 0;
-  position: relative;
+.page {
+  @include rt-page;
+  padding: 0 $rt-page-x $rt-page-bottom;
+}
+
+.enter {
+  @include rt-enter(0s);
+}
+.delay-1 {
+  animation-delay: 0.08s;
+}
+
+.hero-motion {
+  /* rise handled by .enter */
+}
+
+.elder-bar {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+  padding: 18rpx 20rpx;
+  min-height: 88rpx;
+  border-radius: $rt-radius-sm;
+  background: rgba(158, 52, 40, 0.08);
+  border: 1rpx solid rgba(158, 52, 40, 0.22);
+  box-sizing: border-box;
+}
+.elder-bar-text {
+  flex: 1;
+  font-size: $rt-type-caption;
+  font-weight: 700;
+  color: $rt-text;
+}
+.elder-bar-btn {
+  flex-shrink: 0;
+  min-height: 64rpx;
+  padding: 12rpx 22rpx;
+  border-radius: 999rpx;
+  background: $rt-primary;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+.elder-bar-press {
+  opacity: 0.9;
+}
+.elder-bar-btn-text {
+  font-size: $rt-type-caption;
+  font-weight: 800;
+  color: #fff;
+}
+
+.ticker {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+  padding: 16rpx 18rpx;
+  min-height: $rt-touch-min;
+  border-radius: $rt-radius-sm;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1rpx solid rgba(90, 107, 56, 0.14);
+  box-sizing: border-box;
+}
+.ticker-press {
+  opacity: 0.92;
+}
+.ticker-text {
+  flex: 1;
+  min-width: 0;
+  font-size: $rt-type-caption;
+  font-weight: 600;
+  color: $rt-text-secondary;
   overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ticker-arrow {
+  flex-shrink: 0;
+  font-size: $rt-type-micro;
+  font-weight: 700;
+  color: $rt-olive;
+}
+.ticker-badge {
+  flex-shrink: 0;
+  min-width: 32rpx;
+  padding: 2rpx 10rpx;
+  border-radius: 999rpx;
+  background: rgba(158, 52, 40, 0.12);
+  color: $rt-primary;
+  font-size: 20rpx;
+  font-weight: 800;
+  text-align: center;
 }
 
-.banner-bg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+.primary-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  padding: 36rpx 32rpx 28rpx;
+  border-radius: $rt-radius-md;
+  background: linear-gradient(145deg, #ffffff 0%, #fff8f6 35%, #f6d9d3 100%);
+  border: 1rpx solid rgba(158, 52, 40, 0.16);
+  box-shadow: $rt-shadow-card, 0 12rpx 36rpx rgba(158, 52, 40, 0.1);
+  margin-bottom: 16rpx;
+}
+.primary-card.continue {
+  background: linear-gradient(145deg, #ffffff 0%, #f7f9f1 40%, #e7edd8 100%);
+  border-color: rgba(90, 107, 56, 0.2);
+  box-shadow: $rt-shadow-card, 0 12rpx 36rpx rgba(90, 107, 56, 0.1);
+}
+.primary-card.notice {
+  background: linear-gradient(145deg, #ffffff 0%, #eef1f6 40%, #dde4ee 100%);
+  border-color: rgba(58, 74, 99, 0.2);
+  box-shadow: $rt-shadow-card, 0 12rpx 36rpx rgba(58, 74, 99, 0.1);
+}
+.primary-press {
+  opacity: 0.94;
+}
+.primary-kicker {
   display: block;
-  z-index: 0;
+  font-size: $rt-type-caption;
+  font-weight: 700;
+  color: $rt-primary;
+  letter-spacing: 2rpx;
+}
+.continue .primary-kicker {
+  color: $rt-olive;
+}
+.notice .primary-kicker {
+  color: $rt-blue;
+}
+.primary-title {
+  display: block;
+  font-size: 44rpx;
+  font-weight: 800;
+  color: $rt-text;
+  line-height: 1.25;
+}
+.primary-desc {
+  display: block;
+  font-size: $rt-type-caption;
+  color: $rt-text-secondary;
+  line-height: 1.5;
+}
+.primary-cta {
+  margin-top: 12rpx;
+  width: 100%;
+  min-height: $rt-touch-min;
+  padding: 24rpx 28rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, $rt-primary-dark, $rt-primary-mid);
+  box-shadow: 0 8rpx 20rpx rgba(158, 52, 40, 0.28);
+  text-align: center;
+  box-sizing: border-box;
+}
+.continue .primary-cta {
+  background: linear-gradient(135deg, #4a5532, $rt-olive-mid);
+  box-shadow: 0 8rpx 20rpx rgba(90, 107, 56, 0.28);
+}
+.notice .primary-cta {
+  background: linear-gradient(135deg, #2a3648, $rt-blue);
+  box-shadow: 0 8rpx 20rpx rgba(58, 74, 99, 0.28);
+}
+.primary-cta-text {
+  font-size: $rt-type-body;
+  font-weight: 800;
+  color: #fff;
 }
 
-.banner-topbar {
+.secondary-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28rpx;
+  padding: 22rpx 24rpx;
+  min-height: $rt-touch-min;
+  border-radius: $rt-radius-sm;
+  background: $rt-surface;
+  border: 1rpx solid $rt-border;
+  box-sizing: border-box;
+}
+.secondary-press {
+  opacity: 0.92;
+}
+.secondary-text {
+  font-size: $rt-type-body;
+  font-weight: 600;
+  color: $rt-text;
+}
+.secondary-arrow {
+  font-size: 36rpx;
+  color: $rt-text-muted;
+  line-height: 1;
+}
+
+.svc-lite {
+  margin-bottom: $rt-section-gap;
+}
+.svc-main {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16rpx;
+}
+.svc-main-card {
+  position: relative;
+  min-height: 128rpx;
+  padding: 28rpx 24rpx;
+  border-radius: $rt-radius-md;
+  background: #fff;
+  border: 1rpx solid rgba(50, 40, 30, 0.06);
+  box-shadow: $rt-shadow-sm;
+  box-sizing: border-box;
+}
+.svc-active {
+  opacity: 0.92;
+  transform: scale(0.99);
+}
+.svc-title {
+  display: block;
+  font-family: $rt-font-title;
+  font-size: $rt-type-body;
+  font-weight: 800;
+  color: $rt-text;
+}
+.svc-desc {
+  display: block;
+  margin-top: 8rpx;
+  font-size: $rt-type-micro;
+  color: $rt-text-secondary;
+  line-height: 1.4;
+}
+.svc-badge-inline {
   position: absolute;
-  left: 0;
-  right: 0;
-  top: 44rpx;
-  z-index: 2;
-  height: 88rpx;
+  top: 16rpx;
+  right: 16rpx;
+  min-width: 32rpx;
+  padding: 0 10rpx;
+  height: 32rpx;
+  line-height: 32rpx;
+  border-radius: 999rpx;
+  background: $rt-primary-soft;
+  color: $rt-primary;
+  font-size: 20rpx;
+  font-weight: 800;
+  text-align: center;
+}
+
+.svc-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16rpx;
+}
+.svc-block {
+  position: relative;
+  min-height: 120rpx;
+  padding: 28rpx 24rpx;
+  border-radius: $rt-radius-md;
+  background: $rt-surface;
+  border: 1rpx solid rgba(90, 107, 56, 0.14);
+  box-shadow: $rt-shadow-sm;
+  box-sizing: border-box;
+}
+.svc-active {
+  opacity: 0.92;
+  background: $rt-olive-soft;
+}
+.svc-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 800;
+  color: $rt-text;
+  line-height: 1.3;
+}
+.svc-desc {
+  display: block;
+  margin-top: 8rpx;
+  font-size: $rt-type-caption;
+  color: $rt-text-secondary;
+}
+.svc-badge-inline {
+  position: absolute;
+  top: 16rpx;
+  right: 16rpx;
+  min-width: 28rpx;
+  padding: 2rpx 10rpx;
+  border-radius: 999rpx;
+  background: $rt-primary;
+  color: #fff;
+  font-size: 18rpx;
+  font-weight: 800;
+  text-align: center;
+}
+
+.case-item {
+  padding: 22rpx 0;
+  border-bottom: 1rpx solid $rt-border;
+}
+.case-item.last {
+  border-bottom: none;
+  padding-bottom: 4rpx;
+}
+.case-active {
+  background: rgba(90, 107, 56, 0.05);
+}
+.case-top {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 40rpx 28rpx 0 24rpx;
+  gap: 12rpx;
+  align-items: flex-start;
 }
-
-.logo-area { display: flex; align-items: center; gap: 22rpx; }
-.logo { width: 92rpx; height: 92rpx; border-radius: 50%; overflow: hidden; background: rgba(255,255,255,0.6); backdrop-filter: blur(4px); display:block; }
-.brand { font-size: 30rpx; font-weight: 600; color: #173128; }
-.icon-group { display:flex; gap:22rpx; align-items:center; }
-.mini-icon { width:54rpx; height:54rpx; }
-
-.banner-copy { position: absolute; left: 10vw; top: 178rpx; z-index: 2; max-width: 70%; }
-.title { display:block; font-size: 56rpx; font-weight: 700; line-height: 1.02; color: #0f1720; }
-.sub-title { display:block; margin-top: 10rpx; font-size: 28rpx; font-weight:500; color:#4b5f45; white-space:nowrap; }
-.section-block { margin-top: 24rpx; }
-.module-box { margin: 0; background: transparent; border-radius: 20rpx; padding: 0; }
-.management-box { }
-.module-title { display: flex; justify-content: space-between; align-items: center; font-size: 34rpx; font-weight: 700; color: #111827; margin-bottom: 22rpx; }
-.btn-row { display: flex; gap: 22rpx; }
-.btn-circle { width: 80rpx; height: 80rpx; border-radius: 50%; background: #2168d8; color: #fff; font-size: 40rpx; display: flex; align-items: center; justify-content: center; margin-bottom: 15rpx; }
-.list-item { display: flex; justify-content: space-between; align-items: center; padding: 25rpx 0; border-bottom: 1rpx solid #eee; }
-.item-left { display: flex; align-items: center; gap: 20rpx; }
-.village-icon-wrap { width: 96rpx; height: 96rpx; border-radius: 18rpx; overflow: hidden; background: #ffffff; flex: 0 0 auto; box-shadow: 0 6rpx 20rpx rgba(16,24,40,0.06); }
-.village-icon-img { width: 100%; height: 100%; display: block; object-fit: cover; }
-.case-left { display: flex; align-items: center; gap: 20rpx; flex: 1; min-width: 0; }
-.case-item { display: flex; justify-content: space-between; align-items: center; padding: 20rpx 0; border-bottom: 1rpx solid #eee; }
-.status-tag { background: #f2e0c9; color: #a06b38; padding: 8rpx 16rpx; border-radius: 10rpx; font-size: 24rpx; }
-
-  .case-name { display: block; font-size: 28rpx; font-weight: 700; color: #111827; }
-  .case-time { display: block; font-size: 24rpx; color: #8f9688; margin-top: 6rpx; }
-
-/* 管理模块内的入口样式 */
-.management-box .entry-text { display: flex; flex-direction: column; }
-.management-box .item-title { font-size: 36rpx; font-weight: 700; color: #2b3a23; }
-.management-box .item-desc { font-size: 28rpx; color: #9a9a9a; font-weight: 400; margin-top: 6rpx; display: block; }
-.management-box .arrow { font-size: 40rpx; color: #c8c8c8; }
-.management-box .arrow { display: flex; align-items: center; }
-.list-item .arrow { display: flex; align-items: center; }
-.entry-arrow { width: 36rpx; height: 36rpx; }
-
-/* 新的 func-btn / iOS 风格入口 */
-.func-btn { flex: 1; display: flex; align-items: center; justify-content: center; padding: 12rpx; border-radius: 12rpx; background: transparent; border: none; box-shadow: none; }
-.func-btn.secondary { background: transparent; }
-.func-icon { width: 84rpx; height: 84rpx; border-radius: 16rpx; background: #2168d8; color: #fff; font-size: 44rpx; display: flex; align-items: center; justify-content: center; box-shadow: 0 10rpx 26rpx rgba(33,104,216,0.14); }
-.func-btn.secondary .func-icon { background: #eef4ff; color: #2168d8; box-shadow: none; }
-  .func-inner { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8rpx; }
-  .func-title { font-size: 28rpx; font-weight: 700; color: #111827; margin-top: 6rpx; }
-  .func-sub { font-size: 24rpx; color: #8a8a8a; margin-top: 4rpx; }
-  .btn-text { font-size: 28rpx; color: #2b3a23; margin-top: 6rpx; }
-.item-subdesc { display: block; font-size: 24rpx; color: #b5b5b5; font-weight: 400; margin-top: 4rpx; }
-
-/* 模块下方的合并说明行 */
-  .module-subtitle { margin-top: 8rpx; margin-bottom: 16rpx; }
-.section-card { 
-  position: relative;
-  overflow: hidden;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-  border-radius: 28rpx; 
-  padding: 30rpx; 
-  border: 1rpx solid rgba(255, 255, 255, 0.92);
-  box-shadow:
-    0 22rpx 44rpx rgba(15, 23, 42, 0.08),
-    0 6rpx 14rpx rgba(15, 23, 42, 0.05);
+.case-title {
+  flex: 1;
+  font-size: $rt-type-title;
+  font-weight: 800;
+  color: $rt-text;
+  line-height: 1.35;
 }
-
-.card-wrap { position: relative; }
-.section-more-outside { position: absolute; right: 18rpx; top: -22rpx; z-index: 3; background: rgba(255,255,255,0.92); padding: 10rpx 12rpx; border-radius: 16rpx; box-shadow: 0 8rpx 18rpx rgba(16,24,40,0.08); font-size: 34rpx; color: #475b4a; }
-
-.section-bg { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 1; z-index: 0; }
-
-.card-content { position: relative; z-index: 1; background: transparent; }
-
-.section-header { display: flex; align-items: center; justify-content: space-between; margin: 6rpx 24rpx; font-size: 34rpx; font-weight: 700; color: #2c4a30; }
-.section-header > text:first-child { flex: 1; text-align: left; }
-.section-header::before {
-  content: '';
-  width: 6rpx;
-  height: 22rpx;
-  margin-right: 12rpx;
-  background: #2c4a30;
-  border-radius: 999rpx;
+.case-tag {
+  @include rt-status-pending;
   flex-shrink: 0;
 }
-.section-block:first-of-type { margin-top: 24rpx; }
-.recent-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12rpx; }
-.recent-header .section-more-outside { position: static; background: rgba(255,255,255,0.92); padding: 10rpx 14rpx; border-radius: 16rpx; box-shadow: 0 8rpx 18rpx rgba(16,24,40,0.08); font-size: 34rpx; color: #475b4a; }
-.recent-card { margin-top: 0; }
-  .module-subtitle .sub-line { display:block; font-size: 24rpx; color: #9a9a9a; font-weight: 400; line-height: 1.2; }
+.case-tag.done {
+  @include rt-status-done;
+}
+.case-tag.urgent {
+  background: rgba(158, 52, 40, 0.12);
+  color: $rt-primary;
+}
+.case-meta {
+  display: block;
+  margin: 8rpx 0 6rpx;
+  font-size: $rt-type-micro;
+  color: $rt-text-muted;
+}
+.case-tip {
+  display: block;
+  margin-bottom: 14rpx;
+  font-size: $rt-type-caption;
+  font-weight: 600;
+  color: $rt-primary-dark;
+  line-height: 1.4;
+}
 </style>
+
+.elder-paths { display: flex; flex-direction: column; gap: 12rpx; margin-bottom:
+28rpx; } .path { padding: 28rpx 24rpx; min-height: 100rpx; border-radius: 16rpx;
+background: #fff; border: 1rpx solid rgba(158, 52, 40, 0.16); box-sizing:
+border-box; } .path-press { opacity: 0.92; } .path-title { display: block;
+font-size: 34rpx; font-weight: 800; color: #2a2118; } .path-desc { display:
+block; margin-top: 6rpx; font-size: 26rpx; color: #6b5e52; }

@@ -1,52 +1,226 @@
 {
-    "easycom": {
-        "autoscan": true,
-        "custom": {
-            "^app-icons$": "@/components/uni-icons/uni-icons.vue"
-        }
-    },
-    "pages": [
-        {
-            "path": "pages/login/login",
-            "style": {
-                "navigationStyle": "custom"
-            }
-        },
-        {
-            "path": "pages/law/law",
-            "style": {
-                "navigationBarTitleText": "法治服务"
-            }
-        },
-        {
-            "path": "pages/village/village",
-            "style": {
-                "navigationBarTitleText": "村民议事厅"
-            }
-        },
-        {
-            "path": "pages/moral/moral",
-            "style": {
-                "navigationBarTitleText": "道德银行"
-            }
-        },
-        {
-            "path": "pages/group/group",
-            "style": {
-                "navigationBarTitleText": "惠民团购"
-            }
-        },
-        {
-            "path": "pages/disputeDetail/disputeDetail",
-            "style": {
-                "navigationBarTitleText": "纠纷详情"
-            }
-        }
-    ],
-    "globalStyle": {
-        "navigationBarTextStyle": "black",
-        "navigationBarTitleText": "RuralTouch",
-        "navigationBarBackgroundColor": "#F8F8F8",
-        "backgroundColor": "#F8F8F8"
+  "easycom": {
+    "autoscan": true,
+    "custom": {
+      "^rt-(.*)$": "@/components/rt-$1/rt-$1.vue",
+      "^page-hero$": "@/components/page-hero/page-hero.vue",
+      "^tab-bar$": "@/components/tab-bar/bar.vue",
+      "^rt-progress-steps$": "@/components/rt-progress-steps/rt-progress-steps.vue",
+      "^rt-skeleton$": "@/components/rt-skeleton/rt-skeleton.vue",
+      "^empty-state$": "@/components/empty-state/empty-state.vue",
+      "^product-card$": "@/components/product-card/product-card.vue",
+      "^app-icons$": "@/components/uni-icons/uni-icons.vue"
     }
+  },
+  "pages": [
+    {
+      "path": "pages/login/login",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/onboarding/onboarding",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/village/village",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "首页",
+        "enablePullDownRefresh": true,
+        "backgroundTextStyle": "dark"
+      }
+    },
+    {
+      "path": "pages/law/law",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "法治"
+      }
+    },
+    {
+      "path": "pages/moral/moral",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "调解激励",
+        "enablePullDownRefresh": true,
+        "backgroundTextStyle": "dark"
+      }
+    },
+    {
+      "path": "pages/group/group",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "惠民团购",
+        "enablePullDownRefresh": true,
+        "backgroundTextStyle": "dark"
+      }
+    },
+    {
+      "path": "pages/profile/profile",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "我的"
+      }
+    },
+    {
+      "path": "pages/benefit/benefit",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "服务"
+      }
+    },
+    {
+      "path": "pages/village/completeCeremony",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "办结完成"
+      }
+    },
+    {
+      "path": "pages/group/orders",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "我的团购订单",
+        "enablePullDownRefresh": true,
+        "backgroundTextStyle": "dark"
+      }
+    },
+    {
+      "path": "pages/group/category",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "分类商品"
+      }
+    },
+    {
+      "path": "pages/ai/assistant",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "村务助手",
+        "disableScroll": true
+      }
+    },
+    {
+      "path": "pages/law/aiLegal",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "普法顾问",
+        "disableScroll": true
+      }
+    },
+    {
+      "path": "pages/law/lawVideo",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "防范电信诈骗"
+      }
+    },
+    {
+      "path": "pages/admin/disputes",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "调解员工作台",
+        "enablePullDownRefresh": true,
+        "backgroundTextStyle": "dark"
+      }
+    },
+    {
+      "path": "pages/admin/ai-quality",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "AI 质量",
+        "enablePullDownRefresh": true,
+        "backgroundTextStyle": "dark"
+      }
+    },
+    {
+      "path": "pages/disputeDetail/disputeDetail",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "纠纷详情"
+      }
+    },
+    {
+      "path": "pages/village/notice",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "村务通知",
+        "enablePullDownRefresh": true,
+        "backgroundTextStyle": "dark"
+      }
+    },
+    {
+      "path": "pages/village/noticeDetail",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "通知详情"
+      }
+    },
+    {
+      "path": "pages/village/feedback",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "村务意见箱",
+        "enablePullDownRefresh": true,
+        "backgroundTextStyle": "dark"
+      }
+    },
+    {
+      "path": "pages/village/submit",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "提交纠纷"
+      }
+    },
+    {
+      "path": "pages/village/records",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "调解记录",
+        "enablePullDownRefresh": true,
+        "backgroundTextStyle": "dark"
+      }
+    },
+    {
+      "path": "pages/moral/declare",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "积分申报"
+      }
+    },
+    {
+      "path": "pages/moral/mall",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "积分商城",
+        "enablePullDownRefresh": true,
+        "backgroundTextStyle": "dark"
+      }
+    },
+    {
+      "path": "pages/agreement/user",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "用户协议"
+      }
+    },
+    {
+      "path": "pages/agreement/privacy",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "隐私政策"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "指尖善治",
+    "navigationBarBackgroundColor": "#F1F0EC",
+    "backgroundColor": "#F1F0EC",
+    "backgroundTextStyle": "dark"
+  }
 }

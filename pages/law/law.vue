@@ -1,409 +1,591 @@
 <template>
-  <view class="page-container">
-    <view class="banner">
-      <image class="banner-bg" src="/static/banner/profit.png" mode="widthFix" />
-      <view class="banner-topbar">
-        <view class="logo-area">
-          <image class="logo" src="/static/banner/logo.svg" mode="aspectFit" />
-          <text class="brand">智慧村务</text>
-        </view>
-        <view class="icon-group">
-          <image class="mini-icon" src="/static/icons/search.svg" mode="aspectFit" />
-          <image class="mini-icon" src="/static/icons/bell.svg" mode="aspectFit" />
-          <image class="mini-icon" src="/static/icons/user.svg" mode="aspectFit" />
-        </view>
+  <view class="page" :class="{ elder: elderOn }">
+    <page-hero compact variant="law" title="法治" />
+
+    <view
+      class="primary-card enter"
+      hover-class="press"
+      :hover-stay-time="80"
+      @click="goSubmit"
+    >
+      <view class="primary-copy">
+        <text class="primary-kicker">有纠纷要办</text>
+        <text class="primary-title">去说事建档</text>
+        <text class="primary-desc">说清经过，村委组织调解</text>
       </view>
-      <view class="banner-copy">
-        <text class="title">法治服务与宣传</text>
-        <text class="sub-title">普及法律知识，共建和谐乡村</text>
-      </view>
+      <text class="primary-cta">去办理</text>
     </view>
 
-    <view class="section-block">
-      <view class="sec-header">法治知识库</view>
-      <view class="section-card">
-        <image class="section-bg" src="/static/banner/law.jpg" mode="aspectFill" />
-        <view class="card-content">
-          <view class="nav-grid">
-            <view class="grid-item">
-              <image class="grid-icon" src="/static/law-icons/rules.svg" mode="aspectFill" />
-              <text class="grid-text">法律条文</text>
+    <rt-section title="反诈短片">
+      <view class="video-card enter delay-1">
+        <!-- 封面：用 image，避免 video.poster 只认网络地址 -->
+        <view
+          v-if="!videoStarted"
+          class="video-cover"
+          hover-class="press"
+          :hover-stay-time="80"
+          @click="startVideo"
+        >
+          <image class="cover-img" :src="videoCover" mode="aspectFill" />
+          <view class="cover-mask">
+            <view class="play-btn">
+              <text class="play-icon">▶</text>
             </view>
-            <view class="grid-item">
-              <image class="grid-icon" src="/static/law-icons/stories.svg" mode="aspectFill" />
-              <text class="grid-text">典型案例</text>
-            </view>
+            <text class="cover-title">防范电信诈骗</text>
+            <text class="cover-sub">点击播放</text>
           </view>
-        </view>
-      </view>
-    </view>
-
-    <view class="section-block">
-      <view class="sec-header">法律法规速查</view>
-      <view class="section-card">
-        <image class="section-bg" src="/static/banner/law.jpg" mode="aspectFill" />
-        <view class="card-content">
-          <view class="search-box">
-            <image class="search-icon" src="/static/law-icons/search.svg" mode="aspectFit" />
-            <input placeholder="搜索..." placeholder-style="color:#999" />
-          </view>
-          <view class="tabs">
-            <text 
-              v-for="(tab, index) in tabs" 
-              :key="index" 
-              :class="{'active': activeTab === index}" 
-              @click="activeTab = index"
-            >{{tab}}</text>
-          </view>
-          <view class="list-item" v-for="i in 3" :key="i">
-            <view class="list-content">
-              <text class="item-title">中华人民共和国出入境管理条例</text>
-              <text class="item-year">2025年</text>
-            </view>
-          </view>
-        </view>
-      </view>
-    </view>
-
-    <view class="section-block">
-      <view class="sec-header">普法宣传专栏</view>
-      <view class="section-card">
-        <image class="section-bg" src="/static/banner/law.jpg" mode="aspectFill" />
-        <view class="card-content">
-          <view class="video-card">
-            <view class="video-cover video-poster" @click="openLawVideo">
-              <image class="video-poster-image" src="/static/banner/law.jpg" mode="aspectFill" />
-              <view class="video-play-mask">
-                <view class="video-play-btn">▶</view>
-                <text class="video-play-text">点击播放</text>
-              </view>
-            </view>
-            <view class="info">
-              <text class="title">防范电信诈骗</text>
-              <text class="desc">提高防范意识，守护财产安全</text>
-              <view class="meta">
-                <view class="meta-item">
-                  <view class="meta-icon-frame">
-                    <image class="meta-icon" src="/static/law-icons/eye.svg" mode="aspectFill" />
-                  </view>
-                  <text>2.5k浏览</text>
-                </view>
-                <text>2025-11-05</text>
-              </view>
-            </view>
-          </view>
-        </view>
-      </view>
-    </view>
-
-    <view v-if="showVideoModal" class="video-modal" @click="closeLawVideo">
-      <view class="video-modal-panel" @click.stop>
-        <view class="video-modal-header">
-          <text class="video-modal-title">防范电信诈骗</text>
-          <text class="video-modal-close" @click="closeLawVideo">关闭</text>
         </view>
         <video
-          id="lawVideo"
-          class="video-modal-player"
-          src="/static/law-videos/law.mp4"
+          v-else
+          id="lawHomeVideo"
+          class="player"
+          :src="videoSrc"
           controls
-          autoplay
+          show-center-play-btn
+          show-play-btn
+          enable-play-gesture
           object-fit="contain"
-          poster="/static/banner/law.jpg"
-        ></video>
+          @error="onVideoError"
+          @play="onVideoPlay"
+        />
+        <view v-if="videoError" class="video-err">
+          <text class="video-err-text">{{ videoErrorHint }}</text>
+          <text class="tips-more" @click="openLawVideo">去完整页重试 ›</text>
+        </view>
+        <view class="video-tips">
+          <text class="tips-kicker">先记住这三条</text>
+          <text class="tip-line">· 不轻信转账保金 / 解冻 / 退款</text>
+          <text class="tip-line">· 自称公检法先挂断，官方渠道核实</text>
+          <text class="tip-line">· 已转账立即报警并告知村委</text>
+          <text class="tips-more" @click="openLawVideo"
+            >全屏观看与完整要点 ›</text
+          >
+        </view>
       </view>
+    </rt-section>
+
+    <view
+      class="advisor-card enter delay-2"
+      hover-class="press"
+      :hover-stay-time="80"
+      @click="goAiLegal"
+    >
+      <view class="advisor-copy">
+        <text class="advisor-title">普法顾问</text>
+        <text class="advisor-desc">土地、邻里、劳务 — 在线问答</text>
+      </view>
+      <text class="advisor-arrow">去问 ›</text>
     </view>
+
+    <rt-section title="常见纠纷要点">
+      <rt-card compact elevated tone="blue" class="enter delay-3">
+        <view
+          v-for="(item, idx) in essentials"
+          :key="item.id"
+          class="ess-block"
+          :class="{
+            last: idx === essentials.length - 1,
+            open: openId === item.id,
+          }"
+        >
+          <view
+            class="ess-head"
+            hover-class="press"
+            :hover-stay-time="80"
+            @click="toggle(item.id)"
+          >
+            <view class="ess-no">0{{ idx + 1 }}</view>
+            <view class="ess-body">
+              <text class="ess-title">{{ item.title }}</text>
+              <text class="ess-desc">{{ item.desc }}</text>
+            </view>
+            <text class="ess-toggle">{{
+              openId === item.id ? "收起" : "展开"
+            }}</text>
+          </view>
+          <view v-if="openId === item.id" class="ess-panel">
+            <text class="ess-detail">{{ item.detail }}</text>
+            <view class="ess-actions">
+              <view
+                class="ess-btn primary full"
+                hover-class="press"
+                :hover-stay-time="80"
+                @click.stop="goSubmitWith(item)"
+                >去建档</view
+              >
+              <text class="ess-link" @click.stop="askAdvisor(item)"
+                >还有疑问？问普法顾问</text
+              >
+            </view>
+          </view>
+        </view>
+      </rt-card>
+    </rt-section>
 
     <tab-bar />
   </view>
 </template>
 
 <script>
-import TabBar from '@/components/tab-bar/bar.vue'
+import TabBar from "@/components/tab-bar/bar.vue";
+import PageHero from "@/components/page-hero/page-hero.vue";
+import RtCard from "@/components/rt-card/rt-card.vue";
+import RtSection from "@/components/rt-section/rt-section.vue";
+import { ensureLoggedIn } from "@/utils/auth.js";
+import { goNavigate } from "@/utils/nav.js";
+import { setSubmitDraftText } from "@/utils/submit-draft.js";
+import { isElderMode } from "@/utils/elder-mode.js";
+import {
+  getLawVideoCover,
+  getLocalLawVideoSrc,
+  listLawVideoCandidates,
+} from "@/utils/law-video.js";
 
 export default {
-  components: { TabBar },
+  components: { TabBar, PageHero, RtCard, RtSection },
   data() {
     return {
-      tabs: ['法律', '行政法规', '司法解释', '部门规章'],
-      activeTab: 0,
-      showVideoModal: false
-    }
+      elderOn: false,
+      openId: "land",
+      videoSrc: getLocalLawVideoSrc(),
+      videoCover: getLawVideoCover(),
+      videoStarted: false,
+      videoError: "",
+      videoHint: "",
+      videoCandidates: [],
+      videoCandIndex: 0,
+      essentials: [
+        {
+          id: "land",
+          title: "土地边界争议",
+          desc: "取证 → 协商 → 村委调解",
+          detail:
+            "先保留地界凭证、公示材料与现场照片；尽量先与对方协商；协商不成再走「说事建档」，由村委组织核实与调解。线上普法不能替代实地勘界。",
+          ask: "土地边界有争议，我该准备什么材料、走哪些步骤？",
+          draft: "土地边界存在争议，双方协商未果，申请村委介入调解。",
+        },
+        {
+          id: "noise",
+          title: "邻里噪音 / 通道占用",
+          desc: "留存记录 → 沟通 → 升级调解",
+          detail:
+            "记录发生时间、影响与沟通过程；优先当面或请中间人沟通；仍无法解决再提交调解，说清诉求与可接受方案。人身冲突请先报警。",
+          ask: "邻居噪音很大还占用通道，调解时怎么表述诉求更合适？",
+          draft: "邻里噪音/通道占用影响生活，多次沟通未果，申请村委调解。",
+        },
+        {
+          id: "fraud",
+          title: "防电信诈骗",
+          desc: "不转账、先核实、再报案",
+          detail:
+            "凡「转账保金、找回积分、公检法来电」一律先核实。若已受骗，保留聊天与转账记录，立即报警并告知村委协助。",
+          ask: "接到自称公检法要求转账的电话，正确应对步骤是什么？",
+          draft: "",
+        },
+      ],
+    };
+  },
+  computed: {
+    videoErrorHint() {
+      if (this.videoHint) return this.videoHint;
+      if (!this.videoError) return "";
+      if (/MEDIA_ERR|not supported|解码|格式/i.test(this.videoError)) {
+        return "当前模拟器可能播不了。请点「完整页」或用顶部「真机调试」。";
+      }
+      return this.videoError;
+    },
+  },
+  onShow() {
+    this.elderOn = isElderMode();
+    ensureLoggedIn();
+  },
+  onLoad() {
+    this._alive = true;
+    this.prepareSrc();
+  },
+  onUnload() {
+    // 页面销毁时不要再调 videoContext，易触发开发者工具 __subPageFrameEndTime__ 空指针
+    this._alive = false;
+    this.videoStarted = false;
   },
   methods: {
-    openLawVideo() {
-      this.showVideoModal = true
-      this.$nextTick(() => {
-        const videoContext = uni.createVideoContext('lawVideo', this)
-        videoContext.play()
-      })
+    async prepareSrc() {
+      try {
+        const list = await listLawVideoCandidates();
+        this.videoCandidates = list.length
+          ? list
+          : [{ src: getLocalLawVideoSrc(), from: "local" }];
+        this.videoCandIndex = 0;
+        const cur = this.videoCandidates[0];
+        this.videoSrc = cur.src;
+        this.videoHint = cur.hint || "";
+      } catch (e) {
+        this.videoSrc = getLocalLawVideoSrc();
+        this.videoCandidates = [{ src: this.videoSrc, from: "local" }];
+      }
     },
-    closeLawVideo() {
-      const videoContext = uni.createVideoContext('lawVideo', this)
-      videoContext.stop()
-      this.showVideoModal = false
-    }
-  }
-}
+    playAfterMount() {
+      if (!this._alive || !this.videoStarted) return;
+      setTimeout(() => {
+        if (!this._alive || !this.videoStarted) return;
+        try {
+          uni.createVideoContext("lawHomeVideo", this).play();
+        } catch (e) {
+          /* ignore */
+        }
+      }, 80);
+    },
+    startVideo() {
+      this.videoError = "";
+      this.videoStarted = true;
+      this.playAfterMount();
+    },
+    onVideoPlay() {
+      this.videoError = "";
+    },
+    onVideoError(e) {
+      if (!this._alive) return;
+      const detail = (e && e.detail) || {};
+      const msg = detail.errMsg || detail.message || "播放失败";
+      const next = this.videoCandIndex + 1;
+      if (next < this.videoCandidates.length) {
+        // 先卸掉再换源，避免同帧连毁连建触发工具内部计时 bug
+        this.videoStarted = false;
+        this.videoCandIndex = next;
+        const cur = this.videoCandidates[next];
+        this.videoSrc = cur.src;
+        this.videoHint = cur.hint || "";
+        this.videoError = "";
+        setTimeout(() => {
+          if (!this._alive) return;
+          this.videoStarted = true;
+          this.playAfterMount();
+        }, 120);
+        return;
+      }
+      this.videoError = msg;
+      this.videoStarted = false;
+      this.videoHint = /MEDIA_ERR|not supported|解码/i.test(msg)
+        ? "当前环境播不了。请用顶部「真机调试」，或检查网络/合法域名。"
+        : msg;
+    },
+    toggle(id) {
+      this.openId = this.openId === id ? "" : id;
+    },
+    goSubmit() {
+      goNavigate("/pages/village/submit");
+    },
+    goSubmitWith(item) {
+      if (item && item.draft) setSubmitDraftText(item.draft, "law");
+      goNavigate("/pages/village/submit");
+    },
+    askAdvisor(item) {
+      uni.setStorageSync("rt_legal_prefill", item.ask);
+      goNavigate("/pages/law/aiLegal");
+    },
+    goAiLegal() {
+      goNavigate("/pages/law/aiLegal");
+    },
+    openLawVideo() {
+      goNavigate("/pages/law/lawVideo");
+    },
+  },
+};
 </script>
 
 <style lang="scss" scoped>
-/* 页面背景图设置 */
-.page-container { 
-  padding: 0 24rpx 220rpx; 
-  background-color: #fcfcf0; 
-  min-height: 100vh; 
-  box-sizing: border-box; 
+@import "@/styles/theme.scss";
+
+.page {
+  @include rt-page;
+  padding: 0 $rt-page-x $rt-page-bottom;
 }
 
-.section-card { 
-  position: relative;
-  overflow: hidden;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-  border-radius: 28rpx; 
-  padding: 30rpx; 
-  border: 1rpx solid rgba(255, 255, 255, 0.92);
-  box-shadow:
-    0 22rpx 44rpx rgba(15, 23, 42, 0.08),
-    0 6rpx 14rpx rgba(15, 23, 42, 0.05);
+.enter {
+  @include rt-enter(0s);
+}
+.delay-1 {
+  animation-delay: 0.06s;
+}
+.delay-2 {
+  animation-delay: 0.12s;
+}
+.delay-3 {
+  animation-delay: 0.18s;
 }
 
-.section-block {
-  margin-top: 24rpx;
-}
-
-.section-bg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 1;
-  z-index: 0;
-}
-
-.card-content {
-  position: relative;
-  z-index: 1;
-  background: transparent;
-}
-
-.banner {
-  height: 360rpx;
-  margin: 0 -24rpx 0;
-  position: relative;
-  overflow: hidden;
-}
-
-.banner-bg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
-  z-index: 0;
-}
-
-.banner-topbar {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 44rpx;
-  z-index: 2;
-  height: 88rpx;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 40rpx 28rpx 0 24rpx;
-}
-
-.logo-area {
+.primary-card {
   display: flex;
   align-items: center;
-  gap: 22rpx;
-}
-
-.logo {
-  width: 104rpx;
-  height: 104rpx;
-  border-radius: 50%;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(2px);
-  display: block;
-}
-
-.brand {
-  font-size: 32rpx;
-  font-weight: 500;
-  color: #2b3a23;
-}
-
-.icon-group {
-  display: flex;
-  gap: 22rpx;
-  align-items: center;
-}
-
-.mini-icon {
-  width: 54rpx;
-  height: 54rpx;
-}
-
-.banner-copy {
-  position: absolute;
-  left: 8vw;
-  top: 176rpx;
-  z-index: 2;
-  max-width: 76%;
-}
-
-.title { display: block; font-size: 64rpx; font-weight: 600; line-height: 1.0; color: #2b3a23; white-space: nowrap; }
-.sub-title { display: block; margin-top: 10rpx; font-size: 28rpx; font-weight: 500; color: #4a5f3e; white-space: nowrap; }
-
-.meta-icon-frame {
-  width: 56rpx;
-  height: 56rpx;
-  border-radius: 14rpx;
-  overflow: hidden;
-  flex-shrink: 0;
-  background: #eef3e8;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.meta-icon {
-  width: 100%;
-  height: 100%;
-  display: block;
-  transform: scale(1.12);
-  transform-origin: center;
-}
-
-.sec-header { display: flex; align-items: center; font-size: 34rpx; font-weight: 700; color: #2c4a30; margin: 0 0 12rpx 8rpx; }
-.sec-header::before {
-  content: '';
-  width: 6rpx;
-  height: 22rpx;
-  margin-right: 12rpx;
-  background: #2c4a30;
-  border-radius: 999rpx;
-  flex-shrink: 0;
-}
-
-.nav-grid { display: flex; justify-content: space-around; padding: 20rpx 0; }
-.grid-item { display: flex; flex-direction: column; align-items: center; gap: 16rpx; }
-.grid-icon { width: 100rpx; height: 100rpx; border-radius: 24rpx; background: #eef3e8; display: block; padding: 0; box-sizing: border-box; overflow: hidden; }
-.grid-text { font-size: 26rpx; color: #333; }
-
-.search-box { background: #f0f4ed; border-radius: 40rpx; padding: 20rpx 30rpx; display: flex; align-items: center; margin-bottom: 20rpx; }
-.search-icon { width: 34rpx; height: 34rpx; flex-shrink: 0; margin-right: 16rpx; }
-
-.tabs { display: flex; justify-content: space-between; margin-bottom: 20rpx;
-  text { font-size: 24rpx; padding: 10rpx 24rpx; background: #f0f0f0; border-radius: 40rpx; color: #666; }
-  .active { background: #5a8d46; color: #fff; }
-}
-
-.list-item { padding: 20rpx 0; border-bottom: 1rpx solid #eef2eb; }
-.list-content { display: flex; justify-content: space-between; font-size: 28rpx; }
-.item-year { color: #999; font-size: 24rpx; }
-
-.video-card { display: flex; margin-top: 20rpx;
-  .video-cover {
-    width: 220rpx;
-    height: 140rpx;
-    border-radius: 16rpx;
-    overflow: hidden;
-    flex-shrink: 0;
-    background: #dce5d5;
-  }
-  .video-poster {
-    position: relative;
-    overflow: hidden;
-  }
-  .video-poster-image {
-    width: 100%;
-    height: 100%;
-    display: block;
-  }
-  .video-play-mask {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.18);
-  }
-  .video-play-btn {
-    width: 56rpx;
-    height: 56rpx;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.9);
-    color: #2b3a23;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28rpx;
-    line-height: 1;
-    margin-bottom: 10rpx;
-  }
-  .video-play-text {
-    font-size: 20rpx;
-    color: #fff;
-    text-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.35);
-  }
-  .info { margin-left: 20rpx; flex: 1; display: flex; flex-direction: column; justify-content: center; }
-  .title { font-size: 28rpx; font-weight: bold; }
-  .desc { font-size: 22rpx; color: #777; margin: 8rpx 0; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
-  .meta { display: flex; gap: 30rpx; font-size: 20rpx; color: #aaa; align-items: center; }
-  .meta-item { display: flex; align-items: center; gap: 8rpx; }
-  .meta-icon { width: 34rpx; height: 34rpx; flex-shrink: 0; transform: scale(1.12); transform-origin: center; display: block; }
-}
-
-.video-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 99;
-  background: rgba(0, 0, 0, 0.72);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 32rpx;
+  gap: 20rpx;
+  padding: 36rpx 28rpx;
+  margin: 8rpx 0 28rpx;
+  border-radius: $rt-radius-lg;
+  background: radial-gradient(
+      ellipse 80% 60% at 100% 0%,
+      rgba(255, 255, 255, 0.95) 0%,
+      transparent 55%
+    ),
+    linear-gradient(145deg, #f7f9fc 0%, $rt-blue-soft 55%, #e4eaf2 100%);
+  border: 1rpx solid rgba(58, 74, 99, 0.14);
+  box-shadow: $rt-shadow-sm;
   box-sizing: border-box;
 }
-
-.video-modal-panel {
-  width: 100%;
-  max-width: 680rpx;
-  background: #0f1710;
-  border-radius: 24rpx;
-  overflow: hidden;
-  box-shadow: 0 18rpx 50rpx rgba(0, 0, 0, 0.35);
+.press {
+  opacity: 0.94;
+}
+.primary-copy {
+  flex: 1;
+  min-width: 0;
+}
+.primary-kicker {
+  display: block;
+  font-size: $rt-type-micro;
+  font-weight: 700;
+  color: $rt-blue;
+  margin-bottom: 6rpx;
+}
+.primary-title {
+  display: block;
+  font-family: $rt-font-title;
+  font-size: 36rpx;
+  font-weight: 800;
+  color: $rt-text;
+}
+.primary-desc {
+  display: block;
+  margin-top: 8rpx;
+  font-size: $rt-type-caption;
+  color: $rt-text-secondary;
+}
+.primary-cta {
+  flex-shrink: 0;
+  padding: 18rpx 28rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #2f3c52, #5a6b82);
+  color: #fff;
+  font-size: $rt-type-body;
+  font-weight: 800;
 }
 
-.video-modal-header {
+.video-card {
+  overflow: hidden;
+  border-radius: $rt-radius-lg;
+  background: #fff;
+  border: 1rpx solid rgba(50, 40, 30, 0.06);
+  box-shadow: $rt-shadow-sm;
+}
+.player {
+  width: 100%;
+  height: 380rpx;
+  background: #0a0f0c;
+  display: block;
+}
+.video-cover {
+  position: relative;
+  height: 380rpx;
+  overflow: hidden;
+  background: #0a0f0c;
+}
+.cover-img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.cover-mask {
+  position: absolute;
+  inset: 0;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  padding: 18rpx 20rpx;
+  justify-content: center;
+  background: rgba(10, 15, 12, 0.42);
+}
+.play-btn {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.25);
+}
+.play-icon {
+  margin-left: 6rpx;
+  font-size: 36rpx;
+  color: $rt-primary-dark;
+  font-weight: 800;
+}
+.cover-title {
+  margin-top: 20rpx;
+  font-size: $rt-type-body;
+  font-weight: 800;
   color: #fff;
 }
-
-.video-modal-title {
-  font-size: 28rpx;
-  font-weight: 600;
+.cover-sub {
+  margin-top: 6rpx;
+  font-size: $rt-type-caption;
+  color: rgba(255, 255, 255, 0.85);
 }
-
-.video-modal-close {
-  font-size: 24rpx;
-  color: #cfe6d0;
+.video-err {
+  padding: 16rpx 24rpx 0;
 }
-
-.video-modal-player {
-  width: 100%;
-  height: 420rpx;
+.video-err-text {
   display: block;
-  background: #000;
+  font-size: 22rpx;
+  color: #b86b35;
+  line-height: 1.45;
+}
+.video-tips {
+  padding: 22rpx 24rpx 26rpx;
+}
+.tips-kicker {
+  display: block;
+  margin-bottom: 10rpx;
+  font-size: $rt-type-micro;
+  font-weight: 800;
+  letter-spacing: 1rpx;
+  color: $rt-blue;
+}
+.tip-line {
+  display: block;
+  font-size: $rt-type-caption;
+  color: $rt-text-secondary;
+  line-height: 1.55;
+}
+.tips-more {
+  display: block;
+  margin-top: 14rpx;
+  font-size: $rt-type-caption;
+  font-weight: 700;
+  color: $rt-primary-mid;
+}
+
+.advisor-card {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin: 8rpx 0 28rpx;
+  padding: 28rpx 24rpx;
+  border-radius: $rt-radius-md;
+  background: #fff;
+  border: 1rpx solid rgba(50, 40, 30, 0.06);
+  box-shadow: $rt-shadow-sm;
+}
+.advisor-copy {
+  flex: 1;
+  min-width: 0;
+}
+.advisor-title {
+  display: block;
+  font-size: $rt-type-body;
+  font-weight: 800;
+  color: $rt-text;
+}
+.advisor-desc {
+  display: block;
+  margin-top: 6rpx;
+  font-size: $rt-type-micro;
+  color: $rt-text-secondary;
+}
+.advisor-arrow {
+  flex-shrink: 0;
+  font-size: $rt-type-caption;
+  font-weight: 800;
+  color: $rt-blue;
+}
+
+.ess-block {
+  padding: 8rpx 0 20rpx;
+  border-bottom: 1rpx solid $rt-border;
+}
+.ess-block.last {
+  border-bottom: none;
+  padding-bottom: 4rpx;
+}
+.ess-block.open .ess-title {
+  color: $rt-blue;
+}
+.ess-head {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  min-height: 88rpx;
+}
+.ess-no {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 14rpx;
+  background: $rt-blue-soft;
+  color: $rt-blue;
+  font-size: 22rpx;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.ess-body {
+  flex: 1;
+  min-width: 0;
+}
+.ess-title {
+  display: block;
+  font-size: $rt-type-body;
+  font-weight: 800;
+  color: $rt-text;
+}
+.ess-desc {
+  display: block;
+  margin-top: 4rpx;
+  font-size: $rt-type-micro;
+  color: $rt-text-secondary;
+}
+.ess-toggle {
+  flex-shrink: 0;
+  font-size: $rt-type-caption;
+  font-weight: 700;
+  color: $rt-blue;
+}
+.ess-panel {
+  margin-top: 12rpx;
+  padding-left: 64rpx;
+}
+.ess-detail {
+  display: block;
+  font-size: $rt-type-caption;
+  color: $rt-text-secondary;
+  line-height: 1.55;
+}
+.ess-actions {
+  margin-top: 16rpx;
+}
+.ess-btn {
+  @include rt-btn-reset;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 72rpx;
+  padding: 0 28rpx;
+  border-radius: 999rpx;
+  font-size: $rt-type-caption;
+  font-weight: 800;
+}
+.ess-btn.primary {
+  background: linear-gradient(135deg, $rt-primary-dark, $rt-primary-mid);
+  color: #fff;
+}
+.ess-btn.full {
+  width: 100%;
+  box-sizing: border-box;
+}
+.ess-link {
+  display: block;
+  margin-top: 16rpx;
+  text-align: center;
+  font-size: $rt-type-caption;
+  font-weight: 700;
+  color: $rt-blue;
 }
 </style>

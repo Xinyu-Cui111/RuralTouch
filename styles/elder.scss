@@ -1,0 +1,87 @@
+/* 老年简洁模式：挂在 page.elder 上 — 与标准模式差异要一眼可见 */
+
+.elder {
+  --rt-elder-scale: 1.12;
+}
+
+.elder .title,
+.elder .primary-title,
+.elder .fold-title,
+.elder .case-title,
+.elder .demand-title,
+.elder .loop-title,
+.elder .next-title,
+.elder .id-name,
+.elder .wallet-num,
+.elder .points-num,
+.elder .hub-title,
+.elder .form-title,
+.elder .welcome-title {
+  font-size: 44rpx !important;
+  line-height: 1.35 !important;
+  font-weight: 800 !important;
+}
+
+.elder .primary-desc,
+.elder .case-tip,
+.elder .todo-title,
+.elder .svc-title,
+.elder .fold-arrow,
+.elder .next-desc,
+.elder .demand-text,
+.elder .bubble-text,
+.elder .stat-label,
+.elder .hub-desc,
+.elder .form-hint,
+.elder .card-desc {
+  font-size: 32rpx !important;
+  line-height: 1.5 !important;
+  color: #2a2118 !important;
+}
+
+.elder .primary-cta,
+.elder .next-btn,
+.elder .dock-btn,
+.elder .action-primary,
+.elder .action-ghost,
+.elder .check-apply,
+.elder .todo-bar,
+.elder .secondary-link,
+.elder .svc-block,
+.elder .hub-card,
+.elder .voice-main {
+  min-height: 104rpx !important;
+}
+
+.elder .orb,
+.elder .mesh-bg,
+.elder .hero-photo {
+  display: none !important;
+  opacity: 0 !important;
+}
+
+.elder .hero {
+  box-shadow: none !important;
+  padding-bottom: 16rpx !important;
+}
+
+.elder .ticker {
+  border-color: rgba(42, 33, 24, 0.22) !important;
+}
+
+.elder .voice-btn {
+  min-width: 120rpx !important;
+  font-size: 28rpx !important;
+  font-weight: 800 !important;
+  background: #9e3428 !important;
+  color: #fff !important;
+  border-color: transparent !important;
+}
+
+/* 简洁模式弱化次要装饰区，突出主任务 */
+.elder .svc-grid {
+  gap: 20rpx !important;
+}
+.elder .svc-block {
+  padding: 28rpx 24rpx !important;
+}

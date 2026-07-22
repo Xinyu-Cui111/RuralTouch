@@ -1,29 +1,43 @@
 <script>
+import { initCloud } from "@/utils/cloud.js";
+
 export default {
   onLaunch() {
-    console.log('智慧村务小程序启动')
-  }
-}
+    // 只做云初始化；不要在启动时 callFunction。
+    // 部分基础库/工具在云函数未部署或 env 未绑定时，会抛
+    // TypeError: Cannot read property 'errMsg' of undefined
+    try {
+      initCloud();
+    } catch (e) {
+      console.warn("[App] initCloud", e);
+    }
+  },
+};
 </script>
 
 <style lang="scss">
-/* 全局样式 */
+@import "@/styles/theme.scss";
+@import "@/styles/elder.scss";
+
 page {
-  background-color: #fcfcf0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background-color: $rt-bg;
+  font-family: $rt-font-body;
+  color: $rt-text;
+  font-size: $rt-type-body;
+  line-height: $rt-leading-body;
 }
 
-/* 清除默认样式 */
-view, text, image {
+.rt-title-font {
+  font-family: $rt-font-title;
+}
+
+button {
+  @include rt-btn-reset;
+}
+
+view,
+text,
+image {
   box-sizing: border-box;
-}
-
-/* 通用颜色变量 */
-:root {
-  --primary-green: #5B8C3A;
-  --primary-orange: #E67E22;
-  --bg-cream: #fcfcf0;
-  --text-dark: #2C3E50;
-  --text-gray: #7F8C8D;
 }
 </style>

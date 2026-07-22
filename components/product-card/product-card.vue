@@ -1,20 +1,38 @@
 <template>
-  <view class="product-card" @click="handleItemClick">
-    <view class="media-wrap">
-      <image v-if="product.img" class="product-img" :src="product.img" mode="aspectFill"></image>
-      <view v-else class="product-img placeholder">
-        <text class="placeholder-text">暂无图片</text>
+  <view
+    class="product-card"
+    hover-class="press"
+    :hover-stay-time="80"
+    @click="$emit('click', product)"
+  >
+    <view class="card-stripe" />
+    <view class="media">
+      <image
+        v-if="imgSrc"
+        class="img"
+        :src="imgSrc"
+        mode="aspectFill"
+        lazy-load
+      />
+      <view v-else class="img placeholder">
+        <rt-icon name="product" tone="neutral" size="sm" />
       </view>
     </view>
-
-    <view class="info-wrap">
+    <view class="body">
       <text class="name">{{ product.name }}</text>
       <text class="desc">{{ product.desc }}</text>
-
       <view class="footer">
-        <text class="price">¥{{ product.price }}</text>
-        <view class="cart-btn" @click.stop="handleAddToCart">
-          <text class="plus-icon">+</text>
+        <view class="price-wrap">
+          <text class="currency">¥</text>
+          <text class="price">{{ product.price }}</text>
+        </view>
+        <view
+          class="cart-btn"
+          hover-class="press"
+          :hover-stay-time="80"
+          @click.stop="$emit('add', product)"
+        >
+          <text class="buy-text">下单</text>
         </view>
       </view>
     </view>
@@ -22,135 +40,147 @@
 </template>
 
 <script>
-export default {
-  props: {
-    // 传入商品对象，包含 img, name, desc, price 等字段
-    product: {
-      type: Object,
-      required: true
-    }
-  },
-  methods: {
-    handleItemClick() {
-      this.$emit('click', this.product);
-    },
-    handleAddToCart() {
-      // 阻止事件冒泡
-      uni.showToast({ title: '已加入购物车', icon: 'none' });
-      this.$emit('add', this.product);
-    }
-  }
+import RtIcon from "@/components/rt-icon/rt-icon.vue";
+
+/** 兼容云库旧路径 /static/products → /static/lite/products */
+function normalizeImg(src) {
+  if (!src || typeof src !== "string") return "";
+  return src.replace(/^\/static\/products\//, "/static/lite/products/");
 }
+
+export default {
+  components: { RtIcon },
+  props: {
+    product: { type: Object, required: true },
+  },
+  computed: {
+    imgSrc() {
+      return normalizeImg(this.product && this.product.img);
+    },
+  },
+  emits: ["click", "add"],
+};
 </script>
 
 <style lang="scss" scoped>
-/* 引用我们刚刚配置的 uni.scss 变量 */
+@import "@/styles/theme.scss";
+
 .product-card {
-  width: calc(100% - 24rpx);
-  height: 204rpx;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-  border-radius: 28rpx;
+  position: relative;
   overflow: hidden;
-  margin: 0 auto;
-  border: 1rpx solid rgba(255, 255, 255, 0.92);
-  box-shadow:
-    0 22rpx 44rpx rgba(15, 23, 42, 0.08),
-    0 6rpx 14rpx rgba(15, 23, 42, 0.05);
   display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  gap: 24rpx;
+  padding: 24rpx 24rpx 24rpx 28rpx;
+  border-radius: $rt-radius-md;
+  background: #fff;
+  border: 1rpx solid rgba(50, 40, 30, 0.06);
+  box-shadow: $rt-shadow-sm;
+}
 
-  .media-wrap {
-    width: 172rpx;
-    height: 100%;
-    flex-shrink: 0;
-    margin: 0;
-    border-radius: 28rpx 0 0 28rpx;
-    overflow: hidden;
-    background: linear-gradient(160deg, #eef2f7 0%, #e2e8f0 100%);
-  }
+.press {
+  opacity: 0.94;
+}
 
-  .product-img {
-    width: 100%;
-    height: 100%;
-    background-color: #f5f5f5;
-  }
+.card-stripe {
+  position: absolute;
+  left: 0;
+  top: 20rpx;
+  bottom: 20rpx;
+  width: 6rpx;
+  border-radius: 0 6rpx 6rpx 0;
+  background: linear-gradient(180deg, $rt-primary-mid, $rt-primary);
+}
 
-  .placeholder {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(160deg, #e7edf5 0%, #dbe4ef 100%);
-  }
+.media {
+  width: 168rpx;
+  height: 168rpx;
+  flex-shrink: 0;
+  border-radius: $rt-radius-sm;
+  overflow: hidden;
+  background: $rt-bg;
+}
 
-  .placeholder-text {
-    color: #64748b;
-    font-size: 22rpx;
-  }
+.img {
+  width: 100%;
+  height: 100%;
+}
 
-  .info-wrap {
-    flex: 1;
-    padding: 14rpx 12rpx 12rpx 14rpx;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    min-width: 0;
-    
-    .name {
-      font-size: 28rpx;
-      font-weight: 700;
-      color: #0f172a;
-      margin-bottom: 8rpx;
-      display: block;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    
-    .desc {
-      font-size: 18rpx;
-      line-height: 1.5;
-      color: #475569;
-      margin-bottom: 12rpx;
-      display: block;
-      min-height: 62rpx;
-      display: -webkit-box;
-      -webkit-box-orient: vertical;
-      -webkit-line-clamp: 2;
-      overflow: hidden;
-    }
-    
-    .footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      
-      .price {
-        font-size: 28rpx;
-        color: #0b7a3e;
-        font-weight: 700;
-      }
-      
-      .cart-btn {
-        width: 50rpx;
-        height: 50rpx;
-        flex-shrink: 0;
-        background: linear-gradient(180deg, #3aa45d 0%, #208a49 100%);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff;
-        box-shadow: 0 6rpx 14rpx rgba(32, 138, 73, 0.34);
-        
-        .plus-icon {
-          font-size: 30rpx;
-          line-height: 1;
-          font-weight: 500;
-        }
-      }
-    }
-  }
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 4rpx 0;
+}
+
+.name {
+  font-size: $rt-type-body;
+  font-weight: 700;
+  color: $rt-text;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.desc {
+  margin-top: 8rpx;
+  font-size: $rt-type-caption;
+  line-height: 1.5;
+  color: $rt-text-muted;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  flex: 1;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12rpx;
+}
+
+.price-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 2rpx;
+}
+
+.currency {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: $rt-primary-mid;
+}
+
+.price {
+  font-size: 36rpx;
+  font-weight: 800;
+  color: $rt-primary-mid;
+  line-height: 1;
+}
+
+.cart-btn {
+  min-width: 96rpx;
+  height: 56rpx;
+  padding: 0 20rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(145deg, $rt-primary, $rt-primary-mid);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.buy-text {
+  font-size: 24rpx;
+  font-weight: 800;
+  color: #fff;
 }
 </style>

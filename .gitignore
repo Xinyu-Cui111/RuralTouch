@@ -3,3 +3,8 @@ dist/
 unpackage/
 .tmp-*.log
 .DS_Store
+cloudfunctions/**/secrets.local.js
+tools-icon/
+assets-source/
+devtools-login-qr.png
+

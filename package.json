@@ -7,22 +7,29 @@
     "dev:mp-weixin": "node scripts/run-vite.js mp-weixin",
     "build:h5": "node scripts/run-vite.js h5 build",
     "build:mp-weixin": "node scripts/prebuild-check.js mp-weixin && node scripts/run-vite.js mp-weixin build && node scripts/postbuild-sanitize.js",
+    "optimize:assets": "python scripts/optimize-assets.py",
+    "eval:dispute": "node scripts/eval-dispute.js",
     "prepare": "husky install",
     "format": "prettier --write \"**/*.{js,vue,css,scss,json,md}\""
   },
   "dependencies": {
     "@dcloudio/uni-app": "3.0.0-alpha-5010120260522001",
+    "@dcloudio/uni-components": "3.0.0-alpha-5010120260522001",
+    "@dcloudio/uni-h5": "3.0.0-alpha-5010120260522001",
+    "@dcloudio/uni-mp-weixin": "3.0.0-alpha-5010120260522001",
     "@dcloudio/uni-ui": "^1.5.0",
+    "sharp": "^0.33.5",
     "vue": "3.4.21"
   },
   "devDependencies": {
-    "@dcloudio/vite-plugin-uni": "3.0.0-alpha-5000120260205002",
+    "@dcloudio/types": "3.4.31",
+    "@dcloudio/vite-plugin-uni": "3.0.0-alpha-5010120260522001",
     "@vitejs/plugin-vue": "5.2.4",
-    "sass": "^1.100.0",
-    "vite": "5.2.8",
     "husky": "^8.0.0",
     "lint-staged": "^13.0.0",
-    "prettier": "^2.8.8"
+    "prettier": "^2.8.8",
+    "sass": "^1.100.0",
+    "vite": "5.2.8"
   },
   "lint-staged": {
     "**/*.{js,vue,css,scss,json,md}": [

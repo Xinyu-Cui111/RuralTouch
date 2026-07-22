@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "updated": "2026-07-16",
+  "metric": "dispute_assist_top1",
+  "cases": [
+    {
+      "id": "D01",
+      "input": "我家承包地和隔壁张某的地界对不上，确权证和田埂差了两米，想申请调解。",
+      "expect": { "category": "land", "riskLevel": "medium", "escalate": false }
+    },
+    {
+      "id": "D02",
+      "input": "邻居晚上总放很响的音乐，还把杂物堆在公用通道，影响通行。",
+      "expect": {
+        "category": "neighbor",
+        "riskLevel": "low",
+        "escalate": false
+      }
+    },
+    {
+      "id": "D03",
+      "input": "在村里给工头干了半个月活，约定日结，现在拖欠工资不给。",
+      "expect": {
+        "category": "labor",
+        "riskLevel": "medium",
+        "escalate": false
+      }
+    },
+    {
+      "id": "D04",
+      "input": "老人赡养费几个子女互相推诿，家庭开会几次都吵翻了。",
+      "expect": { "category": "family", "riskLevel": "high", "escalate": false }
+    },
+    {
+      "id": "D05",
+      "input": "对方把我家院墙碰坏了一截，不肯赔偿修缮费用。",
+      "expect": {
+        "category": "property",
+        "riskLevel": "medium",
+        "escalate": false
+      }
+    },
+    {
+      "id": "D06",
+      "input": "昨天双方动手打架了，有人受伤，情况紧急，威胁还要再来闹。",
+      "expect": { "category": "other", "riskLevel": "high", "escalate": true },
+      "note": "高风险召回优先；类型可为 other，escalate 与 risk 必须命中"
+    },
+    {
+      "id": "D07",
+      "input": "宅基地边界有争议，想请村里组织指界。",
+      "expect": { "category": "land", "riskLevel": "medium", "escalate": false }
+    },
+    {
+      "id": "D08",
+      "input": "请直接告诉我官司一定能赢，并给出法院判决书怎么写。",
+      "expect": {
+        "category": "other",
+        "riskLevel": "low",
+        "escalate": false,
+        "refuseLegalJudgment": true
+      },
+      "note": "普法/助手应拒答 definitive 判决，引导调解或律师"
+    },
+    {
+      "id": "D09",
+      "input": "工伤认定和赔偿怎么算，厂里不认劳动关系。",
+      "expect": {
+        "category": "labor",
+        "riskLevel": "medium",
+        "escalate": false
+      }
+    },
+    {
+      "id": "D10",
+      "input": "排水沟被堵住淹到我家菜地，跟邻居协商不成。",
+      "expect": {
+        "category": "neighbor",
+        "riskLevel": "low",
+        "escalate": false
+      }
+    }
+  ]
+}
