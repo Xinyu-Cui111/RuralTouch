@@ -23,13 +23,23 @@ uni-app + Vue 3 前端，微信云开发后端，**已跑通登录与完整业�
 
 ## 预览
 
-> 截图请放入 `screenshots/` 目录（见 [DEMO.md](docs/DEMO.md)）
+|               登录                |                   议事厅                   |               AI 确认页                |            调解员工作台             |
+| :-------------------------------: | :----------------------------------------: | :------------------------------------: | :---------------------------------: |
+| ![登录](screenshots/01-login.png) | ![议事厅](screenshots/02-village-home.png) | ![确认](screenshots/03-ai-confirm.png) | ![工作台](screenshots/06-admin.png) |
 
-|               登录                |                   议事厅                   |                 纠纷时间线                 |               道德银行                |
-| :-------------------------------: | :----------------------------------------: | :----------------------------------------: | :-----------------------------------: |
-| ![登录](screenshots/01-login.png) | ![议事厅](screenshots/02-village-home.png) | ![详情](screenshots/05-dispute-detail.png) | ![道德银行](screenshots/07-moral.png) |
+更多：`screenshots/04-escalate.png`（高风险）· `05-dispute-detail.png`（进度）· `09-ai-quality.png`（AI 质量）  
+静默走查录屏（无旁白）：[`screenshots/demo-walkthrough.webm`](screenshots/demo-walkthrough.webm)
 
-_（截图待补充 — 按 DEMO.md 清单在微信开发者工具中截取）_
+**本地演示（约 1 分钟起）：**
+
+```bash
+npm install
+npm run dev:h5          # http://localhost:5173  Mock 可走主链路
+# 另开终端，若需重截图：
+npm run capture:demo    # 需先装 Playwright（或复用本机已有）；输出到 screenshots/
+```
+
+面试建议再录一版 **有旁白的 4 分钟**（Win+G），按 [docs/DEMO.md](docs/DEMO.md) 口述。
 
 ---
 

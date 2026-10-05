@@ -67,8 +67,16 @@ AI 质量看板：调用量 / 升级率 / 来源分布；或对错案点「标 B
 
 ## 录屏
 
-- 时长 4–6 分钟；升级条与依据各停留 ≥3 秒
+- 仓库已有静默走查：`screenshots/demo-walkthrough.webm`（自动截图脚本生成，无旁白）
+- 面试建议另录 **4–6 分钟有旁白版**；升级条与依据各停留 ≥3 秒
 - 链接写入 README / [PORTFOLIO.md](PORTFOLIO.md)
+
+### 重截图（开发者）
+
+```bash
+npm run dev:h5
+npm run capture:demo
+```
 
 ## 被问到
 
