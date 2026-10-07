@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 部署与提审文档
+    url: https://github.com/Xinyu-Cui111/RuralTouch/blob/main/docs/DEPLOY.md
+    about: 云环境、集合与提审步骤
