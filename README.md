@@ -1,118 +1,128 @@
-# RuralTouch / 指尖善治
+# 指尖善治（RuralTouch）
 
-[![uni-app](https://img.shields.io/badge/uni--app-Vue3-42b883)](https://uniapp.dcloud.net.cn/)
-[![WeChat Cloud](https://img.shields.io/badge/微信云开发-rt--api-07c160)](docs/DEPLOY.md)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+面向基层治理场景的微信小程序：村民「说事」建档，村委按阶段推进调解。
 
-**智慧村务微信小程序** — 法治服务、村民议事、纠纷调解、道德银行、惠民团购。  
-uni-app + Vue 3 前端，微信云开发后端，**已跑通登录与完整业务链路**。
+| 平台             | 技术                         | 状态                      |
+| ---------------- | ---------------------------- | ------------------------- |
+| 微信小程序（主） | uni-app · Vue 3 · 微信云开发 | 主链路可跑通              |
+| H5 演示          | 同上 + 本地 Mock             | `npm run dev:h5` 即可预览 |
 
-| 文档                                   | 说明                                     |
-| -------------------------------------- | ---------------------------------------- |
-| [产品说明](docs/PRODUCT.md)            | 定位、功能地图、用户旅程、JD 映射        |
-| [演示脚本](docs/DEMO.md)               | 4–6 分钟面试演示 + 截图清单              |
-| [案例复盘](docs/CASE_STUDY.md)         | 面试主讲述 + 深挖问答                    |
-| [合规叙事](docs/COMPLIANCE.md)         | 付费 / 运维 / 红线                       |
-| [作品集包装](docs/PORTFOLIO.md)        | 录屏大纲 + 截图优先级                    |
-| [UI 升级策划](docs/UI_UPGRADE_PLAN.md) | 全站简约排版分批方案                     |
-| [部署指南](docs/DEPLOY.md)             | 云开发配置、提审 checklist               |
-| [LLM 接入配置](docs/LLM_SETUP.md)      | DeepSeek/通义 API、管理员、云存储        |
-| [性能与资源](docs/PERF.md)             | 轻量图 / 图标 / 视频外置（对齐竞品加载） |
+**在线仓库：** https://github.com/Xinyu-Cui111/RuralTouch
 
 ---
 
-## 预览
+## 它解决什么问题
 
-|               登录                |                   议事厅                   |               AI 确认页                |            调解员工作台             |
-| :-------------------------------: | :----------------------------------------: | :------------------------------------: | :---------------------------------: |
-| ![登录](screenshots/01-login.png) | ![议事厅](screenshots/02-village-home.png) | ![确认](screenshots/03-ai-confirm.png) | ![工作台](screenshots/06-admin.png) |
+村民描述纠纷时往往不会写「案由」，干部建档慢、进度不透明。  
+本项目把流程收成一条链路：
 
-更多：`screenshots/04-escalate.png`（高风险）· `05-dispute-detail.png`（进度）· `09-ai-quality.png`（AI 质量）  
-静默走查录屏（无旁白）：[`screenshots/demo-walkthrough.webm`](screenshots/demo-walkthrough.webm)
+**说事 → AI 整理成案 → 确认建档 → 待受理 / 办理 / 办结**
 
-**本地演示（约 1 分钟起）：**
-
-```bash
-npm install
-npm run dev:h5          # http://localhost:5173  Mock 可走主链路
-# 另开终端，若需重截图：
-npm run capture:demo    # 需先装 Playwright（或复用本机已有）；输出到 screenshots/
-```
-
-面试建议再录一版 **有旁白的 4 分钟**（Win+G），按 [docs/DEMO.md](docs/DEMO.md) 口述。
+AI 输出类型、风险、参考法律名称与建议步骤；高风险提示转村委或报警；大模型不可用时走规则引擎，演示不中断。
 
 ---
 
-## 核心亮点
+## 界面预览
 
-- **垂直调解 AI** — 说事 → 整理成案 → 建档 → 干部推进（非泛 Chat）
-- **规则 + LLM + FAQ 检索** — 来源可见（含短缓存）；高风险升级 / 输赢拒答
-- **质量闭环** — 评测集、`rt_ai_events`、AI 质量看板、Badcase 标注
-- **真实可上线** — 微信云开发；用户协议 & 隐私政策齐全
-- **双模式演示** — 小程序连云开发；H5 自动 Mock，面试/路演零配置
+|               登录                |                   首页                   |                确认成案                |            调解员工作台             |
+| :-------------------------------: | :--------------------------------------: | :------------------------------------: | :---------------------------------: |
+| ![登录](screenshots/01-login.png) | ![首页](screenshots/02-village-home.png) | ![确认](screenshots/03-ai-confirm.png) | ![工作台](screenshots/06-admin.png) |
+
+|              高风险确认              |                  办件进度                  |                法治                |                AI 质量                 |
+| :----------------------------------: | :----------------------------------------: | :--------------------------------: | :------------------------------------: |
+| ![升级](screenshots/04-escalate.png) | ![详情](screenshots/05-dispute-detail.png) | ![法治](screenshots/08-law-ai.png) | ![质量](screenshots/09-ai-quality.png) |
+
+静默操作录屏：[screenshots/demo-walkthrough.webm](screenshots/demo-walkthrough.webm)
 
 ---
 
-## 技术架构
+## 功能模块
 
-```
-前端：uni-app + Vue 3 + Vite
-后端：微信云开发（云函数 rt-api + 云数据库 rt_*）
-平台：微信小程序（主） / H5（演示）
-```
-
-```
-pages/           14 个页面（登录、4 Tab、子页、协议）
-api/             前端 API 封装 → callApi(action)
-utils/           云开发 init / H5 Mock 降级
-cloudfunctions/  rt-api 统一网关（login, disputes, moral…）
-config/          云环境 ID
-```
+| 模块         | 内容                                            |
+| ------------ | ----------------------------------------------- |
+| 纠纷调解     | 场景标签、口述/文字说事、整理确认、建档、时间线 |
+| 调解员工作台 | 待办队列、受理/办理/办结、高风险优先            |
+| 法治服务     | 普法入口、辅助问答                              |
+| 议事与反馈   | 村务通知、意见箱                                |
+| 道德银行     | 积分、申报、兑换（辅线）                        |
+| 惠民团购     | 本地商品展示（辅线）                            |
+| 登录与合规   | 微信登录、用户协议、隐私政策                    |
 
 ---
 
 ## 快速开始
 
+### 环境
+
+- Node.js 18+
+- 微信开发者工具（跑小程序）
+- 浏览器（跑 H5 Mock）
+
+### H5 演示（推荐先看）
+
 ```bash
 npm install
-npm run dev:mp-weixin   # 微信小程序开发
-npm run dev:h5          # H5 演示（自动 Mock 数据）
+npm run dev:h5
+# 浏览器打开终端提示的本地地址，一般为 http://localhost:5173
 ```
 
-### 云开发配置
+未配置云环境时自动使用本地 Mock，可走登录 → 说事 → 整理 → 建档 → 工作台。
 
-1. 微信开发者工具开通云开发，复制环境 ID
-2. 修改 `config/env.js` 中的 `CLOUD_ENV_ID`
-3. 部署 `cloudfunctions/rt-api`（右键 → 上传并部署：云端安装依赖）
-4. 创建数据库集合（见 [docs/DEPLOY.md](docs/DEPLOY.md)）
-5. **导入目录：** `dist/build/mp-weixin`（不是源码根目录）
+### 微信小程序
 
 ```bash
-npm run build:mp-weixin   # 产物 → dist/build/mp-weixin
+npm install
+npm run build:mp-weixin
 ```
 
----
-
-## 功能一览
-
-| 模块        | 能力                                                |
-| ----------- | --------------------------------------------------- |
-| **AI 助手** | 村务问答、快捷建议、纠纷流程引导                    |
-| 登录        | 微信一键登录、手机号登录、协议合规、首次 onboarding |
-| 法治服务    | 普法内容与法律服务入口                              |
-| 村民议事厅  | 村务通知、村民反馈、AI 辅助纠纷提交/记录/时间线     |
-| 道德银行    | 积分总览、申报（审核制）、商城兑换                  |
-| 惠民团购    | 云数据库商品展示                                    |
-| 个人中心    | 用户信息、积分、退出登录                            |
+1. 用微信开发者工具导入目录：`dist/build/mp-weixin`（不要直接导入源码根目录）
+2. 在 `config/env.js` 填入云环境 ID
+3. 上传并部署云函数 `cloudfunctions/rt-api`
+4. 按 [docs/DEPLOY.md](docs/DEPLOY.md) 创建数据库集合
 
 ---
 
-## 面试 30 秒版
+## 技术说明
 
-> 指尖善治是智慧村务小程序，解决村民办事和纠纷进度不透明的问题。我用 uni-app 做前端，微信云开发做后端，跑通了纠纷调解从提交到时间线追踪的完整链路，并补齐了提审需要的协议页。H5 可 Mock 演示，小程序可真实上线。
+```
+前端    uni-app + Vue 3 + Vite
+后端    微信云开发（云函数 rt-api + 云数据库 rt_*）
+AI      大模型 JSON 结构化输出 + 规则引擎兜底 + FAQ 关键词检索
+```
+
+目录概览：
+
+```
+pages/              业务页面
+cloudfunctions/     rt-api 统一网关
+utils/              云调用、Mock、规则与检索
+docs/               部署、产品与评测说明
+screenshots/        界面截图
+```
+
+FAQ 为本地词表关键词匹配，**不是**向量库 RAG；结果页会标注来源（规则 / 模型 / 检索）。
 
 ---
+
+## 文档
+
+| 文档                                     | 用途               |
+| ---------------------------------------- | ------------------ |
+| [docs/DEPLOY.md](docs/DEPLOY.md)         | 云开发部署与提审   |
+| [docs/PRODUCT.md](docs/PRODUCT.md)       | 产品定位与用户旅程 |
+| [docs/DEMO.md](docs/DEMO.md)             | 演示路径           |
+| [docs/EVAL.md](docs/EVAL.md)             | 纠纷整理评测       |
+| [docs/LLM_SETUP.md](docs/LLM_SETUP.md)   | 大模型 Key 配置    |
+| [docs/COMPLIANCE.md](docs/COMPLIANCE.md) | 合规边界           |
+
+更细的 UI / App 迭代笔记在 `docs/` 下，日常使用不必先读。
+
+---
+
+## 参与贡献
+
+见 [CONTRIBUTING.md](CONTRIBUTING.md)。Issue / PR 均欢迎。
 
 ## 许可证
 
-MIT
+[MIT](LICENSE)

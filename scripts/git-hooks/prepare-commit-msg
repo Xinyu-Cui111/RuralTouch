@@ -1,0 +1,7 @@
+#!/bin/sh
+# Strip Cursor Agent co-author trailers so GitHub Contributors stays a single human account.
+MSG_FILE="$1"
+if [ -f "$MSG_FILE" ]; then
+  sed -i.bak -e '/Co-authored-by: Cursor <cursoragent@cursor.com>/d' -e '/Co-authored-by: Cursor Agent/d' "$MSG_FILE"
+  rm -f "$MSG_FILE.bak"
+fi
