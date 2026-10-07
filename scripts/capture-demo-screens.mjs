@@ -8,9 +8,7 @@ import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
 const require = createRequire(import.meta.url);
-const { chromium } = require(
-  "E:/项目/.demo/简历制作/JD求职工具/career-ops/node_modules/playwright"
-);
+const { chromium } = require("playwright");
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");

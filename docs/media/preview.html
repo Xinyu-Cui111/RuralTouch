@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RuralTouch UI Gallery</title>
+  <style>
+    :root { --bg:#0f1714; --card:#15201b; --ink:#e8f2ec; --mute:#8aa396; --accent:#3d9b6e; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: "Segoe UI", "PingFang SC", sans-serif; background:var(--bg); color:var(--ink); }
+    header { padding:20px 24px; border-bottom:1px solid #24352c; display:flex; gap:16px; flex-wrap:wrap; align-items:center; }
+    h1 { margin:0; font-size:18px; }
+    .hint { color:var(--mute); font-size:13px; }
+    .stage { display:flex; gap:28px; padding:28px; flex-wrap:wrap; justify-content:center; }
+    .phone { width:390px; border-radius:28px; overflow:hidden; border:8px solid #111; background:#000; box-shadow:0 20px 60px rgba(0,0,0,.45); }
+    .phone img { display:block; width:100%; }
+    .meta { max-width:360px; }
+    .meta h2 { margin:0 0 8px; font-size:22px; }
+    .meta p { color:var(--mute); line-height:1.6; }
+    .pill { display:inline-block; padding:4px 10px; border-radius:999px; background:#1e3329; color:var(--accent); font-size:12px; margin-right:6px; }
+    .nav { display:flex; gap:8px; margin-top:16px; }
+    button { background:var(--accent); color:#fff; border:0; border-radius:10px; padding:10px 14px; cursor:pointer; font-weight:600; }
+    button.secondary { background:#24352c; }
+    .thumbs { display:flex; gap:8px; overflow:auto; padding:0 24px 24px; }
+    .thumbs img { width:72px; height:156px; object-fit:cover; border-radius:10px; opacity:.55; cursor:pointer; border:2px solid transparent; }
+    .thumbs img.active { opacity:1; border-color:var(--accent); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>指尖善治 · 全界面预览</h1>
+    <span class="hint">← → 翻页 · 真 H5 Mock 截图</span>
+  </header>
+  <div class="stage">
+    <div class="phone"><img id="shot" alt="screen" /></div>
+    <div class="meta">
+      <div id="role" class="pill">角色</div>
+      <h2 id="title">—</h2>
+      <p id="desc">按键盘左右键浏览 Gallery。</p>
+      <div class="nav">
+        <button class="secondary" id="prev">上一页</button>
+        <button id="next">下一页</button>
+      </div>
+    </div>
+  </div>
+  <div class="thumbs" id="thumbs"></div>
+  <script>
+    const items = [
+      ["01-login.png","登录","共用","合规登录与协议勾选"],
+      ["02-onboarding.png","引导","村民","首次进入引导"],
+      ["03-village-home.png","办事首页","村民","说事入口与村务卡片"],
+      ["04-law.png","法治","村民","普法与反诈入口"],
+      ["05-moral.png","激励","村民","道德银行积分"],
+      ["06-group.png","好物","村民","惠民团购"],
+      ["07-profile.png","我的","村民","个人中心"],
+      ["08-submit.png","说事提交","村民","场景标签 + 口述"],
+      ["09-ai-confirm.png","AI 确认成案","村民","类型 / 风险 / 依据"],
+      ["10-escalate.png","高风险升级","村民","打架受伤提示转办"],
+      ["11-dispute-detail.png","办件详情","共用","进度时间线"],
+      ["12-records.png","调解记录","村民","办件列表"],
+      ["13-admin.png","调解员工作台","调解员","待办队列"],
+      ["14-ai-quality.png","AI 质量","调解员","质量看板"],
+      ["15-ai-assistant.png","村务助手","村民","问答助手"],
+      ["16-ai-legal.png","普法顾问","村民","法律辅助"],
+      ["17-notice.png","村务通知","村民","通知列表"],
+      ["18-feedback.png","意见箱","村民","意见反馈"],
+      ["19-moral-declare.png","积分申报","村民","激励申报"],
+      ["20-moral-mall.png","激励礼品","村民","礼品兑换"],
+      ["21-benefit.png","服务","村民","服务聚合"],
+      ["22-privacy.png","隐私政策","共用","合规文案"],
+      ["23-ceremony.png","办结仪式","共用","办结完成页"]
+    ];
+    let i = 0;
+    const shot = document.getElementById("shot");
+    const title = document.getElementById("title");
+    const desc = document.getElementById("desc");
+    const role = document.getElementById("role");
+    const thumbs = document.getElementById("thumbs");
+    items.forEach((it, idx) => {
+      const img = document.createElement("img");
+      img.src = "gallery/" + it[0];
+      img.onclick = () => { i = idx; render(); };
+      thumbs.appendChild(img);
+    });
+    function render() {
+      const it = items[i];
+      shot.src = "gallery/" + it[0];
+      title.textContent = it[1];
+      role.textContent = it[2];
+      desc.textContent = (i+1) + " / " + items.length + " · " + it[3];
+      [...thumbs.children].forEach((el, idx) => el.classList.toggle("active", idx === i));
+    }
+    document.getElementById("prev").onclick = () => { i = (i + items.length - 1) % items.length; render(); };
+    document.getElementById("next").onclick = () => { i = (i + 1) % items.length; render(); };
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") document.getElementById("next").click();
+      if (e.key === "ArrowLeft") document.getElementById("prev").click();
+    });
+    render();
+  </script>
+</body>
+</html>

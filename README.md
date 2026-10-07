@@ -39,15 +39,33 @@
 
 ## 界面预览
 
-|               登录                |                   首页                   |                确认成案                |            调解员工作台             |
-| :-------------------------------: | :--------------------------------------: | :------------------------------------: | :---------------------------------: |
-| ![登录](screenshots/01-login.png) | ![首页](screenshots/02-village-home.png) | ![确认](screenshots/03-ai-confirm.png) | ![工作台](screenshots/06-admin.png) |
+> **H5 Mock 真交互截图**（Playwright 点击 / 填写 / 滚动，非静态拼图）。重跑：[H5 Screenshots](https://github.com/Xinyu-Cui111/RuralTouch/actions/workflows/h5-screenshots.yml)
 
-|              高风险确认              |                  办件进度                  |                法治                |                AI 质量                 |
-| :----------------------------------: | :----------------------------------------: | :--------------------------------: | :------------------------------------: |
-| ![升级](screenshots/04-escalate.png) | ![详情](screenshots/05-dispute-detail.png) | ![法治](screenshots/08-law-ai.png) | ![质量](screenshots/09-ai-quality.png) |
+### 一眼看懂（村民说事 → AI 成案 → 干部办理）
 
-静默操作录屏：[screenshots/demo-walkthrough.webm](screenshots/demo-walkthrough.webm)
+|                登录                |             AI 确认成案              |             调解员工作台             |
+| :--------------------------------: | :----------------------------------: | :----------------------------------: |
+| ![登录](docs/media/hero-login.png) | ![成案](docs/media/hero-confirm.png) | ![工作台](docs/media/hero-admin.png) |
+
+<p align="center">
+  <img src="docs/media/walkthrough.gif" alt="RuralTouch walkthrough" width="240">
+</p>
+
+### 产品流（真交互 · 双角色）
+
+|                  准入                   |                五 Tab                 |                 说事成案                 |
+| :-------------------------------------: | :-----------------------------------: | :--------------------------------------: |
+| ![enter](docs/media/flows/01-enter.gif) | ![tabs](docs/media/flows/02-tabs.gif) | ![case](docs/media/flows/03-ai-case.gif) |
+
+|                高风险升级                |                 工作台                  |                AI 质量                 |
+| :--------------------------------------: | :-------------------------------------: | :------------------------------------: |
+| ![esc](docs/media/flows/04-escalate.gif) | ![admin](docs/media/flows/05-admin.gif) | ![qa](docs/media/flows/06-quality.gif) |
+
+### 全页目录
+
+23 屏 Gallery（办事 / 法治 / 激励 / 好物 / 我的 / 成案 / 升级 / 工作台 / 通知 / 意见箱…）  
+→ **[Gallery](docs/media/gallery/)** · 索引 **[MANIFEST](docs/media/MANIFEST.md)** · 键盘翻页 **[preview.html](docs/media/preview.html)**  
+长页滚动 → [scroll/](docs/media/scroll/) · 说明 → [docs/media/README.md](docs/media/README.md)
 
 ---
 

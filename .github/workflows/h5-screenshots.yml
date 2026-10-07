@@ -1,0 +1,80 @@
+name: H5 Screenshots
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "pages/**"
+      - "components/**"
+      - "utils/**"
+      - "config/**"
+      - "scripts/capture-ui.mjs"
+      - "scripts/capture-demo-screens.mjs"
+      - ".github/workflows/h5-screenshots.yml"
+      - "package.json"
+
+permissions:
+  contents: write
+
+jobs:
+  capture:
+    name: Playwright H5 capture
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install deps
+        run: |
+          npm ci || npm install
+          npx playwright install --with-deps chromium
+          sudo apt-get update -y && sudo apt-get install -y ffmpeg
+
+      - name: Start H5 Mock
+        run: |
+          npm run dev:h5 > /tmp/rt-h5.log 2>&1 &
+          for i in $(seq 1 90); do
+            if curl -sf http://localhost:5173 >/dev/null; then
+              echo "H5 ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "H5 failed to start"; cat /tmp/rt-h5.log; exit 1
+
+      - name: Capture UI
+        run: npm run capture:ui
+        env:
+          RT_H5_URL: http://localhost:5173
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ruraltouch-h5-ui
+          path: |
+            docs/media/**
+            screenshots/**
+          if-no-files-found: error
+
+      - name: Commit media to main
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        run: |
+          set -euo pipefail
+          git config user.name "Xinyu-Cui111"
+          git config user.email "Xinyu-Cui111@users.noreply.github.com"
+          git add docs/media screenshots
+          if git diff --cached --quiet; then
+            echo "No media changes"
+            exit 0
+          fi
+          git commit -m "docs(media): full H5 gallery + interaction flows from CI"
+          git push origin HEAD:main
