@@ -33,21 +33,8 @@
       :hover-stay-time="80"
       @click="goSubmit"
     >
-      <text class="secondary-text">另有新事？去说事建档</text>
+      <text class="secondary-text">另有新事？去说事</text>
       <text class="secondary-arrow">›</text>
-    </view>
-    <view
-      v-else-if="noticeUnread && !elderOn"
-      class="ticker"
-      hover-class="ticker-press"
-      :hover-stay-time="80"
-      @click="goPage('/pages/village/notice')"
-    >
-      <text class="ticker-text">{{ latestNoticeTitle }}</text>
-      <text class="ticker-badge">{{
-        noticeUnread > 99 ? "99+" : noticeUnread
-      }}</text>
-      <text class="ticker-arrow">通知</text>
     </view>
 
     <view v-if="elderOn" class="elder-paths">
@@ -82,28 +69,22 @@
       </view>
     </view>
 
-    <view v-if="!elderOn" class="svc-lite enter delay-1">
-      <view class="svc-main">
-        <view
-          v-for="item in primaryServices"
-          :key="item.title"
-          class="svc-main-card"
-          hover-class="svc-active"
-          :hover-stay-time="80"
-          @click="goPage(item.path)"
-        >
-          <text class="svc-title">{{ item.title }}</text>
-          <text class="svc-desc">{{ item.desc }}</text>
-          <text v-if="item.badge" class="svc-badge-inline">{{
-            item.badge
-          }}</text>
-        </view>
-      </view>
+    <!-- 次入口：文字链，不与主 CTA 抢视线 -->
+    <view v-if="!elderOn" class="quiet-nav enter delay-1">
+      <text
+        v-for="item in primaryServices"
+        :key="item.title"
+        class="quiet-link"
+        @click="goPage(item.path)"
+      >
+        {{ item.title
+        }}<text v-if="item.badge" class="quiet-badge">{{ item.badge }}</text>
+      </text>
     </view>
 
     <rt-section
       v-if="!elderOn || disputes.length"
-      title="我的调解"
+      title="最近办件"
       :badge="handlingBadge"
       :link="disputes.length ? '全部' : ''"
       @link="goRecord"
@@ -125,16 +106,16 @@
           icon-type="dispute"
           icon-tone="green"
           title="还没有办件"
-          desc="有事可以说，AI 帮您整理成案"
+          desc="有事情，跟村委说一声就好"
           action-text="去说事"
           @action="goSubmit"
         />
         <view
           v-else
-          v-for="(item, index) in disputes"
+          v-for="(item, index) in homeDisputes"
           :key="item._id"
           class="case-item"
-          :class="{ last: index === disputes.length - 1 }"
+          :class="{ last: index === homeDisputes.length - 1 }"
           hover-class="case-active"
           :hover-stay-time="80"
           @click="goToDisputeDetail(item._id)"
@@ -212,22 +193,22 @@ export default {
       heroFlash: false,
       primaryServices: [
         {
-          title: "我的办件",
-          desc: "看看办到哪一步了",
+          title: "办件",
+          desc: "",
           path: "/pages/village/records",
           badge: "",
         },
-        { title: "问协办", desc: "先问清楚再去办", path: "__ai__", badge: "" },
+        { title: "协办", desc: "", path: "__ai__", badge: "" },
         {
-          title: "意见箱",
-          desc: "有建议随时说",
-          path: "/pages/village/feedback",
+          title: "通知",
+          desc: "",
+          path: "/pages/village/notice",
           badge: "",
         },
         {
-          title: "村务通知",
-          desc: "村里最新公示",
-          path: "/pages/village/notice",
+          title: "意见箱",
+          desc: "",
+          path: "/pages/village/feedback",
           badge: "",
         },
       ],
@@ -235,13 +216,16 @@ export default {
     };
   },
   computed: {
+    homeDisputes() {
+      return (this.disputes || []).slice(0, 2);
+    },
     handlingBadge() {
       return this.handlingCount > 0 ? String(this.handlingCount) : "";
     },
     homeMode() {
       if (this.casePush) return "casePush";
       if (this.handlingCount > 0) return "handling";
-      if (this.noticeUnread > 0 && !this.elderOn) return "notice";
+      // 通知不再抢占首屏主卡，避免和「去说事」抢视线
       return "say";
     },
     heroMode() {
@@ -498,6 +482,12 @@ export default {
 .page {
   @include rt-page;
   padding: 0 $rt-page-x $rt-page-bottom;
+  background: radial-gradient(
+      ellipse 120% 50% at 50% -10%,
+      rgba(158, 52, 40, 0.06) 0%,
+      transparent 55%
+    ),
+    linear-gradient(180deg, #faf6f0 0%, #f3ebe3 48%, #efe6dc 100%);
 }
 
 .enter {
@@ -670,124 +660,44 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 28rpx;
-  padding: 22rpx 24rpx;
-  min-height: $rt-touch-min;
-  border-radius: $rt-radius-sm;
-  background: $rt-surface;
-  border: 1rpx solid $rt-border;
+  margin: 4rpx 8rpx 24rpx;
+  padding: 12rpx 4rpx;
+  min-height: 56rpx;
   box-sizing: border-box;
 }
 .secondary-press {
-  opacity: 0.92;
+  opacity: 0.85;
 }
 .secondary-text {
-  font-size: $rt-type-body;
+  font-size: 26rpx;
   font-weight: 600;
-  color: $rt-text;
+  color: $rt-text-secondary;
 }
 .secondary-arrow {
-  font-size: 36rpx;
+  font-size: 32rpx;
   color: $rt-text-muted;
   line-height: 1;
 }
 
-.svc-lite {
-  margin-bottom: $rt-section-gap;
+.quiet-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx 32rpx;
+  margin: 8rpx 8rpx 20rpx;
+  padding: 0 0 4rpx;
+  border-bottom: 1rpx solid rgba(50, 40, 30, 0.06);
 }
-.svc-main {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16rpx;
-}
-.svc-main-card {
-  position: relative;
-  min-height: 128rpx;
-  padding: 28rpx 24rpx;
-  border-radius: $rt-radius-md;
-  background: #fff;
-  border: 1rpx solid rgba(50, 40, 30, 0.06);
-  box-shadow: $rt-shadow-sm;
-  box-sizing: border-box;
-}
-.svc-active {
-  opacity: 0.92;
-  transform: scale(0.99);
-}
-.svc-title {
-  display: block;
-  font-family: $rt-font-title;
-  font-size: $rt-type-body;
-  font-weight: 800;
-  color: $rt-text;
-}
-.svc-desc {
-  display: block;
-  margin-top: 8rpx;
-  font-size: $rt-type-micro;
+.quiet-link {
+  font-size: 26rpx;
+  font-weight: 600;
   color: $rt-text-secondary;
-  line-height: 1.4;
+  padding: 10rpx 0 16rpx;
 }
-.svc-badge-inline {
-  position: absolute;
-  top: 16rpx;
-  right: 16rpx;
-  min-width: 32rpx;
-  padding: 0 10rpx;
-  height: 32rpx;
-  line-height: 32rpx;
-  border-radius: 999rpx;
-  background: $rt-primary-soft;
-  color: $rt-primary;
+.quiet-badge {
+  margin-left: 4rpx;
   font-size: 20rpx;
   font-weight: 800;
-  text-align: center;
-}
-
-.svc-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16rpx;
-}
-.svc-block {
-  position: relative;
-  min-height: 120rpx;
-  padding: 28rpx 24rpx;
-  border-radius: $rt-radius-md;
-  background: $rt-surface;
-  border: 1rpx solid rgba(90, 107, 56, 0.14);
-  box-shadow: $rt-shadow-sm;
-  box-sizing: border-box;
-}
-.svc-active {
-  opacity: 0.92;
-  background: $rt-olive-soft;
-}
-.svc-title {
-  display: block;
-  font-size: 32rpx;
-  font-weight: 800;
-  color: $rt-text;
-  line-height: 1.3;
-}
-.svc-desc {
-  display: block;
-  margin-top: 8rpx;
-  font-size: $rt-type-caption;
-  color: $rt-text-secondary;
-}
-.svc-badge-inline {
-  position: absolute;
-  top: 16rpx;
-  right: 16rpx;
-  min-width: 28rpx;
-  padding: 2rpx 10rpx;
-  border-radius: 999rpx;
-  background: $rt-primary;
-  color: #fff;
-  font-size: 18rpx;
-  font-weight: 800;
-  text-align: center;
+  color: $rt-primary;
 }
 
 .case-item {

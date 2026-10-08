@@ -55,16 +55,16 @@ export default {
   position: relative;
   overflow: hidden;
   margin-bottom: $rt-space-sm;
-  padding: 36rpx 32rpx 32rpx 36rpx;
+  padding: 40rpx 36rpx 36rpx 40rpx;
   border-radius: $rt-radius-lg;
   background: radial-gradient(
-      ellipse 90% 70% at 100% 0%,
-      rgba(255, 255, 255, 0.98) 0%,
-      transparent 55%
+      ellipse 80% 60% at 90% 0%,
+      rgba(255, 255, 255, 0.95) 0%,
+      transparent 50%
     ),
-    linear-gradient(145deg, #fffbfa 0%, #faeeea 55%, #f8e6e1 100%);
-  border: 1rpx solid rgba(158, 52, 40, 0.12);
-  box-shadow: $rt-shadow-sm;
+    linear-gradient(152deg, #fffdf9 0%, #faf0ea 42%, #f3ddd4 100%);
+  border: 1rpx solid rgba(158, 52, 40, 0.1);
+  box-shadow: 0 10rpx 28rpx rgba(90, 60, 40, 0.06);
   box-sizing: border-box;
 }
 .hero-card.handling,
@@ -157,22 +157,24 @@ export default {
 .title {
   display: block;
   font-family: $rt-font-title;
-  font-size: $rt-type-hero;
+  font-size: 44rpx;
   font-weight: 800;
   color: $rt-text;
-  line-height: $rt-leading-tight;
+  line-height: 1.28;
+  letter-spacing: 1rpx;
 }
 .desc {
   display: block;
-  margin-top: 12rpx;
+  margin-top: 14rpx;
   font-size: $rt-type-caption;
   color: $rt-text-secondary;
-  line-height: $rt-leading-body;
+  line-height: 1.55;
+  max-width: 92%;
 }
 .cta {
-  margin-top: 28rpx;
-  min-height: 80rpx;
-  padding: 18rpx 32rpx;
+  margin-top: 32rpx;
+  min-height: 84rpx;
+  padding: 20rpx 40rpx;
   border-radius: 999rpx;
   background: linear-gradient(
     135deg,
@@ -182,7 +184,7 @@ export default {
   display: inline-flex;
   align-items: center;
   box-sizing: border-box;
-  box-shadow: 0 8rpx 20rpx rgba(158, 52, 40, 0.16);
+  box-shadow: 0 10rpx 24rpx rgba(158, 52, 40, 0.2);
 }
 .cta-text {
   font-size: $rt-type-body;

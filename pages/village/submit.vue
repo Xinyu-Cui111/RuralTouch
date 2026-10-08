@@ -70,61 +70,12 @@
       <rt-skeleton v-if="analyzing" variant="lines" :rows="4" />
     </rt-card>
 
-    <rt-card v-if="step === 1" tone="ai" elevated>
+    <rt-card v-if="step === 1" elevated>
       <text class="form-title">确认案情</text>
+      <text class="form-hint soft">核对标题与描述，对了再提交</text>
 
-      <view v-if="aiInsight" class="insight-wrap">
+      <view v-if="aiInsight" class="insight-wrap confirm">
         <rt-ai-taskbar :task="submitTask" @action="onTriadAction" />
-
-        <view v-if="materialChecks.length" class="check-block">
-          <text class="check-head">材料清单（勾选后写入建档）</text>
-          <view
-            v-for="(item, i) in materialChecks"
-            :key="'m' + i"
-            class="check-row"
-            hover-class="check-press"
-            :hover-stay-time="80"
-            @click="toggleMaterial(i)"
-          >
-            <view class="check-box" :class="{ on: item.on }">
-              <text v-if="item.on" class="check-mark">✓</text>
-            </view>
-            <text class="check-text">{{ item.text }}</text>
-          </view>
-          <view
-            class="check-apply"
-            hover-class="check-apply-press"
-            :hover-stay-time="80"
-            @click="applyMaterials"
-          >
-            <text class="check-apply-text">写入已选材料</text>
-          </view>
-        </view>
-
-        <view v-if="checklist.length" class="check-block">
-          <text class="check-head">勾选要点，写入描述</text>
-          <view
-            v-for="(item, i) in checklist"
-            :key="i"
-            class="check-row"
-            hover-class="check-press"
-            :hover-stay-time="80"
-            @click="toggleCheck(i)"
-          >
-            <view class="check-box" :class="{ on: item.on }">
-              <text v-if="item.on" class="check-mark">✓</text>
-            </view>
-            <text class="check-text">{{ item.text }}</text>
-          </view>
-          <view
-            class="check-apply"
-            hover-class="check-apply-press"
-            :hover-stay-time="80"
-            @click="applyChecklist"
-          >
-            <text class="check-apply-text">写入已选要点</text>
-          </view>
-        </view>
       </view>
 
       <view class="field-label">标题</view>
@@ -144,6 +95,74 @@
         :disabled="busy"
         @input="onDraftFieldChange"
       />
+
+      <view
+        v-if="materialChecks.length || checklist.length"
+        class="extras-fold"
+      >
+        <view
+          class="extras-toggle"
+          hover-class="extras-press"
+          :hover-stay-time="80"
+          @click="confirmExtrasOpen = !confirmExtrasOpen"
+        >
+          <text class="extras-toggle-text">{{
+            confirmExtrasOpen ? "收起材料与要点" : "补充材料与要点"
+          }}</text>
+          <text class="extras-toggle-meta">{{ extrasSummary }}</text>
+        </view>
+        <view v-if="confirmExtrasOpen" class="extras-body">
+          <view v-if="materialChecks.length" class="check-block">
+            <text class="check-head">材料清单</text>
+            <view
+              v-for="(item, i) in materialChecks"
+              :key="'m' + i"
+              class="check-row"
+              hover-class="check-press"
+              :hover-stay-time="80"
+              @click="toggleMaterial(i)"
+            >
+              <view class="check-box" :class="{ on: item.on }">
+                <text v-if="item.on" class="check-mark">✓</text>
+              </view>
+              <text class="check-text">{{ item.text }}</text>
+            </view>
+            <view
+              class="check-apply soft"
+              hover-class="check-apply-press"
+              :hover-stay-time="80"
+              @click="applyMaterials"
+            >
+              <text class="check-apply-text soft">写入已选材料</text>
+            </view>
+          </view>
+
+          <view v-if="checklist.length" class="check-block">
+            <text class="check-head">要点（写入描述）</text>
+            <view
+              v-for="(item, i) in checklist"
+              :key="i"
+              class="check-row"
+              hover-class="check-press"
+              :hover-stay-time="80"
+              @click="toggleCheck(i)"
+            >
+              <view class="check-box" :class="{ on: item.on }">
+                <text v-if="item.on" class="check-mark">✓</text>
+              </view>
+              <text class="check-text">{{ item.text }}</text>
+            </view>
+            <view
+              class="check-apply soft"
+              hover-class="check-apply-press"
+              :hover-stay-time="80"
+              @click="applyChecklist"
+            >
+              <text class="check-apply-text soft">写入已选要点</text>
+            </view>
+          </view>
+        </view>
+      </view>
 
       <text
         class="link-btn inline"
@@ -250,6 +269,7 @@ export default {
       draftTimer: null,
       checklist: [],
       materialChecks: [],
+      confirmExtrasOpen: false,
       voiceing: false,
       _voiceBound: false,
       elderOn: false,
@@ -264,6 +284,14 @@ export default {
   computed: {
     busy() {
       return this.analyzing || this.submitting;
+    },
+    extrasSummary() {
+      const m = this.materialChecks.length;
+      const c = this.checklist.length;
+      const parts = [];
+      if (m) parts.push(`材料 ${m}`);
+      if (c) parts.push(`要点 ${c}`);
+      return parts.join(" · ") || "";
     },
     aiDisclaimer() {
       return COPY.aiDisclaimer;
@@ -519,6 +547,7 @@ export default {
           this.title = this.aiInsight.suggestedTitle;
         this.buildChecklist(this.aiInsight);
         this.buildMaterials(this.aiInsight);
+        this.confirmExtrasOpen = false;
         this.step = 1;
         this.persistDraft(true);
       } catch (e) {
@@ -614,6 +643,12 @@ export default {
   @include rt-page;
   padding: $rt-page-x;
   padding-bottom: calc(200rpx + env(safe-area-inset-bottom));
+  background: radial-gradient(
+      ellipse 100% 40% at 50% 0%,
+      rgba(158, 52, 40, 0.05) 0%,
+      transparent 55%
+    ),
+    linear-gradient(180deg, #faf6f0 0%, #f3ebe3 100%);
 }
 
 .draft-banner {
@@ -704,6 +739,12 @@ export default {
   text-align: center;
   box-sizing: border-box;
 }
+.check-apply.soft {
+  min-height: 72rpx;
+  padding: 16rpx 20rpx;
+  background: rgba(158, 52, 40, 0.08);
+  border: 1rpx solid rgba(158, 52, 40, 0.16);
+}
 .check-apply-press {
   opacity: 0.92;
 }
@@ -711,6 +752,41 @@ export default {
   font-size: $rt-type-body;
   font-weight: 800;
   color: #fff;
+}
+.check-apply-text.soft {
+  font-size: $rt-type-caption;
+  color: $rt-primary-dark;
+}
+
+.extras-fold {
+  margin-top: 24rpx;
+  border-top: 1rpx solid rgba(50, 40, 30, 0.08);
+  padding-top: 8rpx;
+}
+.extras-toggle {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16rpx;
+  padding: 18rpx 4rpx;
+  min-height: 72rpx;
+  box-sizing: border-box;
+}
+.extras-press {
+  opacity: 0.88;
+}
+.extras-toggle-text {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: $rt-primary-dark;
+}
+.extras-toggle-meta {
+  font-size: 22rpx;
+  color: $rt-text-muted;
+  flex-shrink: 0;
+}
+.extras-body {
+  padding-bottom: 8rpx;
 }
 
 .success-hint {
@@ -904,6 +980,12 @@ export default {
   border-radius: $rt-radius-sm;
   background: linear-gradient(135deg, #fffef9 0%, #fff4d7 55%, #fffdf5 100%);
   border: 1rpx solid rgba(201, 162, 74, 0.22);
+}
+.insight-wrap.confirm {
+  margin: 4rpx 0 20rpx;
+  padding: 16rpx 18rpx;
+  background: linear-gradient(160deg, #fffdf9 0%, #f7f1e8 100%);
+  border: 1rpx solid rgba(90, 70, 50, 0.1);
 }
 .escalate-banner {
   margin-bottom: 16rpx;
