@@ -371,6 +371,20 @@
         <view v-if="fold.admin" class="fold-body">
           <rt-card compact flush elevated class="group-card">
             <rt-cell
+              title="AI 能力台"
+              desc="检索 / 单据 / 评测 · JD 对齐主入口"
+              icon="ai"
+              icon-tone="blue"
+              @click="goPage('/pages/tools/ai-lab')"
+            />
+            <rt-cell
+              title="单据结构化"
+              desc="发票合同字段抽取"
+              icon="ai"
+              icon-tone="blue"
+              @click="goPage('/pages/tools/doc-extract')"
+            />
+            <rt-cell
               title="调解员工作台"
               desc="受理与推进"
               icon="declare"
@@ -379,7 +393,7 @@
             />
             <rt-cell
               title="质量看板"
-              desc="评测与问题单"
+              desc="评测与 Badcase"
               icon="ai"
               icon-tone="blue"
               last

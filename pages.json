@@ -138,6 +138,13 @@
       }
     },
     {
+      "path": "pages/tools/ai-lab",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "AI 能力台"
+      }
+    },
+    {
       "path": "pages/tools/doc-extract",
       "style": {
         "navigationStyle": "custom",

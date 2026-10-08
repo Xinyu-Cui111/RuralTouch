@@ -88,6 +88,7 @@
         <button class="link-btn" size="mini" @click="goDocExtract">
           单据结构化
         </button>
+        <button class="link-btn" size="mini" @click="goAiLab">AI 能力台</button>
       </view>
 
       <view class="block">
@@ -291,6 +292,9 @@ export default {
     },
     goDocExtract() {
       uni.navigateTo({ url: "/pages/tools/doc-extract" });
+    },
+    goAiLab() {
+      uni.navigateTo({ url: "/pages/tools/ai-lab" });
     },
     openCreate() {
       uni.showModal({
