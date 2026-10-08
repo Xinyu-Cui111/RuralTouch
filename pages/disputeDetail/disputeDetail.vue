@@ -86,45 +86,18 @@
         </view>
       </rt-card>
 
-      <!-- 4. 证据 / 补充 / 评价 -->
-      <rt-card v-if="dispute.evidence && dispute.evidence.length">
-        <text class="block-title">提交证据</text>
-        <view class="evidence-grid">
-          <image
-            v-for="(item, idx) in dispute.evidence"
-            :key="'e' + idx"
-            class="evidence-img"
-            :src="item.url || item.mockUrl"
-            mode="aspectFill"
-            @click="previewEvidence(idx)"
-          />
-        </view>
+      <!-- 4. 证据说明（个人主体不展示证件影像） -->
+      <rt-card v-if="dispute.evidenceNote">
+        <text class="block-title">材料说明</text>
+        <text class="block-desc">{{ dispute.evidenceNote }}</text>
       </rt-card>
 
-      <!-- 办理中：补充材料 -->
+      <!-- 办理中：补充文字说明 -->
       <rt-card v-if="canSupplement">
-        <text class="block-title">补充材料</text>
+        <text class="block-title">补充说明</text>
         <text class="block-desc"
-          >追加照片与说明后将同步至调解员工作台，便于核实</text
+          >请用文字补充情况；现场材料请当面交村委，本小程序不采集证件照片。</text
         >
-        <view class="evidence-grid">
-          <image
-            v-for="(src, idx) in citizen.extraImages"
-            :key="'x' + idx"
-            class="evidence-img"
-            :src="src"
-            mode="aspectFill"
-            @click="previewExtra(idx)"
-          />
-          <view
-            v-if="citizen.extraImages.length < 6 && !citizenSaving"
-            class="evidence-add"
-            @click="addExtraImage"
-          >
-            <text class="add-plus">+</text>
-            <text class="add-text">添加</text>
-          </view>
-        </view>
         <textarea
           v-model="extraNoteDraft"
           class="extra-note"
@@ -257,8 +230,12 @@ import RtProgressSteps from "@/components/rt-progress-steps/rt-progress-steps.vu
 import RtSkeleton from "@/components/rt-skeleton/rt-skeleton.vue";
 import EmptyState from "@/components/empty-state/empty-state.vue";
 import { api } from "@/api/index.js";
-import { getLocalUser, uploadEvidenceImages } from "@/utils/cloud.js";
-import { goAiAssistant } from "@/utils/auth.js";
+import {
+  getLocalUser,
+  isLoggedIn,
+  uploadEvidenceImages,
+} from "@/utils/cloud.js";
+import { ensureLoggedIn, goAiAssistant } from "@/utils/auth.js";
 import { goReLaunch } from "@/utils/nav.js";
 import { goVillageHomePrefer } from "@/utils/boot-route.js";
 import { VILLAGE_CONTACT_PHONE, EMERGENCY_TIP } from "@/config/env.js";
@@ -438,6 +415,13 @@ export default {
       this.rateCommentDraft = this.citizen.ratingComment || "";
     },
     async loadDetail(id) {
+      if (!isLoggedIn()) {
+        this.loading = false;
+        this.loadError = true;
+        this.dispute = null;
+        ensureLoggedIn({ tip: "查看办件请先登录" });
+        return;
+      }
       this.loading = true;
       this.loadError = false;
       try {
@@ -496,45 +480,9 @@ export default {
       return next;
     },
     addExtraImage() {
-      if (this.citizenSaving) return;
-      const left = 6 - (this.citizen.extraImages || []).length;
-      if (left <= 0) return;
-      uni.chooseImage({
-        count: left,
-        sizeType: ["compressed"],
-        sourceType: ["album", "camera"],
-        success: async (res) => {
-          const paths = res.tempFilePaths || [];
-          if (!paths.length) return;
-          this.citizenSaving = true;
-          uni.showLoading({ title: "上传中", mask: true });
-          try {
-            const uploaded = await uploadEvidenceImages(paths);
-            const merged = (this.citizen.extraEvidence || [])
-              .concat(uploaded)
-              .slice(0, 6);
-            await this.syncCitizenExtra(merged, this.extraNoteDraft);
-            uni.showToast({ title: "已同步调解员", icon: "success" });
-          } catch (e) {
-            // 上传失败时仍本地暂存，便于演示
-            const local = (this.citizen.extraImages || [])
-              .concat(paths)
-              .slice(0, 6);
-            this.citizen = writeDisputeCitizen(this.disputeId, {
-              extraImages: local,
-              extraNote: this.extraNoteDraft,
-              supplementedAt: Date.now(),
-              synced: false,
-            });
-            uni.showToast({
-              title: e.message || "同步失败，已暂存本地",
-              icon: "none",
-            });
-          } finally {
-            uni.hideLoading();
-            this.citizenSaving = false;
-          }
-        },
+      uni.showToast({
+        title: "请用文字补充；材料当面交村委",
+        icon: "none",
       });
     },
     async saveExtraNote() {

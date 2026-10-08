@@ -2,401 +2,503 @@
   <view class="page" :class="{ elder: elderOn }">
     <page-hero compact variant="village" title="我的" />
 
-    <!-- 身份卡 -->
-    <view class="id-card enter">
-      <button
-        class="avatar-btn"
-        open-type="chooseAvatar"
-        @chooseavatar="onChooseAvatar"
+    <view v-if="guestMode" class="guest-shell">
+      <!-- 身份区：大厂常见「点头像/点登录」主入口 -->
+      <view
+        class="guest-id enter"
+        hover-class="guest-id-press"
+        :hover-stay-time="80"
+        @click="goLogin"
       >
-        <image
-          v-if="avatarSrc"
-          class="avatar-img"
-          :src="avatarSrc"
-          mode="aspectFill"
-        />
-        <view v-else class="avatar">{{ avatarText }}</view>
-      </button>
-      <view class="id-body">
-        <view class="id-name-row">
-          <text class="id-name" @click="openEdit('nickname')">{{
-            user.nickname || "村民用户"
-          }}</text>
-          <text v-if="user.isAdmin" class="role-pill">干部</text>
-          <text v-else class="role-pill soft">村民</text>
+        <view class="guest-avatar" aria-hidden="true">
+          <rt-icon name="user" tone="ghost" size="md" />
         </view>
-        <text class="id-meta">{{ user.village || "示范村" }}</text>
-        <view class="id-phone-row" @click="openEdit('phone')">
-          <text class="id-phone" :class="{ warn: !user.phone }">
-            {{ user.phone || "手机号未绑定" }}
-          </text>
-          <text v-if="!user.phone" class="bind-cta">去绑定</text>
-          <text v-else class="bind-cta soft">修改</text>
+        <view class="guest-id-body">
+          <text class="guest-hello">你好，村民</text>
+          <text class="guest-hint">登录后查看办件、积分与个人服务</text>
         </view>
+        <view class="guest-login-pill">登录</view>
       </view>
-    </view>
 
-    <!-- 待办聚合（仪表优先） -->
-    <view
-      class="todo-bar enter delay-1"
-      :class="{ empty: !todoCount }"
-      hover-class="todo-press"
-      :hover-stay-time="80"
-      @click="onTodoTap"
-    >
-      <view class="todo-main">
-        <text class="todo-title">{{ todoTitle }}</text>
-        <text class="todo-sub">{{ todoSub }}</text>
+      <view
+        class="guest-cta enter delay-1"
+        hover-class="press"
+        :hover-stay-time="80"
+        @click="goLogin"
+      >
+        <text class="guest-cta-text">微信一键登录</text>
+        <text class="guest-cta-sub">安全便捷 · 办理时再登录即可</text>
       </view>
-      <text class="todo-action">{{ todoCount ? "去处理" : "去建档" }}</text>
-    </view>
 
-    <!-- 最近办件 -->
-    <rt-section :title="recentSectionTitle">
-      <view v-if="recentDisputes.length" class="recent-list">
-        <view
-          v-for="item in recentDisputes"
-          :key="item._id"
-          class="recent-card"
-          hover-class="recent-press"
-          :hover-stay-time="80"
-          @click="goDispute(item._id)"
-        >
-          <view class="recent-top">
-            <text class="recent-title">{{ item.title || "未命名纠纷" }}</text>
-            <text class="recent-phase">{{ item.phaseLabel }}</text>
+      <!-- 登录权益：降低「为什么要登」心智成本 -->
+      <view class="guest-benefits enter delay-1">
+        <view v-for="b in guestBenefits" :key="b.title" class="guest-benefit">
+          <view class="guest-benefit-icon" :class="b.tone">
+            <rt-icon :name="b.icon" :tone="b.iconTone" size="sm" />
           </view>
-          <text class="recent-tip">{{ item.tip }}</text>
+          <text class="guest-benefit-title">{{ b.title }}</text>
+          <text class="guest-benefit-desc">{{ b.desc }}</text>
         </view>
-        <view class="recent-more" @click="goPage('/pages/village/records')"
-          >查看全部调解办件</view
+      </view>
+
+      <!-- 可先逛：公开内容不断流 -->
+      <rt-section title="可先逛逛" class="enter delay-2">
+        <view class="guest-grid">
+          <view
+            v-for="item in guestBrowse"
+            :key="item.path"
+            class="guest-tile"
+            hover-class="guest-tile-press"
+            :hover-stay-time="80"
+            @click="goBrowse(item.path)"
+          >
+            <rt-icon :name="item.icon" :tone="item.tone" size="sm" />
+            <text class="guest-tile-title">{{ item.title }}</text>
+            <text class="guest-tile-desc">{{ item.desc }}</text>
+          </view>
+        </view>
+      </rt-section>
+
+      <!-- 锁定服务：展示完整信息架构，点击再引导登录 -->
+      <rt-section title="登录后可用" class="enter delay-3">
+        <rt-card elevated>
+          <rt-cell
+            v-for="(item, idx) in guestLocked"
+            :key="item.key"
+            :title="item.title"
+            :desc="item.desc"
+            :icon="item.icon"
+            :icon-tone="item.tone"
+            :last="idx === guestLocked.length - 1"
+            @click="goLocked(item)"
+          />
+        </rt-card>
+      </rt-section>
+
+      <view class="guest-trust enter delay-3">
+        <text class="guest-trust-line"
+          >登录即表示同意《用户协议》与《隐私政策》</text
         >
-      </view>
-      <empty-state
-        v-else
-        compact
-        icon-type="dispute"
-        icon-tone="green"
-        :title="emptyCaseTitle"
-        :desc="emptyCaseDesc"
-        action-text="去说事建档"
-        @action="goPage('/pages/village/submit')"
-      />
-    </rt-section>
-
-    <!-- 积分入口 -->
-    <view
-      class="wallet enter delay-2"
-      hover-class="wallet-press"
-      :hover-stay-time="80"
-      @click="goTab('/pages/moral/moral')"
-    >
-      <view class="wallet-left">
-        <text class="wallet-label">我的积分</text>
-        <text class="wallet-hint">{{ pointsHint }}</text>
-      </view>
-      <view class="wallet-right">
-        <text class="wallet-num">{{ pointsText }}</text>
-        <text
-          v-if="monthPointsDelta"
-          class="wallet-delta"
-          :class="{ up: monthPointsDelta > 0 }"
-        >
-          本月 {{ monthPointsDelta > 0 ? "+" : "" }}{{ monthPointsDelta }}
-        </text>
-        <text v-else class="wallet-arrow">去查看</text>
-      </view>
-    </view>
-
-    <!-- 数字快捷（非简洁模式） -->
-    <view v-if="!elderOn" class="stats">
-      <view
-        v-for="s in stats"
-        :key="s.key"
-        class="stat"
-        hover-class="stat-press"
-        :hover-stay-time="80"
-        @click="goPage(s.path)"
-      >
-        <text v-if="loadingStats" class="stat-num muted">—</text>
-        <text v-else class="stat-num" :class="{ hot: s.value > 0 && s.hot }">{{
-          s.value
-        }}</text>
-        <text class="stat-label">{{ s.label }}</text>
-      </view>
-    </view>
-
-    <view class="fold enter delay-3" :class="{ open: fold.ai }">
-      <view
-        class="fold-head"
-        hover-class="fold-press"
-        :hover-stay-time="80"
-        @click="toggleFold('ai')"
-      >
-        <view class="fold-titles">
-          <view class="accent-bar" />
-          <text class="fold-title">协办与普法</text>
+        <text class="guest-trust-line muted">不单独采集手机号与证件影像</text>
+        <view class="guest-trust-links">
+          <text class="guest-trust-link" @click="onOpenUserAgreement"
+            >用户协议</text
+          >
+          <text class="guest-trust-dot">·</text>
+          <text class="guest-trust-link" @click="onOpenPrivacy">隐私政策</text>
+          <template v-if="isAppClient">
+            <text class="guest-trust-dot">·</text>
+            <text
+              class="guest-trust-link"
+              @click="goPage('/pages/app/permissions')"
+              >权限说明</text
+            >
+          </template>
         </view>
-        <text class="fold-arrow">{{ fold.ai ? "收起" : "展开" }}</text>
-      </view>
-      <view v-if="fold.ai" class="fold-body">
-        <view v-if="weekSummary" class="week-card">
-          <text class="week-kicker">本周小结</text>
-          <text class="week-text">{{ weekSummary }}</text>
-        </view>
-        <rt-card compact flush elevated class="group-card">
-          <rt-cell
-            :title="aiVillageTitle"
-            :desc="aiContinueDesc"
-            icon="ai"
-            icon-tone="blue"
-            @click="goAi"
-          />
-          <rt-cell
-            :title="aiLegalTitle"
-            :desc="aiLegalDesc"
-            icon="law"
-            icon-tone="blue"
-            @click="goLegal"
-          />
-          <rt-cell
-            v-if="submitDraft"
-            title="待确认建档草稿"
-            :desc="draftPreview"
-            icon="declare"
-            icon-tone="green"
-            tag="草稿"
-            tag-type="warn"
-            @click="goPage('/pages/village/submit')"
-          />
-          <rt-cell
-            title="对话历史"
-            :desc="aiHistoryDesc"
-            icon="record"
-            icon-tone="blue"
-            last
-            @click="goAi"
-          />
-        </rt-card>
       </view>
     </view>
 
-    <view class="fold" :class="{ open: fold.records }">
+    <template v-else>
+      <!-- 身份卡：个人主体审核不采集头像授权/手机号绑定 -->
+      <view class="id-card enter">
+        <view class="avatar-btn static">
+          <image
+            v-if="avatarSrc"
+            class="avatar-img"
+            :src="avatarSrc"
+            mode="aspectFill"
+          />
+          <view v-else class="avatar">{{ avatarText }}</view>
+        </view>
+        <view class="id-body">
+          <view class="id-name-row">
+            <text class="id-name">{{ user.nickname || "村民用户" }}</text>
+            <text v-if="user.isAdmin" class="role-pill">干部</text>
+            <text v-else class="role-pill soft">村民</text>
+          </view>
+          <text class="id-meta">{{ user.village || "示范村" }}</text>
+          <text class="id-phone soft">{{
+            isAppClient ? "本机登录用户" : "微信登录用户"
+          }}</text>
+        </view>
+      </view>
+
+      <!-- 待办聚合（仪表优先） -->
       <view
-        class="fold-head"
-        hover-class="fold-press"
+        class="todo-bar enter delay-1"
+        :class="{ empty: !todoCount }"
+        hover-class="todo-press"
         :hover-stay-time="80"
-        @click="toggleFold('records')"
+        @click="onTodoTap"
       >
-        <view class="fold-titles">
-          <view class="accent-bar" />
-          <text class="fold-title">正在办</text>
+        <view class="todo-main">
+          <text class="todo-title">{{ todoTitle }}</text>
+          <text class="todo-sub">{{ todoSub }}</text>
         </view>
-        <text class="fold-arrow">{{ fold.records ? "收起" : "展开" }}</text>
+        <text class="todo-action">{{ todoCount ? "去处理" : "去建档" }}</text>
       </view>
-      <view v-if="fold.records" class="fold-body">
-        <rt-card compact flush elevated class="group-card">
-          <rt-cell
-            title="调解办件"
-            :desc="disputeDesc"
-            icon="record"
-            icon-tone="green"
-            @click="goPage('/pages/village/records')"
-          />
-          <rt-cell
-            title="意见与答复"
-            :desc="feedbackDesc"
-            icon="feedback"
-            icon-tone="green"
-            last
-            @click="goPage('/pages/village/feedback')"
-          />
-        </rt-card>
-      </view>
-    </view>
 
-    <view class="fold" :class="{ open: fold.more }">
-      <view
-        class="fold-head"
-        hover-class="fold-press"
-        :hover-stay-time="80"
-        @click="toggleFold('more')"
-      >
-        <view class="fold-titles">
-          <view class="accent-bar" />
-          <text class="fold-title">可兑换</text>
+      <!-- 最近办件 -->
+      <rt-section :title="recentSectionTitle">
+        <view v-if="recentDisputes.length" class="recent-list">
+          <view
+            v-for="item in recentDisputes"
+            :key="item._id"
+            class="recent-card"
+            hover-class="recent-press"
+            :hover-stay-time="80"
+            @click="goDispute(item._id)"
+          >
+            <view class="recent-top">
+              <text class="recent-title">{{ item.title || "未命名纠纷" }}</text>
+              <text class="recent-phase">{{ item.phaseLabel }}</text>
+            </view>
+            <text class="recent-tip">{{ item.tip }}</text>
+          </view>
+          <view class="recent-more" @click="goPage('/pages/village/records')"
+            >查看全部调解办件</view
+          >
         </view>
-        <text class="fold-arrow">{{ fold.more ? "收起" : "展开" }}</text>
-      </view>
-      <view v-if="fold.more" class="fold-body">
-        <rt-card compact flush elevated class="group-card">
-          <rt-cell
-            title="积分激励"
-            desc="看积分、去兑换"
-            icon="moral"
-            icon-tone="gold"
-            @click="goPage('/pages/moral/moral')"
-          />
-          <rt-cell
-            title="积分商城"
-            desc="兑换日用品"
-            icon="mall"
-            icon-tone="gold"
-            @click="goPage('/pages/moral/mall')"
-          />
-          <rt-cell
-            title="团购惠民"
-            desc="村务团购与订单"
-            icon="product"
-            icon-tone="green"
-            @click="goPage('/pages/group/group')"
-          />
-          <rt-cell
-            title="团购订单"
-            :desc="orderDesc"
-            icon="product"
-            icon-tone="green"
-            last
-            @click="goPage('/pages/group/orders')"
-          />
-        </rt-card>
-      </view>
-    </view>
-
-    <view v-if="user.isAdmin" class="fold" :class="{ open: fold.admin }">
-      <view
-        class="fold-head"
-        hover-class="fold-press"
-        :hover-stay-time="80"
-        @click="toggleFold('admin')"
-      >
-        <view class="fold-titles">
-          <view class="accent-bar" />
-          <text class="fold-title">干部工作台</text>
-        </view>
-        <text class="fold-arrow">{{ fold.admin ? "收起" : "展开" }}</text>
-      </view>
-      <view v-if="fold.admin" class="fold-body">
-        <rt-card compact flush elevated class="group-card">
-          <rt-cell
-            title="调解员工作台"
-            desc="受理与推进"
-            icon="declare"
-            icon-tone="green"
-            @click="goPage('/pages/admin/disputes')"
-          />
-          <rt-cell
-            title="质量看板"
-            desc="评测与问题单"
-            icon="ai"
-            icon-tone="blue"
-            last
-            @click="goPage('/pages/admin/ai-quality')"
-          />
-        </rt-card>
-      </view>
-    </view>
-
-    <view class="fold" :class="{ open: fold.help }">
-      <view
-        class="fold-head"
-        hover-class="fold-press"
-        :hover-stay-time="80"
-        @click="toggleFold('help')"
-      >
-        <view class="fold-titles">
-          <view class="accent-bar" />
-          <text class="fold-title">设置</text>
-        </view>
-        <text class="fold-arrow">{{ fold.help ? "收起" : "展开" }}</text>
-      </view>
-      <view v-if="fold.help" class="fold-body">
-        <rt-card compact flush elevated class="group-card">
-          <rt-cell
-            title="老年简洁模式"
-            :desc="
-              elderOn
-                ? '已开启 · 字更大、界面更简洁'
-                : '字更大、对比更强、减少装饰'
-            "
-            :tag="elderOn ? '开' : '关'"
-            icon="feedback"
-            @click="onToggleElder"
-          />
-          <rt-cell
-            title="村务通知"
-            :desc="noticeDesc"
-            icon="notice"
-            icon-tone="green"
-            :tag="noticeUnread ? String(noticeUnread) : ''"
-            :tag-type="noticeUnread ? 'warn' : 'default'"
-            @click="goPage('/pages/village/notice')"
-          />
-          <rt-cell
-            title="联系村委"
-            :desc="villagePhone"
-            icon="declare"
-            icon-tone="green"
-            @click="onCallVillage"
-          />
-          <rt-cell
-            title="清除本地缓存"
-            desc="聊天历史与草稿将清除"
-            icon="feedback"
-            @click="onClearCache"
-          />
-          <rt-cell
-            title="用户协议"
-            icon="law"
-            @click="goPage('/pages/agreement/user')"
-          />
-          <rt-cell
-            title="隐私政策"
-            icon="feedback"
-            @click="goPage('/pages/agreement/privacy')"
-          />
-          <rt-cell
-            title="账号注销说明"
-            desc="如何申请注销本账号"
-            icon="law"
-            @click="onAccountDelete"
-          />
-          <rt-cell
-            title="关于指尖善治"
-            :desc="'版本 ' + appVersion"
-            icon="ai"
-            icon-tone="blue"
-            last
-            @click="onAbout"
-          />
-        </rt-card>
-      </view>
-    </view>
-
-    <button class="logout-btn" @click="onLogout">退出登录</button>
-
-    <!-- 编辑资料弹层 -->
-    <view v-if="editOpen" class="sheet-mask" @click="closeEdit">
-      <view class="sheet" @click.stop>
-        <text class="sheet-title">{{
-          editField === "phone" ? "绑定手机号" : "修改昵称"
-        }}</text>
-        <input
-          v-model="editValue"
-          class="sheet-input"
-          :type="editField === 'phone' ? 'number' : 'text'"
-          :maxlength="editField === 'phone' ? 11 : 20"
-          :placeholder="
-            editField === 'phone' ? '请输入11位手机号' : '请输入昵称'
-          "
-          focus
+        <empty-state
+          v-else
+          compact
+          icon-type="dispute"
+          icon-tone="green"
+          :title="emptyCaseTitle"
+          :desc="emptyCaseDesc"
+          action-text="去说事建档"
+          @action="goPage('/pages/village/submit')"
         />
-        <view class="sheet-actions">
-          <view class="sheet-btn ghost" @click="closeEdit">取消</view>
-          <view class="sheet-btn primary" @click="saveEdit">保存</view>
+      </rt-section>
+
+      <!-- 积分入口 -->
+      <view
+        class="wallet enter delay-2"
+        hover-class="wallet-press"
+        :hover-stay-time="80"
+        @click="goTab('/pages/moral/moral')"
+      >
+        <view class="wallet-left">
+          <text class="wallet-label">我的积分</text>
+          <text class="wallet-hint">{{ pointsHint }}</text>
+        </view>
+        <view class="wallet-right">
+          <text class="wallet-num">{{ pointsText }}</text>
+          <text
+            v-if="monthPointsDelta"
+            class="wallet-delta"
+            :class="{ up: monthPointsDelta > 0 }"
+          >
+            本月 {{ monthPointsDelta > 0 ? "+" : "" }}{{ monthPointsDelta }}
+          </text>
+          <text v-else class="wallet-arrow">去查看</text>
         </view>
       </view>
-    </view>
+
+      <!-- 数字快捷（非简洁模式） -->
+      <view v-if="!elderOn" class="stats">
+        <view
+          v-for="s in stats"
+          :key="s.key"
+          class="stat"
+          hover-class="stat-press"
+          :hover-stay-time="80"
+          @click="goPage(s.path)"
+        >
+          <text v-if="loadingStats" class="stat-num muted">—</text>
+          <text
+            v-else
+            class="stat-num"
+            :class="{ hot: s.value > 0 && s.hot }"
+            >{{ s.value }}</text
+          >
+          <text class="stat-label">{{ s.label }}</text>
+        </view>
+      </view>
+
+      <view class="fold enter delay-3" :class="{ open: fold.ai }">
+        <view
+          class="fold-head"
+          hover-class="fold-press"
+          :hover-stay-time="80"
+          @click="toggleFold('ai')"
+        >
+          <view class="fold-titles">
+            <view class="accent-bar" />
+            <text class="fold-title">协办与普法</text>
+          </view>
+          <text class="fold-arrow">{{ fold.ai ? "收起" : "展开" }}</text>
+        </view>
+        <view v-if="fold.ai" class="fold-body">
+          <view v-if="weekSummary" class="week-card">
+            <text class="week-kicker">本周小结</text>
+            <text class="week-text">{{ weekSummary }}</text>
+          </view>
+          <rt-card compact flush elevated class="group-card">
+            <rt-cell
+              :title="aiVillageTitle"
+              :desc="aiContinueDesc"
+              icon="ai"
+              icon-tone="blue"
+              @click="goAi"
+            />
+            <rt-cell
+              :title="aiLegalTitle"
+              :desc="aiLegalDesc"
+              icon="law"
+              icon-tone="blue"
+              @click="goLegal"
+            />
+            <rt-cell
+              v-if="submitDraft"
+              title="待确认建档草稿"
+              :desc="draftPreview"
+              icon="declare"
+              icon-tone="green"
+              tag="草稿"
+              tag-type="warn"
+              @click="goPage('/pages/village/submit')"
+            />
+            <rt-cell
+              title="对话历史"
+              :desc="aiHistoryDesc"
+              icon="record"
+              icon-tone="blue"
+              last
+              @click="goAi"
+            />
+          </rt-card>
+        </view>
+      </view>
+
+      <view class="fold" :class="{ open: fold.records }">
+        <view
+          class="fold-head"
+          hover-class="fold-press"
+          :hover-stay-time="80"
+          @click="toggleFold('records')"
+        >
+          <view class="fold-titles">
+            <view class="accent-bar" />
+            <text class="fold-title">正在办</text>
+          </view>
+          <text class="fold-arrow">{{ fold.records ? "收起" : "展开" }}</text>
+        </view>
+        <view v-if="fold.records" class="fold-body">
+          <rt-card compact flush elevated class="group-card">
+            <rt-cell
+              title="调解办件"
+              :desc="disputeDesc"
+              icon="record"
+              icon-tone="green"
+              @click="goPage('/pages/village/records')"
+            />
+            <rt-cell
+              title="意见与答复"
+              :desc="feedbackDesc"
+              icon="feedback"
+              icon-tone="green"
+              last
+              @click="goPage('/pages/village/feedback')"
+            />
+          </rt-card>
+        </view>
+      </view>
+
+      <view class="fold" :class="{ open: fold.more }">
+        <view
+          class="fold-head"
+          hover-class="fold-press"
+          :hover-stay-time="80"
+          @click="toggleFold('more')"
+        >
+          <view class="fold-titles">
+            <view class="accent-bar" />
+            <text class="fold-title">服务与激励</text>
+          </view>
+          <text class="fold-arrow">{{ fold.more ? "收起" : "展开" }}</text>
+        </view>
+        <view v-if="fold.more" class="fold-body">
+          <rt-card compact flush elevated class="group-card">
+            <rt-cell
+              title="积分激励"
+              desc="查看调解激励说明"
+              icon="moral"
+              icon-tone="gold"
+              @click="goPage('/pages/moral/moral')"
+            />
+            <rt-cell
+              title="积分礼遇"
+              desc="礼品意向请联系村委（线下核销，无在线交易）"
+              icon="mall"
+              icon-tone="gold"
+              @click="goPage('/pages/moral/mall')"
+            />
+            <rt-cell
+              title="惠民好物"
+              :desc="groupCellDesc"
+              icon="product"
+              icon-tone="green"
+              :last="!showOrdersEntry"
+              @click="goPage('/pages/group/group')"
+            />
+            <rt-cell
+              v-if="showOrdersEntry"
+              title="我的预约"
+              desc="好物意向登记记录"
+              icon="record"
+              icon-tone="green"
+              last
+              @click="goPage('/pages/group/orders')"
+            />
+          </rt-card>
+        </view>
+      </view>
+
+      <view v-if="user.isAdmin" class="fold" :class="{ open: fold.admin }">
+        <view
+          class="fold-head"
+          hover-class="fold-press"
+          :hover-stay-time="80"
+          @click="toggleFold('admin')"
+        >
+          <view class="fold-titles">
+            <view class="accent-bar" />
+            <text class="fold-title">干部工作台</text>
+          </view>
+          <text class="fold-arrow">{{ fold.admin ? "收起" : "展开" }}</text>
+        </view>
+        <view v-if="fold.admin" class="fold-body">
+          <rt-card compact flush elevated class="group-card">
+            <rt-cell
+              title="调解员工作台"
+              desc="受理与推进"
+              icon="declare"
+              icon-tone="green"
+              @click="goPage('/pages/admin/disputes')"
+            />
+            <rt-cell
+              title="质量看板"
+              desc="评测与问题单"
+              icon="ai"
+              icon-tone="blue"
+              last
+              @click="goPage('/pages/admin/ai-quality')"
+            />
+          </rt-card>
+        </view>
+      </view>
+
+      <view class="fold" :class="{ open: fold.help }">
+        <view
+          class="fold-head"
+          hover-class="fold-press"
+          :hover-stay-time="80"
+          @click="toggleFold('help')"
+        >
+          <view class="fold-titles">
+            <view class="accent-bar" />
+            <text class="fold-title">设置</text>
+          </view>
+          <text class="fold-arrow">{{ fold.help ? "收起" : "展开" }}</text>
+        </view>
+        <view v-if="fold.help" class="fold-body">
+          <rt-card compact flush elevated class="group-card">
+            <rt-cell
+              title="老年简洁模式"
+              :desc="
+                elderOn
+                  ? '已开启 · 字更大、界面更简洁'
+                  : '字更大、对比更强、减少装饰'
+              "
+              :tag="elderOn ? '开' : '关'"
+              icon="feedback"
+              @click="onToggleElder"
+            />
+            <rt-cell
+              title="村务通知"
+              :desc="noticeDesc"
+              icon="notice"
+              icon-tone="green"
+              :tag="noticeUnread ? String(noticeUnread) : ''"
+              :tag-type="noticeUnread ? 'warn' : 'default'"
+              @click="goPage('/pages/village/notice')"
+            />
+            <rt-cell
+              v-if="isAppClient"
+              title="办件进度提醒"
+              :desc="pushDesc"
+              icon="notice"
+              icon-tone="gold"
+              :tag="pushOn ? '开' : '关'"
+              @click="onTogglePush"
+            />
+            <rt-cell
+              title="联系村委"
+              :desc="villagePhone"
+              icon="declare"
+              icon-tone="green"
+              @click="onCallVillage"
+            />
+            <rt-cell
+              title="清除本地缓存"
+              desc="聊天历史与草稿将清除"
+              icon="feedback"
+              @click="onClearCache"
+            />
+            <rt-cell
+              v-if="isAppClient"
+              title="权限说明"
+              desc="麦克风、电话、通知等何时申请"
+              icon="law"
+              @click="goPage('/pages/app/permissions')"
+            />
+            <rt-cell title="用户协议" icon="law" @click="onOpenUserAgreement" />
+            <rt-cell
+              title="隐私政策"
+              icon="feedback"
+              :desc="privacyLinkDesc"
+              @click="onOpenPrivacy"
+            />
+            <rt-cell
+              title="账号注销说明"
+              desc="如何申请注销本账号"
+              icon="law"
+              @click="onAccountDelete"
+            />
+            <rt-cell
+              title="关于指尖善治"
+              :desc="'版本 ' + appVersion"
+              icon="ai"
+              icon-tone="blue"
+              last
+              @click="onAbout"
+            />
+          </rt-card>
+        </view>
+      </view>
+
+      <button class="logout-btn" @click="onLogout">退出登录</button>
+
+      <!-- 编辑昵称弹层（不采集手机号） -->
+      <view v-if="editOpen" class="sheet-mask" @click="closeEdit">
+        <view class="sheet" @click.stop>
+          <text class="sheet-title">修改昵称</text>
+          <input
+            v-model="editValue"
+            class="sheet-input"
+            type="text"
+            maxlength="20"
+            placeholder="请输入昵称"
+            focus
+          />
+          <view class="sheet-actions">
+            <view class="sheet-btn ghost" @click="closeEdit">取消</view>
+            <view class="sheet-btn primary" @click="saveEdit">保存</view>
+          </view>
+        </view>
+      </view>
+    </template>
 
     <tab-bar />
   </view>
@@ -409,11 +511,12 @@ import RtCard from "@/components/rt-card/rt-card.vue";
 import RtCell from "@/components/rt-cell/rt-cell.vue";
 import RtSection from "@/components/rt-section/rt-section.vue";
 import EmptyState from "@/components/empty-state/empty-state.vue";
+import RtIcon from "@/components/rt-icon/rt-icon.vue";
 import {
   getLocalUser,
   logout,
+  isLoggedIn,
   isEphemeralAvatarUrl,
-  uploadAvatarImage,
 } from "@/utils/cloud.js";
 import { ensureLoggedIn, goAiAssistant } from "@/utils/auth.js";
 import { api } from "@/api/index.js";
@@ -423,29 +526,135 @@ import { buildCaseObject } from "@/utils/case-object.js";
 import { listChatSessions } from "@/utils/chat-session.js";
 import { countUnreadNotices } from "@/utils/notice-read.js";
 import { draftPreviewText } from "@/utils/submit-draft.js";
-import { EMERGENCY_TIP, VILLAGE_CONTACT_PHONE } from "@/config/env.js";
+import {
+  EMERGENCY_TIP,
+  VILLAGE_CONTACT_PHONE,
+  APP_VERSION_NAME,
+  APP_RELEASE_CHANNEL,
+} from "@/config/env.js";
 import { isElderMode, setElderMode } from "@/utils/elder-mode.js";
 import { COPY } from "@/utils/copy-voice.js";
+import { isApp } from "@/utils/platform.js";
+import { FEATURE_GROUP_ORDER } from "@/config/features.js";
+import { isAppPushEnabled, toggleAppPushIntent } from "@/utils/app-push.js";
+import {
+  openPrivacyPolicy,
+  openUserAgreement,
+  hasExternalPrivacyUrl,
+} from "@/utils/legal-links.js";
 
 export default {
-  components: { TabBar, PageHero, RtCard, RtCell, RtSection, EmptyState },
+  components: {
+    TabBar,
+    PageHero,
+    RtCard,
+    RtCell,
+    RtSection,
+    EmptyState,
+    RtIcon,
+  },
   data() {
     return {
+      guestMode: false,
+      guestBenefits: [
+        {
+          title: "办件同步",
+          desc: "进度随身看",
+          icon: "record",
+          tone: "green",
+          iconTone: "green",
+        },
+        {
+          title: "积分激励",
+          desc: "参与有记录",
+          icon: "moral",
+          tone: "gold",
+          iconTone: "gold",
+        },
+        {
+          title: "意见留档",
+          desc: "村委可答复",
+          icon: "feedback",
+          tone: "blue",
+          iconTone: "blue",
+        },
+      ],
+      guestBrowse: [
+        {
+          title: "办事首页",
+          desc: "村务与说事",
+          path: "/pages/village/village",
+          icon: "tab-village",
+          tone: "green",
+        },
+        {
+          title: "法治要点",
+          desc: "图文反诈",
+          path: "/pages/law/law",
+          icon: "tab-law",
+          tone: "blue",
+        },
+        {
+          title: "惠民好物",
+          desc: "展示与咨询",
+          path: "/pages/group/group",
+          icon: "tab-group",
+          tone: "olive",
+        },
+      ],
+      guestLocked: [
+        {
+          key: "records",
+          title: "我的办件",
+          desc: "登录后查看调解进度",
+          icon: "record",
+          tone: "green",
+          tip: "查看办件请先登录",
+          path: "/pages/village/records",
+        },
+        {
+          key: "feedback",
+          title: "意见箱",
+          desc: "登录后提交与查看答复",
+          icon: "feedback",
+          tone: "blue",
+          tip: "使用意见箱请先登录",
+          path: "/pages/village/feedback",
+        },
+        {
+          key: "moral",
+          title: "我的积分",
+          desc: "登录后同步激励积分",
+          icon: "moral",
+          tone: "gold",
+          tip: "查看积分请先登录",
+          path: "/pages/moral/moral",
+        },
+        {
+          key: "ai",
+          title: "村务助手",
+          desc: "登录后咨询协办",
+          icon: "ai",
+          tone: "blue",
+          tip: "咨询协办请先登录",
+          path: "/pages/ai/assistant",
+        },
+      ],
       user: {},
       disputeHandling: 0,
       disputeTotal: 0,
       feedbackPending: 0,
       feedbackTotal: 0,
-      orderTotal: 0,
       recentDisputes: [],
       submitDraft: "",
       villageSessions: 0,
       legalSessions: 0,
       lastChatTitle: "",
       editOpen: false,
-      editField: "phone",
+      editField: "nickname",
       editValue: "",
-      appVersion: "1.0.0",
+      appVersion: APP_VERSION_NAME || "1.0.0",
+      releaseChannel: APP_RELEASE_CHANNEL || "internal",
       saving: false,
       loadingStats: true,
       noticeUnread: 0,
@@ -455,6 +664,9 @@ export default {
       weekSessionHits: 0,
       villagePhone: VILLAGE_CONTACT_PHONE || "",
       elderOn: false,
+      isAppClient: isApp,
+      showOrdersEntry: FEATURE_GROUP_ORDER,
+      pushOn: isApp ? isAppPushEnabled() : false,
       fold: {
         ai: true,
         records: true,
@@ -498,6 +710,19 @@ export default {
       if (!this.noticeTotal) return "暂无通知";
       if (this.noticeUnread) return `${this.noticeUnread} 条未读`;
       return `共 ${this.noticeTotal} 条 · 已读完`;
+    },
+    pushDesc() {
+      return this.pushOn
+        ? "已开启意向 · 正式通道开通后推送"
+        : "系统推送占位 · 点此开启意向";
+    },
+    privacyLinkDesc() {
+      return hasExternalPrivacyUrl() ? "已配置公网链接" : "应用内全文";
+    },
+    groupCellDesc() {
+      return this.showOrdersEntry
+        ? "可预约登记意向，无线上支付"
+        : "商品信息展示，咨询村委";
     },
     todoCount() {
       return this.disputeHandling + this.feedbackPending;
@@ -547,17 +772,7 @@ export default {
           hot: true,
         },
       ];
-      if (this.elderOn) return base;
-      return [
-        ...base,
-        {
-          key: "order",
-          label: "团购单",
-          value: this.orderTotal,
-          path: "/pages/group/orders",
-          hot: false,
-        },
-      ];
+      return base;
     },
     disputeDesc() {
       if (!this.disputeTotal) return "暂无办件";
@@ -568,10 +783,6 @@ export default {
       return this.feedbackPending
         ? `${this.feedbackPending} 条待村委答复`
         : `共 ${this.feedbackTotal} 条 · 均已处理`;
-    },
-    orderDesc() {
-      if (!this.orderTotal) return "暂无订单";
-      return `共 ${this.orderTotal} 单`;
     },
     aiContinueDesc() {
       if (this.lastChatTitle && this.lastChatTitle !== "新对话")
@@ -607,10 +818,11 @@ export default {
     }
   },
   onShow() {
-    if (!ensureLoggedIn()) return;
     this.elderOn = isElderMode();
+    const logged = isLoggedIn();
+    this.guestMode = !logged;
+    if (!logged) return;
     this.user = getLocalUser() || {};
-    // 清掉已失效的临时头像路径，避免渲染层 __tmp__ 500
     if (this.user.avatarUrl && isEphemeralAvatarUrl(this.user.avatarUrl)) {
       this.user = { ...this.user, avatarUrl: "" };
       try {
@@ -628,6 +840,35 @@ export default {
     }
   },
   methods: {
+    goLogin() {
+      goNavigate("/pages/login/login");
+    },
+    goHome() {
+      goReLaunch("/pages/village/village");
+    },
+    goBrowse(path) {
+      if (!path) return;
+      if (
+        path === "/pages/village/village" ||
+        path === "/pages/law/law" ||
+        path === "/pages/group/group" ||
+        path === "/pages/moral/moral" ||
+        path === "/pages/profile/profile"
+      ) {
+        goReLaunch(path);
+        return;
+      }
+      goNavigate(path);
+    },
+    goLocked(item) {
+      if (!item) return;
+      if (!ensureLoggedIn({ tip: item.tip || "办理业务请先登录" })) return;
+      if (item.path === "/pages/ai/assistant") {
+        goAiAssistant();
+        return;
+      }
+      this.goBrowse(item.path);
+    },
     toggleFold(key) {
       if (!key || !Object.prototype.hasOwnProperty.call(this.fold, key)) return;
       this.fold[key] = !this.fold[key];
@@ -695,7 +936,12 @@ export default {
           uni.setStorageSync("rt_user", this.user);
         }
       } catch (e) {
-        /* keep local */
+        const msg = (e && e.message) || "";
+        if (/请先登录|未登录/.test(msg) || !isLoggedIn()) {
+          this.guestMode = true;
+          this.loadingStats = false;
+          return;
+        }
       }
 
       try {
@@ -737,13 +983,6 @@ export default {
       }
 
       try {
-        const oRes = await api.listMyOrders();
-        this.orderTotal = (oRes.data.list || []).length;
-      } catch (e) {
-        /* ignore */
-      }
-
-      try {
         const nRes = await api.listNotices();
         const list = nRes.data.list || [];
         this.noticeTotal = list.length;
@@ -771,36 +1010,45 @@ export default {
         this.loadingStats = false;
       }
     },
-    async onChooseAvatar(e) {
-      const local = e && e.detail && e.detail.avatarUrl;
-      if (!local) return;
-      let avatarUrl = local;
+    async onChooseAvatar() {
+      uni.showToast({ title: "个人主体小程序不采集头像授权", icon: "none" });
+    },
+    openEdit(field) {
+      if (field === "phone") {
+        uni.showToast({ title: "不采集手机号", icon: "none" });
+        return;
+      }
+      this.editField = "nickname";
+      this.editValue = this.user.nickname || "";
+      this.editOpen = true;
+    },
+    closeEdit() {
+      this.editOpen = false;
+    },
+    async saveEdit() {
+      if (this.saving) return;
+      const value = String(this.editValue || "").trim();
+      if (!value) {
+        uni.showToast({ title: "请输入昵称", icon: "none" });
+        return;
+      }
+      this.saving = true;
       try {
-        uni.showLoading({ title: "上传头像", mask: true });
-        try {
-          const up = await uploadAvatarImage(local);
-          if (up && up.fileID) avatarUrl = up.fileID;
-        } catch (uploadErr) {
-          // 云上传失败时不落库临时路径，仅本会话展示一次
-          this.user = { ...this.user, avatarUrl: local };
-          uni.showToast({ title: "头像暂存本地，云端稍后重试", icon: "none" });
-          return;
-        }
-        const res = await api.updateProfile({ avatarUrl });
+        const payload = { nickname: value };
+        const res = await api.updateProfile(payload);
         if (res.data && res.data.user) {
           this.user = res.data.user;
+          uni.setStorageSync("rt_user", this.user);
         } else {
-          this.user = { ...this.user, avatarUrl };
+          this.user = { ...this.user, ...payload };
+          uni.setStorageSync("rt_user", this.user);
         }
-        uni.setStorageSync("rt_user", this.user);
-        uni.showToast({ title: "头像已更新", icon: "success" });
-      } catch (err) {
-        uni.showToast({
-          title: (err && err.message) || "头像更新失败",
-          icon: "none",
-        });
+        this.editOpen = false;
+        uni.showToast({ title: "已保存", icon: "success" });
+      } catch (e) {
+        uni.showToast({ title: e.message || "保存失败", icon: "none" });
       } finally {
-        uni.hideLoading();
+        this.saving = false;
       }
     },
     onClearCache() {
@@ -837,6 +1085,15 @@ export default {
           }
         },
       });
+    },
+    async onTogglePush() {
+      try {
+        const res = await toggleAppPushIntent();
+        this.pushOn = !!res.enabled;
+        uni.showToast({ title: res.tip || "已更新", icon: "none" });
+      } catch (e) {
+        uni.showToast({ title: (e && e.message) || "设置失败", icon: "none" });
+      }
     },
     goDispute(id) {
       if (!id) return;
@@ -895,10 +1152,17 @@ export default {
         this.saving = false;
       }
     },
+    onOpenPrivacy() {
+      openPrivacyPolicy();
+    },
+    onOpenUserAgreement() {
+      openUserAgreement();
+    },
     onAbout() {
+      const ch = this.releaseChannel === "store" ? "商店版" : "内测版";
       uni.showModal({
         title: "指尖善治",
-        content: `版本 ${this.appVersion}\n说事成案 · 干部推进 · 村民可感\n${EMERGENCY_TIP}`,
+        content: `版本 ${this.appVersion}（${ch}）\n说事成案 · 干部推进 · 村民可感\n${EMERGENCY_TIP}`,
         showCancel: false,
       });
     },
@@ -969,6 +1233,202 @@ export default {
 }
 .delay-3 {
   animation-delay: 0.16s;
+}
+
+/* ── 游客态：对齐大厂「我的」未登录骨架 ── */
+.guest-shell {
+  padding-bottom: 8rpx;
+}
+.guest-id {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  padding: 28rpx 28rpx 28rpx 24rpx;
+  margin-bottom: 16rpx;
+  border-radius: $rt-radius-md;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.96) 0%,
+    #fff8f4 55%,
+    #f7efe6 100%
+  );
+  border: 1rpx solid rgba(201, 162, 74, 0.22);
+  box-shadow: $rt-shadow-card;
+}
+.guest-id-press {
+  opacity: 0.94;
+}
+.guest-avatar {
+  width: 112rpx;
+  height: 112rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #f3eee6 0%, #e8e0d4 100%);
+  border: 4rpx solid rgba(255, 255, 255, 0.85);
+}
+.guest-id-body {
+  flex: 1;
+  min-width: 0;
+}
+.guest-hello {
+  display: block;
+  font-size: 36rpx;
+  font-weight: 800;
+  color: $rt-text;
+  letter-spacing: 0.02em;
+}
+.guest-hint {
+  display: block;
+  margin-top: 8rpx;
+  font-size: $rt-type-caption;
+  color: $rt-text-secondary;
+  line-height: 1.45;
+}
+.guest-login-pill {
+  flex-shrink: 0;
+  min-width: 96rpx;
+  height: 56rpx;
+  padding: 0 22rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, $rt-primary, $rt-primary-mid);
+  color: #fff;
+  font-size: 24rpx;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.guest-cta {
+  margin-bottom: 20rpx;
+  padding: 28rpx 28rpx 24rpx;
+  border-radius: $rt-radius-md;
+  background: linear-gradient(135deg, $rt-primary 0%, $rt-primary-mid 100%);
+  box-shadow: 0 12rpx 28rpx rgba(158, 52, 40, 0.22);
+}
+.guest-cta-text {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 800;
+  color: #fff;
+  text-align: center;
+}
+.guest-cta-sub {
+  display: block;
+  margin-top: 8rpx;
+  font-size: $rt-type-micro;
+  color: rgba(255, 255, 255, 0.82);
+  text-align: center;
+}
+.guest-benefits {
+  display: flex;
+  gap: 12rpx;
+  margin-bottom: 8rpx;
+}
+.guest-benefit {
+  flex: 1;
+  min-width: 0;
+  padding: 20rpx 12rpx 18rpx;
+  border-radius: $rt-radius-sm;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1rpx solid rgba(50, 40, 30, 0.06);
+  text-align: center;
+}
+.guest-benefit-icon {
+  width: 56rpx;
+  height: 56rpx;
+  margin: 0 auto 10rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.guest-benefit-icon.green {
+  background: $rt-olive-soft;
+}
+.guest-benefit-icon.gold {
+  background: $rt-accent-soft;
+}
+.guest-benefit-icon.blue {
+  background: $rt-blue-soft;
+}
+.guest-benefit-title {
+  display: block;
+  font-size: 24rpx;
+  font-weight: 800;
+  color: $rt-text;
+}
+.guest-benefit-desc {
+  display: block;
+  margin-top: 4rpx;
+  font-size: 20rpx;
+  color: $rt-text-muted;
+  line-height: 1.35;
+}
+.guest-grid {
+  display: flex;
+  gap: 12rpx;
+}
+.guest-tile {
+  flex: 1;
+  min-width: 0;
+  padding: 22rpx 16rpx 20rpx;
+  border-radius: $rt-radius-sm;
+  background: #fff;
+  border: 1rpx solid rgba(50, 40, 30, 0.06);
+  box-shadow: $rt-shadow-sm;
+}
+.guest-tile-press {
+  opacity: 0.92;
+}
+.guest-tile-title {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 26rpx;
+  font-weight: 800;
+  color: $rt-text;
+}
+.guest-tile-desc {
+  display: block;
+  margin-top: 4rpx;
+  font-size: 20rpx;
+  color: $rt-text-muted;
+}
+.guest-trust {
+  margin-top: 8rpx;
+  padding: 8rpx 8rpx 24rpx;
+  text-align: center;
+}
+.guest-trust-line {
+  display: block;
+  font-size: $rt-type-micro;
+  color: $rt-text-secondary;
+  line-height: 1.5;
+}
+.guest-trust-line.muted {
+  margin-top: 4rpx;
+  color: $rt-text-muted;
+}
+.guest-trust-links {
+  margin-top: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+}
+.guest-trust-link {
+  font-size: $rt-type-micro;
+  color: $rt-primary-mid;
+  font-weight: 700;
+}
+.guest-trust-dot {
+  font-size: $rt-type-micro;
+  color: $rt-text-muted;
+}
+.press {
+  opacity: 0.92;
 }
 
 .elder-switch {

@@ -39,7 +39,7 @@ const TABS_FULL = [
   },
   { path: "/pages/law/law", text: "法治", icon: "tab-law" },
   { path: "/pages/moral/moral", text: "激励", icon: "tab-moral", badgeKey: "" },
-  { path: "/pages/group/group", text: "团购", icon: "tab-group" },
+  { path: "/pages/group/group", text: "好物", icon: "tab-group" },
   {
     path: "/pages/profile/profile",
     text: "我的",

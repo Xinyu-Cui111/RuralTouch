@@ -8,3 +8,11 @@ tools-icon/
 assets-source/
 devtools-login-qr.png
 
+# Android 正式签名（切勿提交）
+*.jks
+*.keystore
+release/*.jks
+release/*.keystore
+release/keystore.properties
+!release/keystore.properties.example
+release/PACK_FORM.txt

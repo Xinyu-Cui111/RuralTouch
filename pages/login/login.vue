@@ -24,21 +24,6 @@
         <text class="card-title">{{ welcome }}</text>
         <text class="card-sub">{{ cardSub }}</text>
 
-        <view class="field">
-          <view class="field-icon-wrap">
-            <view class="phone-body" />
-            <view class="phone-btn" />
-          </view>
-          <input
-            class="field-input"
-            type="number"
-            maxlength="11"
-            v-model="phone"
-            placeholder="请输入手机号"
-            placeholder-class="ph"
-          />
-        </view>
-
         <view class="agreement">
           <view
             class="check"
@@ -57,13 +42,13 @@
           >
         </view>
 
-        <button class="btn-primary" :loading="loading" @click="onPhoneLogin">
-          手机号登录
-        </button>
-        <button class="btn-ghost" :loading="loading" @click="onWechatLogin">
+        <button class="btn-primary" :loading="loading" @click="onPrimaryLogin">
           <view class="wechat-dot" />
-          微信一键登录
+          {{ loginBtnText }}
         </button>
+        <text class="guest-link" @click="onGuestBrowse"
+          >先逛逛，稍后再登录</text
+        >
       </view>
     </view>
   </view>
@@ -71,10 +56,12 @@
 
 <script>
 import { wxLogin, isLoggedIn } from "@/utils/cloud.js";
-import { api } from "@/api/index.js";
 import { goAfterLogin } from "@/utils/auth.js";
+import { goReLaunch } from "@/utils/nav.js";
 import { getSafeLayout } from "@/utils/safe-area.js";
 import { COPY } from "@/utils/copy-voice.js";
+import { isApp } from "@/utils/platform.js";
+import { openLegalDoc } from "@/utils/legal-links.js";
 
 export default {
   data() {
@@ -88,6 +75,11 @@ export default {
       cardSub: COPY.loginSub,
     };
   },
+  computed: {
+    loginBtnText() {
+      return isApp ? "本机一键登录" : "微信一键登录";
+    },
+  },
   onLoad() {
     const layout = getSafeLayout();
     this.safePadTop = layout.contentTop + 24;
@@ -97,11 +89,7 @@ export default {
   },
   methods: {
     openAgreement(type) {
-      const path =
-        type === "privacy"
-          ? "/pages/agreement/privacy"
-          : "/pages/agreement/user";
-      uni.navigateTo({ url: path });
+      openLegalDoc(type);
     },
     ensureAgreement() {
       if (!this.checked) {
@@ -113,26 +101,11 @@ export default {
     enterApp() {
       goAfterLogin();
     },
-    async onPhoneLogin() {
-      if (!this.ensureAgreement()) return;
-      if (!this.phone || this.phone.length !== 11) {
-        uni.showToast({ title: "请输入正确手机号", icon: "none" });
-        return;
-      }
-      this.loading = true;
-      try {
-        await wxLogin();
-        const res = await api.login({ phone: this.phone });
-        if (res.data && res.data.user) {
-          uni.setStorageSync("rt_user", res.data.user);
-        }
-        uni.showToast({ title: "登录成功", icon: "success" });
-        setTimeout(() => this.enterApp(), 500);
-      } catch (e) {
-        uni.showToast({ title: e.message || "登录失败", icon: "none" });
-      } finally {
-        this.loading = false;
-      }
+    onGuestBrowse() {
+      goReLaunch("/pages/village/village");
+    },
+    onPrimaryLogin() {
+      this.onWechatLogin();
     },
     async onWechatLogin() {
       if (!this.ensureAgreement()) return;
@@ -144,7 +117,11 @@ export default {
       } catch (e) {
         uni.showModal({
           title: "登录失败",
-          content: e.message || "请检查云函数与数据库集合是否已配置",
+          content:
+            e.message ||
+            (isApp
+              ? "请检查 APP_API_BASE 网关，或允许回退 Mock"
+              : "请检查云函数与数据库集合是否已配置"),
           showCancel: false,
         });
       } finally {
@@ -400,5 +377,14 @@ export default {
   height: 16rpx;
   border-radius: 50%;
   background: #07c160;
+}
+
+.guest-link {
+  display: block;
+  margin-top: 28rpx;
+  text-align: center;
+  font-size: 26rpx;
+  color: $rt-text-secondary;
+  text-decoration: underline;
 }
 </style>

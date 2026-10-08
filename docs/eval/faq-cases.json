@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "updated": "2026-10-08",
+  "metric": "faq_retrieve_top3",
+  "note": "无 LLM：仅测本地知识表检索是否命中期望条目",
+  "cases": [
+    {
+      "id": "F01",
+      "query": "土地边界对不上怎么办",
+      "expectIds": ["faq-land-01", "faq-land-02", "faq-land-03"]
+    },
+    {
+      "id": "F02",
+      "query": "宅基地使用权有争议",
+      "expectIds": ["faq-land-03", "faq-land-01"]
+    },
+    {
+      "id": "F03",
+      "query": "邻居噪音太大还占用通道",
+      "expectIds": ["faq-neighbor-01"]
+    },
+    {
+      "id": "F04",
+      "query": "务工欠薪拖欠工资怎么维权",
+      "expectIds": ["faq-labor-01", "faq-labor-03"]
+    },
+    {
+      "id": "F05",
+      "query": "工伤认定厂里不认劳动关系",
+      "expectIds": ["faq-labor-02", "faq-labor-01"]
+    },
+    {
+      "id": "F06",
+      "query": "老人赡养费子女互相推诿",
+      "expectIds": ["faq-family-01"]
+    },
+    {
+      "id": "F07",
+      "query": "遗产继承怎么分割",
+      "expectIds": ["faq-family-02"]
+    },
+    {
+      "id": "F08",
+      "query": "院墙损坏要求赔偿",
+      "expectIds": ["faq-property-01"]
+    },
+    {
+      "id": "F09",
+      "query": "有人要我转账说是公检法是不是诈骗",
+      "expectIds": ["faq-fraud-01"]
+    },
+    {
+      "id": "F10",
+      "query": "如何提交纠纷查看调解进度",
+      "expectIds": ["faq-process-01", "faq-process-02"]
+    },
+    {
+      "id": "F11",
+      "query": "打架受伤了要不要升级报警",
+      "expectIds": ["faq-process-03"]
+    },
+    {
+      "id": "F12",
+      "query": "积分怎么申报兑换",
+      "expectIds": ["faq-moral-01"]
+    },
+    {
+      "id": "F13",
+      "query": "AI能帮我写判决书吗一定能赢吗",
+      "expectIds": ["faq-scope-01"]
+    },
+    {
+      "id": "F14",
+      "query": "灌溉水渠被截流",
+      "expectIds": ["faq-water-01", "faq-neighbor-02"]
+    },
+    {
+      "id": "F15",
+      "query": "民间借贷借条到期不还",
+      "expectIds": ["faq-property-02"]
+    }
+  ]
+}

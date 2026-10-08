@@ -23,16 +23,17 @@
       <text class="desc">{{ product.desc }}</text>
       <view class="footer">
         <view class="price-wrap">
+          <text class="currency-label">参考</text>
           <text class="currency">¥</text>
           <text class="price">{{ product.price }}</text>
         </view>
         <view
-          class="cart-btn"
+          class="contact-btn"
           hover-class="press"
           :hover-stay-time="80"
-          @click.stop="$emit('add', product)"
+          @click.stop="onCta"
         >
-          <text class="buy-text">下单</text>
+          <text class="contact-text">{{ ctaText }}</text>
         </view>
       </view>
     </view>
@@ -41,11 +42,15 @@
 
 <script>
 import RtIcon from "@/components/rt-icon/rt-icon.vue";
+import { FEATURE_GROUP_ORDER } from "@/config/features.js";
 
-/** 兼容云库旧路径 /static/products → /static/lite/products */
+/** 兼容云库旧路径 → /static/lite/... */
 function normalizeImg(src) {
   if (!src || typeof src !== "string") return "";
-  return src.replace(/^\/static\/products\//, "/static/lite/products/");
+  return src
+    .replace(/^\/static\/products\//, "/static/lite/products/")
+    .replace(/^\/static\/group-icons\//, "/static/lite/group/")
+    .replace(/^\/static\/banner\//, "/static/lite/");
 }
 
 export default {
@@ -57,8 +62,20 @@ export default {
     imgSrc() {
       return normalizeImg(this.product && this.product.img);
     },
+    ctaText() {
+      return FEATURE_GROUP_ORDER ? "预约登记" : "咨询村委";
+    },
   },
-  emits: ["click", "add"],
+  emits: ["click", "contact", "order"],
+  methods: {
+    onCta() {
+      if (FEATURE_GROUP_ORDER) {
+        this.$emit("order", this.product);
+        return;
+      }
+      this.$emit("contact", this.product);
+    },
+  },
 };
 </script>
 
@@ -154,6 +171,13 @@ export default {
   gap: 2rpx;
 }
 
+.currency-label {
+  font-size: 20rpx;
+  font-weight: 600;
+  color: $rt-text-muted;
+  margin-right: 4rpx;
+}
+
 .currency {
   font-size: 24rpx;
   font-weight: 700;
@@ -167,7 +191,7 @@ export default {
   line-height: 1;
 }
 
-.cart-btn {
+.contact-btn {
   min-width: 96rpx;
   height: 56rpx;
   padding: 0 20rpx;
@@ -178,7 +202,7 @@ export default {
   justify-content: center;
 }
 
-.buy-text {
+.contact-text {
   font-size: 24rpx;
   font-weight: 800;
   color: #fff;

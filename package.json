@@ -14,6 +14,8 @@
     "gateway:app": "node server/app-gateway/index.js",
     "optimize:assets": "python scripts/optimize-assets.py",
     "eval:dispute": "node scripts/eval-dispute.js",
+    "eval:faq": "node scripts/eval-faq.js",
+    "eval": "npm run eval:dispute && npm run eval:faq",
     "prepare": "husky install",
     "format": "prettier --write \"**/*.{js,vue,css,scss,json,md}\"",
     "gen:app-icons": "node scripts/gen-app-icons.js",

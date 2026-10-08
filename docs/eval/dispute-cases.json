@@ -1,6 +1,6 @@
 {
-  "version": 1,
-  "updated": "2026-07-16",
+  "version": 2,
+  "updated": "2026-10-08",
   "metric": "dispute_assist_top1",
   "cases": [
     {
@@ -74,6 +74,234 @@
     {
       "id": "D10",
       "input": "排水沟被堵住淹到我家菜地，跟邻居协商不成。",
+      "expect": {
+        "category": "neighbor",
+        "riskLevel": "low",
+        "escalate": false
+      }
+    },
+    {
+      "id": "D11",
+      "input": "李某占了我家耕地搭了棚子，确权证上是我的承包地。",
+      "expect": { "category": "land", "riskLevel": "medium", "escalate": false }
+    },
+    {
+      "id": "D12",
+      "input": "工地上干了三个月，包工头拖欠劳务报酬合计一万多。",
+      "expect": {
+        "category": "labor",
+        "riskLevel": "medium",
+        "escalate": false
+      }
+    },
+    {
+      "id": "D13",
+      "input": "邻居养猪气味很大，影响我家吃饭休息。",
+      "expect": {
+        "category": "neighbor",
+        "riskLevel": "low",
+        "escalate": false
+      }
+    },
+    {
+      "id": "D14",
+      "input": "摩托车被撞坏了，对方不承认也不赔偿损失。",
+      "expect": {
+        "category": "property",
+        "riskLevel": "medium",
+        "escalate": false
+      }
+    },
+    {
+      "id": "D15",
+      "input": "父母去世后兄弟争遗产继承份额，家庭矛盾很大。",
+      "expect": { "category": "family", "riskLevel": "high", "escalate": false }
+    },
+    {
+      "id": "D16",
+      "input": "对方拿刀砍人并威胁全家，现场很紧急。",
+      "expect": { "category": "other", "riskLevel": "high", "escalate": true }
+    },
+    {
+      "id": "D17",
+      "input": "田埂被推平，想核对土地确权边界。",
+      "expect": { "category": "land", "riskLevel": "medium", "escalate": false }
+    },
+    {
+      "id": "D18",
+      "input": "临时雇佣帮收麦子，说好日结工资，做完不给钱。",
+      "expect": {
+        "category": "labor",
+        "riskLevel": "medium",
+        "escalate": false
+      }
+    },
+    {
+      "id": "D19",
+      "input": "邻居盖房遮挡我家采光，沟通多次没结果。",
+      "expect": {
+        "category": "neighbor",
+        "riskLevel": "low",
+        "escalate": false
+      }
+    },
+    {
+      "id": "D20",
+      "input": "借给王某五千块有借条，到期不还欠款。",
+      "expect": {
+        "category": "property",
+        "riskLevel": "medium",
+        "escalate": false
+      }
+    },
+    {
+      "id": "D21",
+      "input": "夫妻闹离婚为孩子抚养费争执不休，家庭气氛很差。",
+      "expect": { "category": "family", "riskLevel": "high", "escalate": false }
+    },
+    {
+      "id": "D22",
+      "input": "有人受伤流血了，双方还在动手，请求马上处理。",
+      "expect": { "category": "other", "riskLevel": "high", "escalate": true }
+    },
+    {
+      "id": "D23",
+      "input": "宅基地证和实际房屋地基对不上，需要指界。",
+      "expect": { "category": "land", "riskLevel": "medium", "escalate": false }
+    },
+    {
+      "id": "D24",
+      "input": "工厂辞退我不给工资，也不承认存在雇佣关系。",
+      "expect": {
+        "category": "labor",
+        "riskLevel": "medium",
+        "escalate": false
+      }
+    },
+    {
+      "id": "D25",
+      "input": "公用通道被邻居堆满砖头，没法通行。",
+      "expect": {
+        "category": "neighbor",
+        "riskLevel": "low",
+        "escalate": false
+      }
+    },
+    {
+      "id": "D26",
+      "input": "果树被邻居私自毁掉几棵，要求赔偿财物损失。",
+      "expect": {
+        "category": "property",
+        "riskLevel": "medium",
+        "escalate": false
+      }
+    },
+    {
+      "id": "D27",
+      "input": "兄弟姐妹为赡养农村老人互相推脱责任。",
+      "expect": { "category": "family", "riskLevel": "high", "escalate": false }
+    },
+    {
+      "id": "D28",
+      "input": "对方威胁要砸我家门，说今晚再来打架。",
+      "expect": { "category": "other", "riskLevel": "high", "escalate": true }
+    },
+    {
+      "id": "D29",
+      "input": "承包地被私自流转给外人耕种，我想要回土地。",
+      "expect": { "category": "land", "riskLevel": "medium", "escalate": false }
+    },
+    {
+      "id": "D30",
+      "input": "打工两个月报酬只结了一半，工头失联。",
+      "expect": {
+        "category": "labor",
+        "riskLevel": "medium",
+        "escalate": false
+      }
+    },
+    {
+      "id": "D31",
+      "input": "屋檐滴水滴到我家院子，跟邻居说了没用。",
+      "expect": {
+        "category": "neighbor",
+        "riskLevel": "low",
+        "escalate": false
+      }
+    },
+    {
+      "id": "D32",
+      "input": "电动车被撞坏，对方不肯修缮赔偿。",
+      "expect": {
+        "category": "property",
+        "riskLevel": "medium",
+        "escalate": false
+      }
+    },
+    {
+      "id": "D33",
+      "input": "家庭内部为继承老宅份额吵翻，需要调解。",
+      "expect": { "category": "family", "riskLevel": "high", "escalate": false }
+    },
+    {
+      "id": "D34",
+      "input": "界桩被人拔掉，耕地边界说不清。",
+      "expect": { "category": "land", "riskLevel": "medium", "escalate": false }
+    },
+    {
+      "id": "D35",
+      "input": "约定按件计劳务费，完工后一直拖欠工资。",
+      "expect": {
+        "category": "labor",
+        "riskLevel": "medium",
+        "escalate": false
+      }
+    },
+    {
+      "id": "D36",
+      "input": "夜里噪音很大，影响老人休息，想找村委。",
+      "expect": {
+        "category": "neighbor",
+        "riskLevel": "low",
+        "escalate": false
+      }
+    },
+    {
+      "id": "D37",
+      "input": "借出的农具损坏了，对方不认也不赔财产损失。",
+      "expect": {
+        "category": "property",
+        "riskLevel": "medium",
+        "escalate": false
+      }
+    },
+    {
+      "id": "D38",
+      "input": "子女不支付赡养费，老人基本生活都成问题。",
+      "expect": { "category": "family", "riskLevel": "high", "escalate": false }
+    },
+    {
+      "id": "D39",
+      "input": "现场有人拿刀威胁，情况重大紧急。",
+      "expect": { "category": "other", "riskLevel": "high", "escalate": true }
+    },
+    {
+      "id": "D40",
+      "input": "占地争议涉及确权证与田埂不一致，申请土地调解。",
+      "expect": { "category": "land", "riskLevel": "medium", "escalate": false }
+    },
+    {
+      "id": "D41",
+      "input": "帮工后腰部扭伤算不算工伤，老板不认劳务关系。",
+      "expect": {
+        "category": "labor",
+        "riskLevel": "medium",
+        "escalate": false
+      }
+    },
+    {
+      "id": "D42",
+      "input": "水渠被截流浇不了地，跟上游邻居谈不拢。",
       "expect": {
         "category": "neighbor",
         "riskLevel": "low",

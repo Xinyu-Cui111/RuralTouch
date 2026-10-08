@@ -16,7 +16,7 @@
     <rt-card v-if="step === 0" tone="ai" elevated>
       <text class="form-title">把事情说清楚</text>
       <text class="form-hint"
-        >可先点场景，或按住「语音说事」；再补文字与照片</text
+        >可先点场景，或按住「语音说事」；再补文字说明</text
       >
 
       <view v-if="draftImported" class="draft-banner">
@@ -62,27 +62,10 @@
         @input="onDraftFieldChange"
       />
 
-      <view class="field-label">证据照片（可选）</view>
-      <view class="evidence-row">
-        <view
-          v-for="(img, idx) in evidencePreview"
-          :key="idx"
-          class="evidence-item"
-        >
-          <image class="evidence-img" :src="img" mode="aspectFill" />
-          <text v-if="!busy" class="evidence-del" @click="removeEvidence(idx)"
-            >×</text
-          >
-        </view>
-        <view
-          v-if="evidencePreview.length < 3 && !busy"
-          class="evidence-add"
-          @click="chooseEvidence"
-        >
-          <text class="add-plus">+</text>
-          <text class="add-text">添加</text>
-        </view>
-      </view>
+      <view class="field-label">补充说明（可选）</view>
+      <text class="field-hint"
+        >请用文字说明经过与诉求；现场材料请当面交村委，本小程序不采集证件或身份照片。</text
+      >
 
       <rt-skeleton v-if="analyzing" variant="lines" :rows="4" />
     </rt-card>
@@ -225,8 +208,7 @@
 
 <script>
 import { api } from "@/api/index.js";
-import { uploadEvidenceImages } from "@/utils/cloud.js";
-import { goAiAssistant } from "@/utils/auth.js";
+import { ensureLoggedIn, goAiAssistant } from "@/utils/auth.js";
 import { WORKFLOW_STEPS } from "@/utils/dispute-workflow.js";
 import {
   readSubmitDraft,
@@ -262,8 +244,6 @@ export default {
       analyzing: false,
       submitting: false,
       aiInsight: null,
-      evidencePreview: [],
-      evidenceFiles: [],
       createdId: "",
       draftImported: false,
       draftHydrated: false,
@@ -344,19 +324,10 @@ export default {
       if (this.draftHydrated) return;
       this.draftHydrated = true;
       const d = readSubmitDraft();
-      if (
-        !d.content &&
-        !d.title &&
-        !(d.evidencePaths && d.evidencePaths.length) &&
-        !(d.materials && d.materials.length)
-      )
+      if (!d.content && !d.title && !(d.materials && d.materials.length))
         return;
       this.content = d.content || "";
       this.title = d.title || "";
-      if (d.evidencePaths && d.evidencePaths.length) {
-        this.evidencePreview = d.evidencePaths.slice();
-        this.evidenceFiles = d.evidencePaths.slice();
-      }
       if (d.materials && d.materials.length)
         this.materialChecks = d.materials.slice();
       this.draftImported = true;
@@ -373,7 +344,7 @@ export default {
         content: this.content,
         title: this.title,
         step: this.step,
-        evidencePaths: this.evidencePreview,
+        evidencePaths: [],
         materials: this.materialChecks,
         source: "editor",
       });
@@ -456,10 +427,10 @@ export default {
     buildMaterials(insight) {
       const raw = Array.isArray(insight.materials) ? insight.materials : [];
       const fallback = [
-        "身份证或户口本复印件",
-        "相关协议 / 合同 / 收据",
-        "现场照片或聊天记录截图",
+        "相关协议 / 合同 / 收据（线下备齐）",
+        "现场情况文字说明",
         "双方联系方式",
+        "希望村委协助的事项",
       ];
       const list = (raw.length ? raw : fallback)
         .map((m) => {
@@ -527,26 +498,14 @@ export default {
       if (a.key === "re") this.goAnalyze();
     },
     chooseEvidence() {
-      if (this.busy) return;
-      uni.chooseImage({
-        count: 3 - this.evidencePreview.length,
-        sizeType: ["compressed"],
-        sourceType: ["album", "camera"],
-        success: (res) => {
-          this.evidencePreview = this.evidencePreview
-            .concat(res.tempFilePaths)
-            .slice(0, 3);
-          this.evidenceFiles = this.evidencePreview.slice();
-          this.persistDraft(true);
-        },
+      uni.showToast({
+        title: "请用文字说明；材料当面交村委",
+        icon: "none",
       });
     },
-    removeEvidence(idx) {
-      this.evidencePreview.splice(idx, 1);
-      this.evidenceFiles.splice(idx, 1);
-      this.persistDraft(true);
-    },
+    removeEvidence() {},
     async goAnalyze() {
+      if (!ensureLoggedIn({ tip: "说事建档请先登录" })) return;
       if (!this.content.trim() || this.busy) return;
       this.persistDraft(true);
       this.analyzing = true;
@@ -569,6 +528,7 @@ export default {
       }
     },
     async onSubmit() {
+      if (!ensureLoggedIn({ tip: "说事建档请先登录" })) return;
       if (this.busy) return;
       if (!this.title.trim() || !this.content.trim()) {
         uni.showToast({ title: "请完善标题与描述", icon: "none" });
@@ -582,8 +542,7 @@ export default {
       uni.showLoading({ title: "提交中", mask: true });
       try {
         let evidence = [];
-        if (this.evidenceFiles.length)
-          evidence = await uploadEvidenceImages(this.evidenceFiles);
+        // 个人主体合规：不上传证件/身份类影像，证据仅保留文字建档
         const suggested = (this.aiInsight.suggestedTitle || "").trim();
         const finalTitle = this.title.trim();
         const titleEdited = !!suggested && suggested !== finalTitle;

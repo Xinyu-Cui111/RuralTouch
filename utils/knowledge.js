@@ -1,9 +1,12 @@
-const faqList = require("./faq.json");
+/**
+ * 客户端 / H5 Mock 用知识检索（与云函数 knowledge.js 对齐）
+ * FAQ 为本地关键词知识表 TopK，不是向量库。
+ */
+import faqList from "@/utils/faq.json";
 
 function tokenize(text) {
   const s = String(text || "").trim();
   if (!s) return [];
-  // 中文按 2 字滑动 + 英文/数字词
   const parts = s.match(/[A-Za-z0-9]+|[\u4e00-\u9fff]{2,}/g) || [];
   const bi = [];
   const pure = s.replace(/\s+/g, "");
@@ -17,7 +20,7 @@ function tokenize(text) {
   return [...new Set([...parts, ...bi])];
 }
 
-function scoreFaq(text, item) {
+export function scoreFaq(text, item) {
   let score = 0;
   const raw = String(text || "");
   (item.keywords || []).forEach((kw) => {
@@ -29,7 +32,6 @@ function scoreFaq(text, item) {
     });
   }
   if (item.category && raw.includes(item.category)) score += 1;
-  // 正文关键词弱匹配，避免完全跑题
   tokenize(item.body)
     .slice(0, 12)
     .forEach((t) => {
@@ -38,7 +40,7 @@ function scoreFaq(text, item) {
   return score;
 }
 
-function retrieveFaq(query = "", options = {}) {
+export function retrieveFaq(query = "", options = {}) {
   const text = String(query || "").trim();
   const topK = options.topK || 3;
   const minScore = options.minScore == null ? 2 : options.minScore;
@@ -60,7 +62,7 @@ function retrieveFaq(query = "", options = {}) {
   }));
 }
 
-function formatFaqContext(hits) {
+export function formatFaqContext(hits) {
   if (!hits || !hits.length) return "";
   return hits
     .map(
@@ -72,12 +74,12 @@ function formatFaqContext(hits) {
     .join("\n\n");
 }
 
-function citationsFromHits(hits) {
+export function citationsFromHits(hits) {
   if (!hits || !hits.length) return [];
   return hits.map((h) => h.title);
 }
 
-function buildFaqReply(hits) {
+export function buildFaqReply(hits) {
   if (!hits || !hits.length) return "";
   const top = hits[0];
   const extra = hits
@@ -94,11 +96,14 @@ function buildFaqReply(hits) {
   return reply;
 }
 
-module.exports = {
-  faqList,
-  retrieveFaq,
-  formatFaqContext,
-  citationsFromHits,
-  buildFaqReply,
-  scoreFaq,
-};
+export function sourceLabel(source) {
+  if (source === "llm") return "大模型";
+  if (source === "rule") return "规则引擎";
+  if (source === "rule_fallback") return "规则降级";
+  if (source === "rag") return "知识检索";
+  if (source === "rag_llm") return "检索+大模型";
+  if (source === "cache") return "短缓存";
+  return source || "未知";
+}
+
+export { faqList };

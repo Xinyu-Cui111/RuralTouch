@@ -3,6 +3,15 @@
     <rt-nav-bar title="我的办件" />
     <rt-skeleton v-if="loading" variant="case" :count="3" />
     <empty-state
+      v-else-if="guest"
+      icon-type="dispute"
+      :icon-tone="emptyTone('progress')"
+      title="登录后查看办件"
+      desc="可先回首页浏览公开内容，办理时再登录"
+      action-text="去登录"
+      @action="goLogin"
+    />
+    <empty-state
       v-else-if="loadError"
       icon-type="dispute"
       :icon-tone="emptyTone('progress')"
@@ -50,6 +59,8 @@ import RtSkeleton from "@/components/rt-skeleton/rt-skeleton.vue";
 import { api } from "@/api/index.js";
 import { buildCaseObject } from "@/utils/case-object.js";
 import { caseListTone, emptyTone } from "@/utils/color-semantic.js";
+import { ensureLoggedIn } from "@/utils/auth.js";
+import { isLoggedIn } from "@/utils/cloud.js";
 import { goNavigate } from "@/utils/nav.js";
 import { isElderMode } from "@/utils/elder-mode.js";
 
@@ -60,14 +71,26 @@ export default {
       elderOn: false,
       loading: true,
       loadError: false,
+      guest: false,
       list: [],
     };
   },
   onShow() {
     this.elderOn = isElderMode();
+    this.guest = !isLoggedIn();
+    if (this.guest) {
+      this.loading = false;
+      this.loadError = false;
+      this.list = [];
+      return;
+    }
     this.loadData();
   },
   onPullDownRefresh() {
+    if (!isLoggedIn()) {
+      uni.stopPullDownRefresh();
+      return;
+    }
     this.loadData(true).finally(() => uni.stopPullDownRefresh());
   },
   methods: {
@@ -78,7 +101,16 @@ export default {
     listTone(item) {
       return caseListTone(buildCaseObject(item).semantic);
     },
+    goLogin() {
+      ensureLoggedIn({ tip: "查看办件请先登录", silent: true });
+    },
     async loadData(isRefresh = false) {
+      if (!isLoggedIn()) {
+        this.guest = true;
+        this.loading = false;
+        this.list = [];
+        return;
+      }
       if (!isRefresh) this.loading = true;
       this.loadError = false;
       try {
@@ -92,9 +124,11 @@ export default {
       }
     },
     goDetail(id) {
+      if (!ensureLoggedIn({ tip: "查看办件请先登录" })) return;
       goNavigate(`/pages/disputeDetail/disputeDetail?id=${id}`);
     },
     goSubmit() {
+      if (!ensureLoggedIn({ tip: "说事建档请先登录" })) return;
       goNavigate("/pages/village/submit");
     },
   },

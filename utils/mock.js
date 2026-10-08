@@ -1,15 +1,158 @@
 import { analyzeDispute, chatReply } from "@/utils/ai-engine.js";
+import {
+  retrieveFaq,
+  citationsFromHits,
+  buildFaqReply,
+  sourceLabel,
+} from "@/utils/knowledge.js";
+
+function withFaqMeta(data, text, { topK = 3, preferRag = true } = {}) {
+  const faqHits = retrieveFaq(text, { topK, minScore: 2 });
+  const citations = citationsFromHits(faqHits);
+  const next = {
+    ...data,
+    citations,
+    faqIds: faqHits.map((h) => h.id),
+  };
+  if (faqHits.length && (!next.legalRefs || !next.legalRefs.length)) {
+    next.legalRefs = faqHits[0].refs || [];
+  }
+  if (preferRag && faqHits.length) {
+    next.source =
+      data.source === "rule_fallback" ? "rag" : data.source || "rag";
+    if (!data.source || data.source === "rule") next.source = "rag";
+  }
+  next.sourceLabel = sourceLabel(next.source || "rule");
+  return { data: next, faqHits };
+}
 
 const STORAGE_KEY = "ruraltouch_mock_db";
 
 function loadDb() {
   try {
     const raw = uni.getStorageSync(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const db = JSON.parse(raw);
+      return ensureAiDemoCollections(db);
+    }
   } catch (e) {
     /* ignore */
   }
   return createSeedDb();
+}
+
+/** 旧本地库无 AI 集合时补齐，避免看板空白 */
+function ensureAiDemoCollections(db) {
+  let dirty = false;
+  if (!Array.isArray(db.aiEvents) || !db.aiEvents.length) {
+    db.aiEvents = buildSeedAiEvents(Date.now());
+    dirty = true;
+  }
+  if (!Array.isArray(db.aiBadcases)) {
+    db.aiBadcases = buildSeedBadcases(Date.now());
+    dirty = true;
+  }
+  if (Array.isArray(db.disputes)) {
+    db.disputes.forEach((d, i) => {
+      if (!d.aiMeta) {
+        d.aiMeta = {
+          title: d.title,
+          titleEdited: i === 1,
+          category: i === 0 ? "land" : "labor",
+          riskLevel: i === 0 ? "medium" : "low",
+          escalate: false,
+          source: i === 0 ? "rag" : "rule",
+        };
+        if (!d.phase) d.phase = i === 0 ? "handling" : "submitted";
+        dirty = true;
+      }
+    });
+  }
+  if (dirty) saveDb(db);
+  return db;
+}
+
+function buildSeedAiEvents(now) {
+  const specs = [
+    { action: "assistDispute", source: "rag", escalate: false, latencyMs: 48 },
+    { action: "assistDispute", source: "rule", escalate: false, latencyMs: 22 },
+    { action: "assistDispute", source: "rag", escalate: true, latencyMs: 55 },
+    { action: "assistDispute", source: "cache", escalate: false, latencyMs: 8 },
+    { action: "assistDispute", source: "rule", escalate: false, latencyMs: 19 },
+    { action: "chat", source: "rag", escalate: false, latencyMs: 31 },
+    { action: "chat", source: "rag", escalate: false, latencyMs: 28 },
+    { action: "chat", source: "rule", escalate: false, latencyMs: 16 },
+    { action: "legalChat", source: "rag", escalate: false, latencyMs: 34 },
+    { action: "legalChat", source: "rag", escalate: false, latencyMs: 29 },
+    { action: "legalChat", source: "rule", escalate: false, latencyMs: 18 },
+    { action: "assistDispute", source: "rag", escalate: false, latencyMs: 41 },
+    {
+      action: "assistDispute",
+      source: "rule_fallback",
+      escalate: false,
+      latencyMs: 25,
+    },
+    { action: "chat", source: "rag", escalate: false, latencyMs: 27 },
+    { action: "assistDispute", source: "rag", escalate: false, latencyMs: 52 },
+    { action: "assistDispute", source: "rule", escalate: true, latencyMs: 33 },
+    { action: "legalChat", source: "rag", escalate: false, latencyMs: 36 },
+    { action: "chat", source: "cache", escalate: false, latencyMs: 6 },
+    { action: "assistDispute", source: "rag", escalate: false, latencyMs: 44 },
+    { action: "assistDispute", source: "rule", escalate: false, latencyMs: 21 },
+  ];
+  return specs.map((s, i) => ({
+    _id: `ae-seed-${i + 1}`,
+    action: s.action,
+    source: s.source,
+    escalate: !!s.escalate,
+    ok: true,
+    latencyMs: s.latencyMs,
+    createTime: now - (specs.length - i) * 3600000,
+  }));
+}
+
+function buildSeedBadcases(now) {
+  return [
+    {
+      _id: "bc-seed-1",
+      title: "邻里噪音未命中",
+      phenomenon: "口述「夜里打鼓吵到凌晨」未归到邻里噪音，标题偏泛",
+      rootCause: "FAQ/规则词表缺「打鼓/凌晨」同义",
+      action: "已补 FAQ + 评测用例",
+      status: "fixed",
+      fixNote: "faq.json 增邻里噪音条目；eval 加回归用例",
+      fixedAt: now - 86400000 * 2,
+      createTime: now - 86400000 * 5,
+    },
+    {
+      _id: "bc-seed-2",
+      title: "劳动薪资案",
+      phenomenon: "「拖欠工钱」偶发落到合同类，调解步骤偏软",
+      rootCause: "劳动/合同边界词重叠",
+      action: "待改规则优先级",
+      status: "open",
+      createTime: now - 86400000,
+    },
+  ];
+}
+
+function pushAiEvent(db, partial) {
+  if (!Array.isArray(db.aiEvents)) db.aiEvents = [];
+  const t0 = Date.now();
+  db.aiEvents.unshift({
+    _id: `ae-${nowId()}`,
+    action: partial.action || "unknown",
+    source: partial.source || "rule",
+    escalate: !!partial.escalate,
+    ok: partial.ok !== false,
+    latencyMs:
+      partial.latencyMs != null
+        ? partial.latencyMs
+        : 20 + Math.floor(Math.random() * 40),
+    createTime: t0,
+  });
+  if (db.aiEvents.length > 200) db.aiEvents.length = 200;
+  saveDb(db);
 }
 
 function saveDb(db) {
@@ -51,9 +194,17 @@ function createSeedDb() {
         title: "张某与李某土地争议",
         content: "双方土地边界存在纠纷，多次协商未达成一致，申请村委介入调解。",
         status: "processing",
+        phase: "handling",
         views: 328,
         village: "示范村",
         createTime: now - 86400000 * 3,
+        aiMeta: {
+          category: "土地边界",
+          riskLevel: "medium",
+          source: "rag",
+          titleEdited: false,
+          escalate: false,
+        },
         stages: [
           {
             type: "submit",
@@ -100,12 +251,42 @@ function createSeedDb() {
         title: "王某劳动纠纷",
         content: "务工人员薪资结算存在分歧，申请村委协调处理。",
         status: "processing",
+        phase: "submitted",
+        aiMeta: {
+          title: "王某务工薪资争议",
+          titleEdited: true,
+          category: "labor",
+          riskLevel: "low",
+          escalate: false,
+          source: "rule",
+        },
         views: 156,
         village: "示范村",
         createTime: now - 86400000 * 6,
         stages: [],
       },
+      {
+        _id: "d3",
+        title: "邻里噪音扰民",
+        content: "夜里打鼓到凌晨，多次沟通无效，申请村委调解。",
+        status: "processing",
+        phase: "submitted",
+        aiMeta: {
+          title: "邻里噪音扰民",
+          titleEdited: false,
+          category: "neighbor",
+          riskLevel: "low",
+          escalate: false,
+          source: "rag",
+        },
+        views: 89,
+        village: "示范村",
+        createTime: now - 86400000,
+        stages: [],
+      },
     ],
+    aiEvents: buildSeedAiEvents(now),
+    aiBadcases: buildSeedBadcases(now),
     feedbacks: [],
     orders: [],
     moralRecords: [
@@ -354,16 +535,22 @@ export function mockApi(action, data = {}) {
       return { code: 0, data: { dispute } };
     }
     case "createFeedback": {
+      const isApp = data && data.client === "app";
       const item = {
         _id: `f-${nowId()}`,
         content: data.content,
-        contact: data.contact || db.user.phone,
+        contact: isApp
+          ? String(data.contact || "")
+              .trim()
+              .slice(0, 40)
+          : "",
         nickname: db.user.nickname,
         village: db.user.village,
         createTime: Date.now(),
         status: "pending",
         reply: "",
         replyTime: 0,
+        channel: isApp ? "app" : "mp",
       };
       db.feedbacks.unshift(item);
       saveDb(db);
@@ -469,19 +656,20 @@ export function mockApi(action, data = {}) {
     case "listProducts":
       return { code: 0, data: { list: db.products } };
     case "createOrder": {
+      // Mock：允许预约登记（App 演示）；小程序 UI 不会调用
       const product =
         db.products.find((p) => p._id === data.productId) ||
-        (String(data.productId || "").startsWith("fallback-")
+        (data.name && data.price != null
           ? {
-              _id: data.productId,
-              name: data.name || "团购商品",
-              price: data.price || "0",
+              _id: data.productId || `fallback-${nowId()}`,
+              name: data.name,
+              price: data.price,
               img: data.img || "",
             }
           : null);
       if (!product) return { code: 404, message: "商品不存在" };
       const price = Number(product.price) || 0;
-      const qty = Math.max(1, Number(data.qty) || 1);
+      const qty = Math.max(1, Math.min(9, Number(data.qty) || 1));
       const amount = Math.round(price * qty * 100) / 100;
       const fundContribution = Math.round(amount * 0.3 * 100) / 100;
       const order = {
@@ -489,14 +677,18 @@ export function mockApi(action, data = {}) {
         userId: db.user._id,
         productId: product._id,
         productName: product.name,
+        productImg: product.img || "",
         price,
         qty,
         amount,
         fundRatio: 0.3,
         fundContribution,
-        status: "paid",
-        statusLabel: "已下单",
+        status: "pending_contact",
+        statusLabel: "待村委联系",
+        channel: "app",
+        payStatus: "none",
         createTime: Date.now(),
+        remark: "App 预约登记（Mock）",
       };
       db.orders = db.orders || [];
       db.orders.unshift(order);
@@ -541,27 +733,94 @@ export function mockApi(action, data = {}) {
       saveDb(createSeedDb());
       return { code: 0, data: { ok: true } };
     case "aiAssistDispute": {
+      const text = `${data.title || ""} ${data.content || ""}`.trim();
       const result = analyzeDispute({
         content: data.content,
         title: data.title,
       });
       if (!result.ok) return { code: 400, message: result.message };
-      return { code: 0, data: result.data };
+      const { data: enriched } = withFaqMeta(
+        { ...result.data, source: "rule" },
+        text,
+        { topK: 2 }
+      );
+      // 成案主路径仍是规则引擎；命中知识表时标注为检索增强规则
+      if (enriched.faqIds && enriched.faqIds.length) {
+        enriched.source = "rag";
+        enriched.sourceLabel = sourceLabel("rag");
+      } else {
+        enriched.source = "rule";
+        enriched.sourceLabel = sourceLabel("rule");
+      }
+      pushAiEvent(db, {
+        action: "assistDispute",
+        source: enriched.source,
+        escalate: !!enriched.escalate,
+      });
+      return { code: 0, data: enriched };
     }
     case "aiChat": {
+      const text = String(data.message || "").trim();
+      const faqHits = retrieveFaq(text, { topK: 3, minScore: 2 });
+      if (faqHits.length) {
+        pushAiEvent(db, { action: "chat", source: "rag" });
+        return {
+          code: 0,
+          data: {
+            reply: buildFaqReply(faqHits),
+            suggestions: ["如何提交纠纷？", "调解要多久？", "积分怎么申报？"],
+            citations: citationsFromHits(faqHits),
+            faqIds: faqHits.map((h) => h.id),
+            source: "rag",
+            sourceLabel: sourceLabel("rag"),
+          },
+        };
+      }
       const result = chatReply({
         message: data.message,
         history: data.history,
       });
       if (!result.ok) return { code: 400, message: result.message };
-      return { code: 0, data: result.data };
+      const chatSource = result.data.source || "rule";
+      pushAiEvent(db, { action: "chat", source: chatSource });
+      return {
+        code: 0,
+        data: {
+          ...result.data,
+          source: chatSource,
+          sourceLabel: result.data.sourceLabel || sourceLabel(chatSource),
+        },
+      };
     }
     case "aiLegalChat": {
+      const text = String(data.message || "").trim();
+      const faqHits = retrieveFaq(text, { topK: 3, minScore: 2 });
+      if (faqHits.length) {
+        pushAiEvent(db, { action: "legalChat", source: "rag" });
+        return {
+          code: 0,
+          data: {
+            reply:
+              buildFaqReply(faqHits) + "（普法参考，复杂案件请咨询专业律师）",
+            suggestions: [
+              "土地边界争议怎么办？",
+              "邻居噪音如何维权？",
+              "如何防范电信诈骗？",
+            ],
+            citations: citationsFromHits(faqHits),
+            faqIds: faqHits.map((h) => h.id),
+            source: "rag",
+            sourceLabel: sourceLabel("rag"),
+          },
+        };
+      }
       const result = chatReply({
         message: data.message,
         history: data.history,
       });
       if (!result.ok) return { code: 400, message: result.message };
+      const legalSource = result.data.source || "rule";
+      pushAiEvent(db, { action: "legalChat", source: legalSource });
       return {
         code: 0,
         data: {
@@ -572,6 +831,8 @@ export function mockApi(action, data = {}) {
             "邻居噪音如何维权？",
             "如何防范电信诈骗？",
           ],
+          source: legalSource,
+          sourceLabel: result.data.sourceLabel || sourceLabel(legalSource),
         },
       };
     }
@@ -635,6 +896,141 @@ export function mockApi(action, data = {}) {
       if (data.approve) db.user.points += record.points;
       saveDb(db);
       return { code: 0, data: { ok: true } };
+    }
+    case "adminAiMetrics": {
+      const limit = Math.min(Math.max(Number(data.limit) || 200, 20), 500);
+      const events = (db.aiEvents || [])
+        .slice()
+        .sort((a, b) => (b.createTime || 0) - (a.createTime || 0))
+        .slice(0, limit);
+      const total = events.length;
+      const okCount = events.filter((e) => e.ok !== false).length;
+      const escalateCount = events.filter((e) => e.escalate).length;
+      const bySource = {};
+      const byAction = {};
+      let latencySum = 0;
+      let latencyN = 0;
+      events.forEach((e) => {
+        const src = e.source || "unknown";
+        const act = e.action || "unknown";
+        bySource[src] = (bySource[src] || 0) + 1;
+        byAction[act] = (byAction[act] || 0) + 1;
+        if (e.latencyMs > 0) {
+          latencySum += e.latencyMs;
+          latencyN += 1;
+        }
+      });
+      const disputes = db.disputes || [];
+      const withAi = disputes.filter((d) => d.aiMeta);
+      const edited = withAi.filter(
+        (d) => d.aiMeta && d.aiMeta.titleEdited
+      ).length;
+      const pending = disputes.filter(
+        (d) =>
+          d.phase === "submitted" || (!d.phase && d.status === "processing")
+      ).length;
+      const handling = disputes.filter(
+        (d) => d.phase === "handling" || d.phase === "accepted"
+      ).length;
+      const escalateQueue = disputes.filter(
+        (d) => d.aiMeta && d.aiMeta.escalate && d.status !== "completed"
+      ).length;
+      return {
+        code: 0,
+        data: {
+          sampleSize: total,
+          okRate: total ? +(okCount / total).toFixed(3) : 0,
+          escalateRate: total ? +(escalateCount / total).toFixed(3) : 0,
+          avgLatencyMs: latencyN ? Math.round(latencySum / latencyN) : 0,
+          bySource,
+          byAction,
+          titleEditRate: withAi.length
+            ? +(edited / withAi.length).toFixed(3)
+            : null,
+          titleAdoptionRate: withAi.length
+            ? +((withAi.length - edited) / withAi.length).toFixed(3)
+            : null,
+          disputeWithAi: withAi.length,
+          queue: { pending, handling, escalate: escalateQueue },
+          evalBaseline: {
+            disputePass: "42/42",
+            faqPass: "15/15",
+            faqEntries: 26,
+            note: "离线 npm run eval（规则引擎 + FAQ）",
+          },
+          recent: events.slice(0, 15).map((e) => ({
+            ...e,
+            createTimeText: formatDate(e.createTime),
+          })),
+        },
+      };
+    }
+    case "adminListBadcases": {
+      let list = (db.aiBadcases || [])
+        .slice()
+        .sort((a, b) => (b.createTime || 0) - (a.createTime || 0));
+      const statusFilter = data.status ? String(data.status) : "";
+      if (statusFilter === "open" || statusFilter === "fixed") {
+        list = list.filter((item) => (item.status || "open") === statusFilter);
+      }
+      return {
+        code: 0,
+        data: {
+          list: list.map((item) => ({
+            ...item,
+            status: item.status || "open",
+            statusLabel: item.status === "fixed" ? "已修好" : "待修复",
+            createTimeText: formatDate(item.createTime),
+            fixedAtText: item.fixedAt ? formatDate(item.fixedAt) : "",
+          })),
+        },
+      };
+    }
+    case "adminCreateBadcase": {
+      const phenomenon = String(data.phenomenon || "").trim();
+      if (!phenomenon) return { code: 400, message: "请填写现象描述" };
+      if (!Array.isArray(db.aiBadcases)) db.aiBadcases = [];
+      const doc = {
+        _id: `bc-${nowId()}`,
+        disputeId: data.disputeId || "",
+        title: data.title || "",
+        phenomenon,
+        rootCause: String(data.rootCause || "").trim(),
+        action: String(data.action || "").trim(),
+        expect: data.expect || "",
+        got: data.got || "",
+        status: "open",
+        createTime: Date.now(),
+      };
+      db.aiBadcases.unshift(doc);
+      saveDb(db);
+      return { code: 0, data: { badcase: doc } };
+    }
+    case "adminUpdateBadcase": {
+      const id = data.id;
+      const status = String(data.status || "").trim();
+      if (!id) return { code: 400, message: "缺少 Badcase id" };
+      if (status !== "open" && status !== "fixed")
+        return { code: 400, message: "状态仅支持 open / fixed" };
+      const item = (db.aiBadcases || []).find((b) => b._id === id);
+      if (!item) return { code: 404, message: "Badcase 不存在" };
+      const now = Date.now();
+      item.status = status;
+      item.updateTime = now;
+      if (status === "fixed") {
+        item.fixedAt = now;
+        item.fixedBy = (db.user && db.user.nickname) || "管理员";
+        item.fixNote =
+          String(data.fixNote || "").trim() ||
+          String(data.action || "").trim() ||
+          "已修复";
+      } else {
+        item.fixedAt = 0;
+        item.fixedBy = "";
+        item.fixNote = "";
+      }
+      saveDb(db);
+      return { code: 0, data: { ok: true, status } };
     }
     default:
       return { code: 400, message: `未知操作: ${action}` };

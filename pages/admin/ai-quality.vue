@@ -36,6 +36,16 @@
         </view>
       </view>
 
+      <view class="block eval-block">
+        <text class="block-title">离线评测基线</text>
+        <view class="eval-row">
+          <text class="eval-chip">纠纷 {{ evalBaseline.disputePass }}</text>
+          <text class="eval-chip">FAQ {{ evalBaseline.faqPass }}</text>
+          <text class="eval-chip">知识 {{ evalBaseline.faqEntries }} 条</text>
+        </view>
+        <text class="block-body">{{ evalBaseline.note }}</text>
+      </view>
+
       <view class="block">
         <text class="block-title">标题采纳（代理满意度）</text>
         <text class="block-body">
@@ -49,8 +59,16 @@
         <text class="block-title">来源分布</text>
         <view v-if="sourceRows.length" class="src-list">
           <view v-for="row in sourceRows" :key="row.key" class="src-row">
-            <text class="src-key">{{ row.label }}</text>
-            <text class="src-val">{{ row.count }}</text>
+            <view class="src-head">
+              <text class="src-key">{{ row.label }}</text>
+              <text class="src-val">{{ row.count }} · {{ row.pct }}%</text>
+            </view>
+            <view class="src-bar-track">
+              <view
+                class="src-bar-fill"
+                :style="{ width: row.pct + '%' }"
+              ></view>
+            </view>
           </view>
         </view>
         <text v-else class="block-body"
@@ -183,13 +201,25 @@ export default {
     };
   },
   computed: {
+    evalBaseline() {
+      const b = this.metrics.evalBaseline || {};
+      return {
+        disputePass: b.disputePass || "42/42",
+        faqPass: b.faqPass || "15/15",
+        faqEntries: b.faqEntries || 26,
+        note: b.note || "离线 npm run eval（规则引擎 + FAQ）",
+      };
+    },
     sourceRows() {
       const map = this.metrics.bySource || {};
+      const total =
+        Object.keys(map).reduce((s, k) => s + (map[k] || 0), 0) || 1;
       return Object.keys(map)
         .map((key) => ({
           key,
           label: SOURCE_LABEL[key] || key,
           count: map[key],
+          pct: Math.round((map[key] / total) * 100),
         }))
         .sort((a, b) => b.count - a.count);
     },
@@ -400,14 +430,32 @@ export default {
   line-height: 1.55;
 }
 
+.eval-block .eval-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin: 8rpx 0 10rpx;
+}
+.eval-chip {
+  font-size: 22rpx;
+  font-weight: 700;
+  color: $rt-accent-dark;
+  background: $rt-accent-soft;
+  padding: 8rpx 16rpx;
+  border-radius: 8rpx;
+}
+
 .src-list {
   margin-top: 8rpx;
 }
 .src-row {
+  padding: 10rpx 0;
+  font-size: 24rpx;
+}
+.src-head {
   display: flex;
   justify-content: space-between;
-  padding: 8rpx 0;
-  font-size: 24rpx;
+  margin-bottom: 8rpx;
 }
 .src-key {
   color: $rt-text-secondary;
@@ -415,6 +463,18 @@ export default {
 .src-val {
   font-weight: 700;
   color: $rt-accent-dark;
+}
+.src-bar-track {
+  height: 12rpx;
+  border-radius: 999rpx;
+  background: rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+.src-bar-fill {
+  height: 100%;
+  border-radius: 999rpx;
+  background: linear-gradient(90deg, $rt-accent-dark, $rt-accent);
+  min-width: 4rpx;
 }
 
 .link-btn {

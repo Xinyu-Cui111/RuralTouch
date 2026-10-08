@@ -1,17 +1,8 @@
 <template>
   <view class="page" :class="{ elder: elderOn }">
-    <page-hero compact variant="group" title="惠民团购" />
+    <page-hero compact variant="group" title="惠民好物" />
 
     <view v-if="elderOn" class="elder-lite">
-      <view
-        class="lite-btn primary"
-        hover-class="lite-press"
-        :hover-stay-time="80"
-        @click="goOrders"
-      >
-        <text class="lite-btn-title">我的团购订单</text>
-        <text class="lite-btn-desc">查看已下单商品</text>
-      </view>
       <view
         v-for="n in navList"
         :key="n.key"
@@ -24,26 +15,21 @@
         <text class="lite-btn-desc">浏览{{ n.text }}商品</text>
       </view>
       <view
-        v-if="hotProducts[0]"
-        class="lite-btn"
+        class="lite-btn primary"
         hover-class="lite-press"
         :hover-stay-time="80"
-        @click="onBuy(hotProducts[0])"
+        @click="onContact"
       >
-        <text class="lite-btn-title"
-          >热门：{{
-            hotProducts[0].name || hotProducts[0].title || "去下单"
-          }}</text
-        >
-        <text class="lite-btn-desc">点此快速下单</text>
+        <text class="lite-btn-title">咨询村委团购</text>
+        <text class="lite-btn-desc">展示价仅供参考，请联系村委咨询</text>
       </view>
     </view>
 
     <template v-else>
       <rt-section
-        title="热门团购"
-        link="我的订单"
-        @link="goOrders"
+        title="惠民好物"
+        :link="ordersLink"
+        @link="goMyOrders"
         class="enter"
       >
         <view class="product-list">
@@ -60,7 +46,7 @@
             v-else-if="!hotProducts.length"
             icon-type="product"
             icon-tone="green"
-            title="暂无团购商品"
+            title="暂无展示商品"
             desc="稍后再来看看，或去看看品类"
             action-text="刷新"
             @action="loadProducts()"
@@ -70,9 +56,11 @@
             v-for="item in hotProducts"
             :key="item._id || item.id"
             :product="item"
-            @add="onBuy"
+            @contact="onContact"
+            @order="onOrder"
           />
         </view>
+        <text class="browse-tip">{{ browseTip }}</text>
       </rt-section>
 
       <rt-section title="品类导航">
@@ -92,7 +80,10 @@
         </view>
       </rt-section>
 
-      <rt-section title="利润反哺法治" subtitle="团购收益投入普法与调解支持">
+      <rt-section
+        title="普法协作基金"
+        subtitle="惠民协作收益用于普法与调解支持（展示）"
+      >
         <view class="fund-card enter delay-2">
           <image
             class="fund-photo"
@@ -103,8 +94,8 @@
           <view class="fund-inner">
             <view class="fund-top">
               <view>
-                <text class="fund-title">法治服务基金</text>
-                <text class="fund-desc">每下一单，多一分普法与调解支持</text>
+                <text class="fund-title">普法调解支持</text>
+                <text class="fund-desc">展示数据仅供参考，不涉及在线收款</text>
               </view>
               <view class="fund-badge">{{ fundPercentText }}</view>
             </view>
@@ -115,11 +106,8 @@
               />
             </view>
             <view class="fund-meta">
-              <text>已筹 ¥{{ fundRaisedText }}</text>
-              <text
-                >目标 ¥{{ fundTargetText }} ·
-                {{ fund.orderCount || 0 }} 单</text
-              >
+              <text>已累计展示 ¥{{ fundRaisedText }}</text>
+              <text>目标 ¥{{ fundTargetText }}</text>
             </view>
           </view>
         </view>
@@ -138,14 +126,16 @@ import RtSection from "@/components/rt-section/rt-section.vue";
 import RtSkeleton from "@/components/rt-skeleton/rt-skeleton.vue";
 import EmptyState from "@/components/empty-state/empty-state.vue";
 import { api } from "@/api/index.js";
-import { ensureLoggedIn } from "@/utils/auth.js";
 import { goNavigate } from "@/utils/nav.js";
+import { ensureLoggedIn } from "@/utils/auth.js";
 import {
   GROUP_CATEGORIES,
   mergeProductList,
   PRODUCT_CATALOG,
 } from "@/utils/product-catalog.js";
 import { isElderMode } from "@/utils/elder-mode.js";
+import { VILLAGE_CONTACT_PHONE } from "@/config/env.js";
+import { FEATURE_GROUP_ORDER } from "@/config/features.js";
 
 export default {
   components: {
@@ -161,13 +151,19 @@ export default {
       elderOn: false,
       loading: true,
       loadError: false,
-      buying: false,
+      ordering: false,
       hotProducts: [],
       navList: GROUP_CATEGORIES,
       fund: { raised: 0, target: 50000, percent: 0, orderCount: 0 },
+      ordersLink: FEATURE_GROUP_ORDER ? "我的预约 ›" : "",
     };
   },
   computed: {
+    browseTip() {
+      return FEATURE_GROUP_ORDER
+        ? "App 可预约登记意向（无在线支付）。登记后可在「我的预约」查看，也可联系村委。"
+        : "个人主体小程序仅作惠民信息展示，不提供购物车与在线交易。有意向请联系村委。";
+    },
     fundRaisedText() {
       return Number(this.fund.raised || 0).toLocaleString();
     },
@@ -180,7 +176,7 @@ export default {
   },
   onShow() {
     this.elderOn = isElderMode();
-    if (!ensureLoggedIn()) return;
+    // 游客可逛商品展示；不提供线上下单
     this.loadProducts();
     this.loadFund();
   },
@@ -190,7 +186,9 @@ export default {
     );
   },
   methods: {
-    goOrders() {
+    goMyOrders() {
+      if (!FEATURE_GROUP_ORDER) return;
+      if (!ensureLoggedIn({ tip: "查看预约请先登录" })) return;
       goNavigate("/pages/group/orders");
     },
     goCategory(n) {
@@ -224,17 +222,35 @@ export default {
         this.loading = false;
       }
     },
-    onBuy(product) {
-      if (this.buying || !product) return;
+    onContact() {
+      const phone = String(VILLAGE_CONTACT_PHONE || "").replace(/\D/g, "");
+      if (!phone) {
+        uni.showToast({ title: "暂未配置村委电话", icon: "none" });
+        return;
+      }
+      uni.showModal({
+        title: "咨询村委",
+        content: "本页仅展示参考信息，不提供在线交易。是否拨打村委电话咨询？",
+        confirmText: "拨打",
+        success: (res) => {
+          if (res.confirm) uni.makePhoneCall({ phoneNumber: phone });
+        },
+      });
+    },
+    onOrder(product) {
+      if (this.ordering || !product) return;
+      if (!ensureLoggedIn({ tip: "预约登记请先登录" })) return;
       const price = product.price;
       uni.showModal({
-        title: "确认下单",
-        content: `「${product.name}」¥${price}\n确认下单？`,
+        title: "确认预约",
+        content: `「${product.name}」参考价 ¥${price}\n登记后村委联系您，无线上支付。`,
+        confirmText: "登记",
         success: async (res) => {
           if (!res.confirm) return;
-          this.buying = true;
+          this.ordering = true;
           try {
             await api.createOrder({
+              client: "app",
               productId: product._id || product.id,
               name: product.name,
               price: product.price,
@@ -243,18 +259,18 @@ export default {
             });
             this.loadFund();
             uni.showModal({
-              title: "下单成功",
-              content: "利润将反哺法治服务基金。可在「我的订单」查看。",
-              confirmText: "看订单",
+              title: "预约已登记",
+              content: "可在「我的预约」查看。村委将按意向联系您。",
+              confirmText: "看预约",
               cancelText: "继续逛",
               success: (r) => {
-                if (r.confirm) this.goOrders();
+                if (r.confirm) goNavigate("/pages/group/orders");
               },
             });
           } catch (e) {
-            uni.showToast({ title: e.message || "下单失败", icon: "none" });
+            uni.showToast({ title: e.message || "登记失败", icon: "none" });
           } finally {
-            this.buying = false;
+            this.ordering = false;
           }
         },
       });
@@ -315,6 +331,13 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 20rpx;
+}
+.browse-tip {
+  display: block;
+  margin-top: 16rpx;
+  font-size: $rt-type-micro;
+  color: $rt-text-muted;
+  line-height: 1.5;
 }
 
 .nav-grid {

@@ -44,37 +44,52 @@ import { markOnboardingDone } from "@/utils/auth.js";
 import { goBootHome } from "@/utils/boot-route.js";
 import { getSafeLayout } from "@/utils/safe-area.js";
 import { COPY } from "@/utils/copy-voice.js";
+import { isApp } from "@/utils/platform.js";
 
 export default {
   components: { RtIcon },
   data() {
     const layout = getSafeLayout();
+    const slides = [
+      {
+        icon: "tab-village",
+        tone: "primary",
+        title: COPY.onboarding1Title,
+        desc: COPY.onboarding1Desc,
+        points: COPY.onboarding1Points,
+      },
+      {
+        icon: "record",
+        tone: "green",
+        title: COPY.onboarding2Title,
+        desc: COPY.onboarding2Desc,
+        points: COPY.onboarding2Points,
+      },
+      {
+        icon: "tab-moral",
+        tone: "gold",
+        title: COPY.onboarding3Title,
+        desc: COPY.onboarding3Desc,
+        points: COPY.onboarding3Points,
+      },
+    ];
+    if (isApp) {
+      slides.push({
+        icon: "notice",
+        tone: "blue",
+        title: "权限按需申请",
+        desc: "麦克风、电话、通知只在您主动使用时才会申请",
+        points: [
+          "可在「我的 → 权限说明」随时查看",
+          "办件进度提醒默认关闭",
+          "不采集证件影像与手机号",
+        ],
+      });
+    }
     return {
       current: 0,
       padTop: layout.contentTop + 12,
-      slides: [
-        {
-          icon: "tab-village",
-          tone: "primary",
-          title: COPY.onboarding1Title,
-          desc: COPY.onboarding1Desc,
-          points: COPY.onboarding1Points,
-        },
-        {
-          icon: "record",
-          tone: "green",
-          title: COPY.onboarding2Title,
-          desc: COPY.onboarding2Desc,
-          points: COPY.onboarding2Points,
-        },
-        {
-          icon: "tab-moral",
-          tone: "gold",
-          title: COPY.onboarding3Title,
-          desc: COPY.onboarding3Desc,
-          points: COPY.onboarding3Points,
-        },
-      ],
+      slides,
     };
   },
   methods: {

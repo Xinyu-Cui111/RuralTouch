@@ -17,8 +17,24 @@
         maxlength="500"
         placeholder="例如：路灯损坏、公示看不清、服务建议…"
       />
-      <view class="field-label">联系方式（选填）</view>
-      <input v-model="contact" class="input" placeholder="手机号或微信" />
+      <template v-if="allowContact">
+        <view class="field-label">联系方式（选填）</view>
+        <input
+          v-model="contact"
+          class="input"
+          maxlength="40"
+          placeholder="手机号或微信，方便村委回复"
+        />
+        <text class="field-hint"
+          >仅用于村委回访；不采集证件。也可留空，事后当面告知村委。</text
+        >
+      </template>
+      <template v-else>
+        <view class="field-label">补充说明（选填）</view>
+        <text class="field-hint"
+          >如需村委回复，请在意见正文里写明方便联系的方式，或事后当面告知村委。本小程序不单独采集、存储手机号或证件信息。</text
+        >
+      </template>
       <button class="submit-btn" :loading="submitting" @click="onSubmit">
         提交意见
       </button>
@@ -77,6 +93,8 @@ import RtSection from "@/components/rt-section/rt-section.vue";
 import RtSkeleton from "@/components/rt-skeleton/rt-skeleton.vue";
 import { api } from "@/api/index.js";
 import { ensureLoggedIn } from "@/utils/auth.js";
+import { isLoggedIn } from "@/utils/cloud.js";
+import { FEATURE_FEEDBACK_CONTACT } from "@/config/features.js";
 
 export default {
   components: { EmptyState, RtCard, RtSection, RtSkeleton },
@@ -84,6 +102,7 @@ export default {
     return {
       content: "",
       contact: "",
+      allowContact: FEATURE_FEEDBACK_CONTACT,
       submitting: false,
       listLoading: true,
       listError: false,
@@ -91,27 +110,50 @@ export default {
     };
   },
   onShow() {
-    if (!ensureLoggedIn()) return;
+    // 游客可先看意见箱说明；提交与「我的提交」再登录
+    if (!isLoggedIn()) {
+      this.listLoading = false;
+      this.list = [];
+      this.listError = false;
+      return;
+    }
     this.loadList();
   },
   onPullDownRefresh() {
+    if (!isLoggedIn()) {
+      uni.stopPullDownRefresh();
+      return;
+    }
     this.loadList(true).finally(() => uni.stopPullDownRefresh());
   },
   methods: {
     async loadList(isRefresh = false) {
+      if (!isLoggedIn()) {
+        this.listLoading = false;
+        this.list = [];
+        return;
+      }
       if (!isRefresh) this.listLoading = true;
       this.listError = false;
       try {
         const res = await api.listMyFeedbacks();
         this.list = res.data.list || [];
       } catch (e) {
+        const msg = (e && e.message) || "";
+        if (/请先登录|未登录/.test(msg)) {
+          this.listLoading = false;
+          this.list = [];
+          this.listError = false;
+          return;
+        }
         this.listError = !this.list.length;
-        uni.showToast({ title: e.message || "加载失败", icon: "none" });
+        uni.showToast({ title: msg || "加载失败", icon: "none" });
       } finally {
         this.listLoading = false;
       }
     },
     async onSubmit() {
+      if (!ensureLoggedIn({ tip: "提交意见请先登录" })) return;
       if (!this.content.trim()) {
         uni.showToast({ title: "请填写意见内容", icon: "none" });
         return;
@@ -120,9 +162,11 @@ export default {
       try {
         await api.createFeedback({
           content: this.content.trim(),
-          contact: this.contact.trim(),
+          contact: this.allowContact ? this.contact.trim() : "",
+          client: this.allowContact ? "app" : "mp",
         });
         this.content = "";
+        this.contact = "";
         uni.showToast({ title: "已提交，等待村委处理", icon: "success" });
         this.loadList();
       } catch (e) {

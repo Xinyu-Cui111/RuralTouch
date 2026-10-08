@@ -1,5 +1,5 @@
 <template>
-  <view class="page" :class="{ elder: elderOn }">
+  <view class="page chat-page theme-village" :class="{ elder: elderOn }">
     <rt-nav-bar :title="navTitle">
       <template #right>
         <view class="nav-actions">
@@ -51,31 +51,37 @@
     >
       <view class="chat-inner">
         <view v-if="!messages.length" class="welcome">
+          <view class="welcome-mark">
+            <rt-icon name="ai" tone="gold" size="md" />
+          </view>
           <text class="welcome-kicker">{{ COPY.brandHelper }}</text>
           <text class="welcome-title">{{ COPY.aiVillageWelcome }}</text>
           <text class="welcome-hint">{{ COPY.aiVillageHint }}</text>
-          <view class="chips">
+          <view class="suggest-list">
             <view
-              v-for="(chip, idx) in quickChips"
+              v-for="(chip, idx) in quickChips.slice(0, 3)"
               :key="idx"
-              class="chip"
-              hover-class="chip-active"
+              class="suggest-card"
+              hover-class="suggest-card-press"
               :hover-stay-time="80"
               @click="send(chip)"
-              >{{ chip }}</view
             >
+              <text class="suggest-card-text">{{ chip }}</text>
+            </view>
           </view>
-          <view
-            class="welcome-cta"
-            hover-class="cta-press"
-            :hover-stay-time="80"
-            @click="goSubmit()"
-          >
-            <text class="welcome-cta-text">{{ COPY.aiVillageCta }}</text>
+          <view class="welcome-links">
+            <view
+              class="welcome-cta"
+              hover-class="cta-press"
+              :hover-stay-time="80"
+              @click="goSubmit()"
+            >
+              <text class="welcome-cta-text">{{ COPY.aiVillageCta }} ›</text>
+            </view>
+            <text class="welcome-switch" @click="goLegal">{{
+              COPY.aiSwitchLegal
+            }}</text>
           </view>
-          <text class="welcome-switch" @click="goLegal">{{
-            COPY.aiSwitchLegal
-          }}</text>
         </view>
 
         <view
@@ -85,6 +91,9 @@
           class="msg-row"
           :class="msg.role"
         >
+          <view v-if="msg.role === 'assistant'" class="msg-avatar">
+            <rt-icon name="ai" tone="gold" size="sm" />
+          </view>
           <view class="bubble" @longpress="onCopy(msg)">
             <text class="bubble-text"
               >{{ msg.content
@@ -186,10 +195,12 @@
         </view>
 
         <view v-if="typing" class="msg-row assistant">
-          <view class="bubble typing"
-            ><text class="dot">·</text><text class="dot">·</text
-            ><text class="dot">·</text></view
-          >
+          <view class="msg-avatar">
+            <rt-icon name="ai" tone="gold" size="sm" />
+          </view>
+          <view class="bubble typing">
+            <view class="dot" /><view class="dot" /><view class="dot" />
+          </view>
         </view>
 
         <view id="chat-bottom" class="chat-anchor" />
@@ -233,36 +244,46 @@
       </view>
     </view>
 
-    <view class="input-bar">
-      <view
-        v-if="voiceAvailable"
-        class="voice-btn"
-        :class="{ on: voiceing }"
-        @touchstart.prevent="onVoiceStart"
-        @touchend.prevent="onVoiceEnd"
-        @touchcancel.prevent="onVoiceEnd"
-        >{{ voiceing ? "松开" : "语音" }}</view
-      >
-      <input
-        v-model="input"
-        class="input"
-        placeholder="问问调解流程、积分规则…"
-        confirm-type="send"
-        @confirm="send(input)"
-      />
-      <button v-if="busy" class="send-btn stop" @click="onCancel">停止</button>
-      <button
-        v-else
-        class="send-btn"
-        :disabled="!input.trim()"
-        @click="send(input)"
-      >
-        发送
-      </button>
+    <view class="composer">
+      <view class="input-bar">
+        <view
+          v-if="voiceAvailable"
+          class="voice-btn"
+          :class="{ on: voiceing }"
+          @touchstart.prevent="onVoiceStart"
+          @touchend.prevent="onVoiceEnd"
+          @touchcancel.prevent="onVoiceEnd"
+          >{{ voiceing ? "松开" : "语音" }}</view
+        >
+        <input
+          v-model="input"
+          class="input"
+          placeholder="问问调解流程、积分规则…"
+          confirm-type="send"
+          @confirm="send(input)"
+        />
+        <button v-if="busy" class="send-btn stop" @click="onCancel">
+          停止
+        </button>
+        <button
+          v-else
+          class="send-btn"
+          :disabled="!input.trim()"
+          @click="send(input)"
+        >
+          发送
+        </button>
+      </view>
     </view>
     <view v-if="voiceing" class="voice-tip">正在听，松手结束…</view>
     <view class="trust-pad">
-      <rt-trust-bar />
+      <view class="trust-line">
+        <text class="trust-link" @click="onCallVillage">联系村委</text>
+        <text>·</text>
+        <text class="trust-link warn" @click="onEmergency"
+          >人身安全 110/120</text
+        >
+      </view>
     </view>
 
     <view v-if="historyOpen" class="sheet-mask" @click="historyOpen = false">
@@ -298,8 +319,9 @@
 
 <script>
 import { api } from "@/api/index.js";
+import { ensureLoggedIn } from "@/utils/auth.js";
 import { goNavigate } from "@/utils/nav.js";
-import { VILLAGE_CONTACT_PHONE } from "@/config/env.js";
+import { VILLAGE_CONTACT_PHONE, EMERGENCY_TIP } from "@/config/env.js";
 import {
   lastUserText,
   normalizeChatPayload,
@@ -607,6 +629,7 @@ export default {
         .map((m) => ({ role: m.role, content: m.content }));
     },
     async send(text) {
+      if (!ensureLoggedIn({ tip: "咨询协办请先登录" })) return;
       const message = (text || "").trim();
       if (!message || this.busy) return;
       if (!this.online) {
@@ -621,6 +644,7 @@ export default {
       await this.requestReply(message);
     },
     async retryAt(idx) {
+      if (!ensureLoggedIn({ tip: "咨询协办请先登录" })) return;
       const msg = this.messages[idx];
       if (!msg || !msg.failed || this.busy) return;
       const userMsg = [...this.messages]
@@ -797,6 +821,21 @@ export default {
       }
       uni.makePhoneCall({ phoneNumber: String(phone).replace(/\D/g, "") });
     },
+    onEmergency() {
+      uni.showModal({
+        title: "紧急求助",
+        content: EMERGENCY_TIP || "如有人身安全风险，请立即拨打 110 / 120。",
+        confirmText: "拨打 110",
+        success: (res) => {
+          if (!res.confirm) return;
+          uni.makePhoneCall({
+            phoneNumber: "110",
+            fail: () =>
+              uni.showToast({ title: "请手动拨打 110", icon: "none" }),
+          });
+        },
+      });
+    },
     goSubmit(withDraft) {
       if (withDraft) {
         const draft = lastUserText(this.messages);
@@ -817,510 +856,5 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/theme.scss";
-
-.page {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: $rt-bg;
-  box-sizing: border-box;
-}
-
-.nav-actions {
-  display: flex;
-  align-items: center;
-  gap: 20rpx;
-}
-.nav-link {
-  font-size: 26rpx;
-  font-weight: 600;
-  color: $rt-accent-dark;
-  padding: 8rpx 4rpx;
-}
-
-.sub-banner {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
-  padding: 12rpx $rt-page-x 16rpx;
-  border-bottom: 1rpx solid $rt-border;
-  background: rgba(255, 252, 247, 0.9);
-}
-.ctx-main {
-  flex: 1;
-  min-width: 0;
-}
-.ctx-chip {
-  display: block;
-  font-size: 22rpx;
-  font-weight: 700;
-  color: $rt-accent-dark;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.ctx-meta {
-  display: block;
-  margin-top: 4rpx;
-  font-size: 20rpx;
-  color: $rt-text-secondary;
-}
-.ctx-close {
-  flex-shrink: 0;
-  font-size: 22rpx;
-  color: $rt-text-secondary;
-  padding: 8rpx 4rpx;
-}
-.net-banner {
-  flex-shrink: 0;
-  padding: 12rpx $rt-page-x;
-  background: rgba(230, 81, 0, 0.1);
-  border-bottom: 1rpx solid rgba(230, 81, 0, 0.2);
-}
-.net-text {
-  font-size: 22rpx;
-  font-weight: 700;
-  color: #e65100;
-  line-height: 1.4;
-}
-.disclaimer {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
-  padding: 10rpx $rt-page-x;
-  background: rgba(255, 255, 255, 0.72);
-  border-bottom: 1rpx solid rgba(201, 162, 74, 0.16);
-}
-.disclaimer-main {
-  flex: 1;
-  min-width: 0;
-  font-size: 20rpx;
-  color: $rt-text-muted;
-  line-height: 1.4;
-}
-.disclaimer-toggle {
-  flex-shrink: 0;
-  font-size: 20rpx;
-  font-weight: 700;
-  color: $rt-accent-dark;
-}
-.disclaimer-body {
-  flex-shrink: 0;
-  padding: 0 $rt-page-x 12rpx;
-  background: rgba(255, 255, 255, 0.72);
-}
-.disclaimer-detail {
-  font-size: 20rpx;
-  color: $rt-text-secondary;
-  line-height: 1.5;
-}
-.safe-banner {
-  flex-shrink: 0;
-  padding: 14rpx $rt-page-x;
-  background: rgba(198, 40, 40, 0.08);
-  border-bottom: 1rpx solid rgba(198, 40, 40, 0.18);
-}
-.safe-text {
-  font-size: 22rpx;
-  font-weight: 700;
-  color: #c62828;
-  line-height: 1.45;
-}
-
-.chat {
-  flex: 1;
-  height: 0;
-  min-height: 0;
-  box-sizing: border-box;
-}
-
-.chat-inner {
-  padding: 24rpx $rt-page-x 48rpx;
-  box-sizing: border-box;
-}
-
-.chat-anchor {
-  width: 100%;
-  height: 2rpx;
-}
-
-.welcome {
-  padding: 40rpx 0;
-  text-align: center;
-}
-.welcome-kicker {
-  display: block;
-  font-size: $rt-type-caption;
-  font-weight: 700;
-  color: $rt-primary;
-  margin-bottom: 8rpx;
-}
-.welcome-title {
-  font-size: 30rpx;
-  font-weight: 700;
-  color: $rt-text;
-  line-height: 1.4;
-}
-.welcome-hint {
-  display: block;
-  margin: 12rpx 32rpx 0;
-  font-size: $rt-type-micro;
-  color: $rt-text-secondary;
-  line-height: 1.45;
-}
-.welcome-switch {
-  display: block;
-  margin-top: 20rpx;
-  font-size: $rt-type-caption;
-  font-weight: 700;
-  color: $rt-blue;
-}
-.chips {
-  margin-top: 28rpx;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16rpx;
-  justify-content: center;
-}
-.chip {
-  padding: 16rpx 24rpx;
-  border-radius: 999rpx;
-  background: $rt-surface;
-  border: 1rpx solid rgba(201, 162, 74, 0.28);
-  color: $rt-accent-dark;
-  font-size: 26rpx;
-}
-.chip-active {
-  background: rgba(201, 162, 74, 0.12);
-}
-.welcome-cta {
-  margin: 28rpx auto 0;
-  display: inline-flex;
-  padding: 18rpx 36rpx;
-  border-radius: 999rpx;
-  background: linear-gradient(135deg, $rt-accent-dark, $rt-accent);
-}
-.welcome-cta-text {
-  font-size: 26rpx;
-  font-weight: 800;
-  color: #fff;
-}
-.cta-press {
-  opacity: 0.9;
-}
-.msg-row {
-  display: flex;
-  margin-bottom: 20rpx;
-}
-.msg-row.user {
-  justify-content: flex-end;
-}
-.msg-row.assistant {
-  justify-content: flex-start;
-}
-.bubble {
-  max-width: 86%;
-  padding: 22rpx 26rpx;
-  border-radius: 24rpx;
-  font-size: 28rpx;
-  line-height: 1.6;
-  word-break: break-word;
-}
-.user .bubble {
-  background: linear-gradient(135deg, $rt-accent-dark, $rt-accent);
-  color: #fff;
-  border-bottom-right-radius: 8rpx;
-}
-.assistant .bubble {
-  background: $rt-surface;
-  color: $rt-text;
-  border-bottom-left-radius: 8rpx;
-  box-shadow: $rt-shadow-sm;
-}
-.caret {
-  opacity: 0.45;
-  animation: blink 0.9s step-end infinite;
-}
-@keyframes blink {
-  50% {
-    opacity: 0;
-  }
-}
-.cite-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8rpx;
-  margin-top: 12rpx;
-}
-.cite-pill {
-  font-size: 20rpx;
-  padding: 4rpx 12rpx;
-  border-radius: 999rpx;
-  background: rgba(90, 107, 56, 0.12);
-  color: #5a6b38;
-  font-weight: 600;
-}
-.esc-tip {
-  display: block;
-  margin-top: 10rpx;
-  font-size: 22rpx;
-  color: #c62828;
-  font-weight: 700;
-}
-.handoff-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8rpx;
-  margin-top: 12rpx;
-}
-.handoff-label {
-  font-size: 22rpx;
-  color: #c62828;
-  font-weight: 700;
-}
-.handoff-pill {
-  font-size: 20rpx;
-  padding: 4rpx 12rpx;
-  border-radius: 999rpx;
-  background: rgba(198, 40, 40, 0.08);
-  color: #c62828;
-  font-weight: 600;
-}
-.msg-ctas {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10rpx;
-  margin-top: 16rpx;
-}
-.taskbar-wrap {
-  margin-top: 16rpx;
-}
-.trust-pad {
-  padding: 0 $rt-page-x 8rpx;
-}
-.msg-cta {
-  padding: 10rpx 18rpx;
-  border-radius: 999rpx;
-  font-size: 22rpx;
-  font-weight: 700;
-  color: $rt-accent-dark;
-  background: $rt-accent-soft;
-  border: 1rpx solid rgba(201, 162, 74, 0.35);
-}
-.msg-cta.primary {
-  color: #fff;
-  background: linear-gradient(135deg, $rt-accent-dark, $rt-accent);
-  border-color: transparent;
-}
-.fb-row {
-  display: flex;
-  gap: 16rpx;
-  margin-top: 14rpx;
-}
-.fb-btn {
-  font-size: 22rpx;
-  color: $rt-text-secondary;
-  padding: 4rpx 0;
-}
-.fb-btn.on {
-  color: $rt-accent-dark;
-  font-weight: 700;
-}
-.suggestions {
-  flex-shrink: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12rpx;
-  padding: 0 $rt-page-x 12rpx;
-}
-.suggest-chip {
-  padding: 12rpx 20rpx;
-  border-radius: 999rpx;
-  background: $rt-surface;
-  border: 1rpx solid $rt-border;
-  font-size: 24rpx;
-  color: $rt-accent-dark;
-}
-.action-dock {
-  flex-shrink: 0;
-  display: flex;
-  gap: 12rpx;
-  padding: 12rpx $rt-page-x;
-  background: rgba(255, 252, 247, 0.96);
-  border-top: 1rpx solid rgba(158, 52, 40, 0.14);
-}
-.dock-btn {
-  flex: 1;
-  min-height: $rt-touch-min;
-  text-align: center;
-  padding: 18rpx 8rpx;
-  border-radius: 999rpx;
-  font-size: $rt-type-caption;
-  font-weight: 700;
-  color: $rt-primary-dark;
-  background: $rt-surface;
-  border: 1rpx solid rgba(158, 52, 40, 0.22);
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.dock-btn.full {
-  width: 100%;
-}
-.dock-btn.primary {
-  flex: 1.35;
-  color: #fff;
-  background: linear-gradient(135deg, $rt-primary-dark, $rt-primary-mid);
-  border-color: transparent;
-}
-.input-bar {
-  flex-shrink: 0;
-  display: flex;
-  gap: 12rpx;
-  padding: 16rpx $rt-page-x calc(16rpx + env(safe-area-inset-bottom));
-  background: $rt-surface;
-  border-top: 1rpx solid $rt-border;
-}
-.voice-btn {
-  flex-shrink: 0;
-  height: 80rpx;
-  padding: 0 18rpx;
-  line-height: 80rpx;
-  border-radius: 999rpx;
-  font-size: 24rpx;
-  font-weight: 700;
-  color: $rt-accent-dark;
-  background: $rt-accent-soft;
-  border: 1rpx solid rgba(201, 162, 74, 0.35);
-}
-.voice-btn.on {
-  background: rgba(198, 40, 40, 0.1);
-  color: #c62828;
-  border-color: rgba(198, 40, 40, 0.25);
-}
-.voice-tip {
-  flex-shrink: 0;
-  text-align: center;
-  padding: 0 $rt-page-x 12rpx;
-  font-size: 22rpx;
-  color: #c62828;
-  font-weight: 600;
-}
-.input {
-  flex: 1;
-  @include rt-form-input;
-  height: 80rpx;
-}
-.send-btn {
-  @include rt-btn-reset;
-  height: 80rpx;
-  padding: 0 28rpx;
-  border-radius: 999rpx;
-  background: linear-gradient(135deg, $rt-accent-dark, $rt-accent);
-  color: #fff;
-  font-weight: 700;
-}
-.send-btn.stop {
-  background: #c62828;
-}
-.send-btn[disabled] {
-  opacity: 0.5;
-}
-.typing {
-  display: flex;
-  gap: 8rpx;
-}
-.dot {
-  font-size: 40rpx;
-  line-height: 1;
-  opacity: 0.5;
-}
-
-.sheet-mask {
-  position: fixed;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  background: rgba(20, 24, 18, 0.42);
-  z-index: 1000;
-  display: flex;
-  align-items: flex-end;
-}
-.sheet {
-  width: 100%;
-  max-height: 68vh;
-  background: $rt-surface;
-  border-radius: 28rpx 28rpx 0 0;
-  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
-  box-sizing: border-box;
-}
-.sheet-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 28rpx 32rpx 16rpx;
-}
-.sheet-title {
-  font-size: 30rpx;
-  font-weight: 800;
-  color: $rt-text;
-}
-.sheet-new {
-  font-size: 26rpx;
-  font-weight: 700;
-  color: $rt-accent-dark;
-}
-.sheet-list {
-  max-height: 52vh;
-  padding: 0 16rpx 8rpx;
-  box-sizing: border-box;
-}
-.sheet-item {
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
-  padding: 22rpx 16rpx;
-  border-radius: 16rpx;
-  margin-bottom: 8rpx;
-}
-.sheet-item.active {
-  background: rgba(201, 162, 74, 0.12);
-}
-.sheet-item-main {
-  flex: 1;
-  min-width: 0;
-}
-.sheet-item-title {
-  display: block;
-  font-size: 28rpx;
-  font-weight: 600;
-  color: $rt-text;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.sheet-item-time {
-  display: block;
-  margin-top: 6rpx;
-  font-size: 22rpx;
-  color: $rt-text-secondary;
-}
-.sheet-del {
-  font-size: 24rpx;
-  color: $rt-text-secondary;
-  padding: 8rpx 12rpx;
-}
-.sheet-empty {
-  text-align: center;
-  padding: 48rpx;
-  color: $rt-text-secondary;
-  font-size: 26rpx;
-}
+@import "@/styles/chat-ui.scss";
 </style>

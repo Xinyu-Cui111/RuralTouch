@@ -1,12 +1,13 @@
 {
-  "name": "RuralTouch",
-  "appid": "wx4d4caabca665eb90",
-  "description": "指尖善治 - 智慧村务微信小程序",
+  "name": "指尖善治",
+  "appid": "__UNI__F1A7F9C",
+  "description": "指尖善治 - 智慧村务（小程序 + App）",
   "versionName": "1.0.0",
   "versionCode": "100",
   "vueVersion": "3",
+  "transformPx": false,
   "mp-weixin": {
-    "appid": "wx4d4caabca665eb90",
+    "appid": "wx2dd871f53a658116",
     "cloudfunctionRoot": "cloudfunctions/",
     "setting": {
       "urlCheck": false,
@@ -18,5 +19,82 @@
   },
   "h5": {
     "title": "指尖善治"
+  },
+  "app-plus": {
+    "name": "指尖善治",
+    "nvueCompiler": "uni-app",
+    "compilerVersion": 3,
+    "splashscreen": {
+      "alwaysShowBeforeRender": true,
+      "waiting": true,
+      "autoclose": true,
+      "delay": 200
+    },
+    "modules": {},
+    "distribute": {
+      "android": {
+        "packagename": "com.ruraltouch.app",
+        "minSdkVersion": 21,
+        "targetSdkVersion": 33,
+        "abiFilters": ["armeabi-v7a", "arm64-v8a"],
+        "usesCleartextTraffic": true,
+        "permissions": [
+          "<uses-permission android:name=\"android.permission.INTERNET\"/>",
+          "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"/>",
+          "<uses-permission android:name=\"android.permission.CALL_PHONE\"/>",
+          "<uses-permission android:name=\"android.permission.RECORD_AUDIO\"/>",
+          "<uses-permission android:name=\"android.permission.MODIFY_AUDIO_SETTINGS\"/>",
+          "<uses-permission android:name=\"android.permission.VIBRATE\"/>",
+          "<uses-permission android:name=\"android.permission.POST_NOTIFICATIONS\"/>"
+        ],
+        "permissionExternalStorage": {
+          "request": "none",
+          "prompt": "不申请存储权限；业务材料请当面交村委"
+        },
+        "permissionPhoneState": {
+          "request": "none",
+          "prompt": "不读取本机识别码"
+        },
+        "icons": {
+          "ldpi": "static/app/icons/android-ldpi.png",
+          "mdpi": "static/app/icons/android-mdpi.png",
+          "hdpi": "static/app/icons/android-hdpi.png",
+          "xhdpi": "static/app/icons/android-xhdpi.png",
+          "xxhdpi": "static/app/icons/android-xxhdpi.png",
+          "xxxhdpi": "static/app/icons/android-xxxhdpi.png"
+        }
+      },
+      "ios": {
+        "idfa": false,
+        "privacyDescription": {
+          "NSMicrophoneUsageDescription": "用于语音说事与语音问答，仅在您主动使用语音功能时申请，不会后台录音",
+          "NSPhotoLibraryUsageDescription": "用于选择现场说明图片（如需）。请勿上传身份证等证件影像，证件请当面交村委",
+          "NSCameraUsageDescription": "用于拍摄现场说明材料（如需）。请勿拍摄证件，证件请当面交村委",
+          "NSUserTrackingUsageDescription": "不用于广告追踪；本应用不申请跟踪权限"
+        },
+        "icons": {
+          "appstore": "static/app/icons/ios-1024.png",
+          "iphone": "static/app/icons/ios-1024.png",
+          "ipad": "static/app/icons/ios-1024.png"
+        },
+        "dSYMs": false
+      },
+      "sdkConfigs": {},
+      "splashscreen": {
+        "androidStyle": "common",
+        "iosStyle": "common",
+        "android": {
+          "hdpi": "static/app/icons/splash.png",
+          "xhdpi": "static/app/icons/splash.png",
+          "xxhdpi": "static/app/icons/splash.png"
+        }
+      }
+    },
+    "safearea": {
+      "background": "#F1F0EC",
+      "bottom": {
+        "offset": "auto"
+      }
+    }
   }
 }

@@ -133,7 +133,7 @@ export function draftPreviewText(max = 36) {
   const t = (d.content || d.title || "").replace(/\s+/g, " ").trim();
   if (!t) {
     if (d.evidencePaths && d.evidencePaths.length)
-      return `已选 ${d.evidencePaths.length} 张证据图`;
+      return `草稿含文字说明（已不再保存图片）`;
     return "";
   }
   return t.length > max ? `${t.slice(0, max)}…` : t;

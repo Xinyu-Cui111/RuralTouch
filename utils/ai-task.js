@@ -11,6 +11,9 @@ export function buildTaskFromInsight(insight = {}, ctx = {}) {
     "已整理要点，请确认后提交村委办理";
   const basis = [];
   if (insight.categoryLabel) basis.push(`类型：${insight.categoryLabel}`);
+  (insight.citations || [])
+    .slice(0, 3)
+    .forEach((c) => basis.push(`参考：${c}`));
   (insight.legalRefs || []).slice(0, 3).forEach((r) => basis.push(r));
   (insight.steps || []).slice(0, 2).forEach((s) => basis.push(s));
   (insight.materials || []).slice(0, 2).forEach((m) => {

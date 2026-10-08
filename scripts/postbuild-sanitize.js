@@ -13,7 +13,7 @@ function writeJson(file, obj) {
   fs.writeFileSync(file, JSON.stringify(obj, null, 2), "utf8");
 }
 
-/** Never ship originals / giants — only static/lite + tiny icons + law demo video */
+/** Never ship originals / giants — only static/lite + tiny icons; video goes HTTPS */
 const HEAVY_STATIC_PATTERNS = [
   /^banner\/(banner|profit|logo)\.(png|svg|jpg)$/i,
   /^banner\/TouMinglogo\.png$/i,
@@ -24,6 +24,8 @@ const HEAVY_STATIC_PATTERNS = [
   /^group-icons\/.*\.(jpg|jpeg|png)$/i,
   /^icons\/lawi\.svg$/i,
   /^lite\/logo\.png$/i,
+  /^lite\/fund-banner\.png$/i, // 1.6MB；页面已用 .jpg
+  /^law-videos\//, // mp4 不上主包（微信主包上限 2MB）；播放走 HTTPS
 ];
 
 function shouldSkipStatic(relPath) {
@@ -150,27 +152,15 @@ if (copyStaticFiltered(staticDir, path.join(buildOutputDir, "static"))) {
   console.log("copied static to build output");
 }
 
-// 普法视频：从源素材拷入包内，保证开发者工具可直接播放
-const lawSrc = path.join(root, "assets-source", "originals", "law.mp4");
-const lawDestDir = path.join(buildOutputDir, "static", "law-videos");
-const lawDest = path.join(lawDestDir, "law.mp4");
-const lawStatic = path.join(staticDir, "law-videos", "law.mp4");
+// 普法视频不上主包（会撑破 2MB）。播放走 LAW_VIDEO_HTTPS / 云存储。
+const lawInBuild = path.join(buildOutputDir, "static", "law-videos");
 try {
-  if (fs.existsSync(lawSrc)) {
-    fs.mkdirSync(path.dirname(lawStatic), { recursive: true });
-    if (
-      !fs.existsSync(lawStatic) ||
-      fs.statSync(lawStatic).size !== fs.statSync(lawSrc).size
-    ) {
-      fs.copyFileSync(lawSrc, lawStatic);
-      console.log("synced law.mp4 into static/law-videos");
-    }
-    fs.mkdirSync(lawDestDir, { recursive: true });
-    fs.copyFileSync(lawSrc, lawDest);
-    console.log("copied law.mp4 to build output");
+  if (fs.existsSync(lawInBuild)) {
+    fs.rmSync(lawInBuild, { recursive: true, force: true });
+    console.log("removed law-videos from build (use HTTPS)");
   }
 } catch (error) {
-  console.warn("skip law video copy:", error.message);
+  console.warn("skip remove law-videos:", error.message);
 }
 
 if (fs.existsSync(projectConfig)) {

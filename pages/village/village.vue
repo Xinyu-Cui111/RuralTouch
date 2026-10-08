@@ -169,6 +169,7 @@ import RtTrustBar from "@/components/rt-trust-bar/rt-trust-bar.vue";
 import RtCaseHero from "@/components/rt-case-hero/rt-case-hero.vue";
 import { api } from "@/api/index.js";
 import { ensureLoggedIn, goAiAssistant } from "@/utils/auth.js";
+import { isLoggedIn } from "@/utils/cloud.js";
 import { countUnreadNotices } from "@/utils/notice-read.js";
 import { writeTabBadges } from "@/utils/tab-badges.js";
 import { goNavigate, goReLaunch } from "@/utils/nav.js";
@@ -299,7 +300,7 @@ export default {
   },
   async onShow() {
     this.elderOn = isElderMode();
-    if (!ensureLoggedIn()) return;
+    // 游客可先逛首页；说事/办件再登录
     this.refreshCasePush();
     this.loadDisputes();
     this.loadLatestNotice();
@@ -377,6 +378,16 @@ export default {
       }
     },
     async loadDisputes(isRefresh = false) {
+      // 游客不拉个人办件，避免「未登录」误报加载失败
+      if (!isLoggedIn()) {
+        this.loading = false;
+        this.loadError = false;
+        this.disputes = [];
+        this.handlingList = [];
+        this.handlingCount = 0;
+        this.syncServiceBadges();
+        return;
+      }
       if (!isRefresh) this.loading = true;
       this.loadError = false;
       try {
@@ -419,9 +430,11 @@ export default {
       else this.goRecord();
     },
     goSubmit() {
+      if (!ensureLoggedIn({ tip: "说事建档请先登录" })) return;
       goNavigate("/pages/village/submit");
     },
     goRecord() {
+      if (!ensureLoggedIn({ tip: "查看办件请先登录" })) return;
       goNavigate("/pages/village/records");
     },
     goAi() {
@@ -451,6 +464,13 @@ export default {
         return;
       }
       if (
+        path === "/pages/village/records" ||
+        path === "/pages/village/feedback" ||
+        path === "/pages/village/submit"
+      ) {
+        if (!ensureLoggedIn({ tip: "办理业务请先登录" })) return;
+      }
+      if (
         path === "/pages/law/law" ||
         path === "/pages/moral/moral" ||
         path === "/pages/group/group" ||
@@ -462,6 +482,11 @@ export default {
         return;
       }
       goNavigate(path);
+    },
+    goSubmitWith(item) {
+      if (!ensureLoggedIn({ tip: "说事建档请先登录" })) return;
+      if (item && item.draft) setSubmitDraftText(item.draft, "law");
+      goNavigate("/pages/village/submit");
     },
   },
 };

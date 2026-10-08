@@ -17,8 +17,10 @@
         v-for="item in list"
         :key="item._id || item.id"
         :product="item"
-        @add="onBuy"
+        @contact="onContact"
+        @order="onOrder"
       />
+      <text class="browse-tip">{{ browseTip }}</text>
     </view>
   </view>
 </template>
@@ -27,24 +29,33 @@
 import EmptyState from "@/components/empty-state/empty-state.vue";
 import ProductCard from "@/components/product-card/product-card.vue";
 import { api } from "@/api/index.js";
+import { goNavigate, goReLaunch } from "@/utils/nav.js";
 import { ensureLoggedIn } from "@/utils/auth.js";
-import { goReLaunch } from "@/utils/nav.js";
 import {
   filterByCategory,
   mergeProductList,
   PRODUCT_CATALOG,
 } from "@/utils/product-catalog.js";
+import { VILLAGE_CONTACT_PHONE } from "@/config/env.js";
+import { FEATURE_GROUP_ORDER } from "@/config/features.js";
 
 export default {
   components: { EmptyState, ProductCard },
   data() {
     return {
       loading: true,
-      buying: false,
+      ordering: false,
       title: "",
       category: "",
       list: [],
     };
+  },
+  computed: {
+    browseTip() {
+      return FEATURE_GROUP_ORDER
+        ? "App 可预约登记意向（无在线支付）。正式下单下一批落地；也可联系村委。"
+        : "仅展示参考价，意向请联系村委。";
+    },
   },
   onLoad(query) {
     this.category = decodeURIComponent((query && query.key) || "");
@@ -53,7 +64,6 @@ export default {
     );
   },
   onShow() {
-    if (!ensureLoggedIn()) return;
     this.load();
   },
   methods: {
@@ -72,27 +82,53 @@ export default {
         this.loading = false;
       }
     },
-    onBuy(product) {
-      if (this.buying || !product) return;
+    onContact() {
+      const phone = String(VILLAGE_CONTACT_PHONE || "").replace(/\D/g, "");
+      if (!phone) {
+        uni.showToast({ title: "暂未配置村委电话", icon: "none" });
+        return;
+      }
       uni.showModal({
-        title: "确认下单",
-        content: `「${product.name}」¥${product.price}\n确认下单？`,
+        title: "咨询村委",
+        content: "不提供在线交易。是否拨打村委电话？",
+        confirmText: "拨打",
+        success: (res) => {
+          if (res.confirm) uni.makePhoneCall({ phoneNumber: phone });
+        },
+      });
+    },
+    onOrder(product) {
+      if (this.ordering || !product) return;
+      if (!ensureLoggedIn({ tip: "预约登记请先登录" })) return;
+      uni.showModal({
+        title: "确认预约",
+        content: `「${product.name}」参考价 ¥${product.price}\n登记后村委联系您，无线上支付。`,
+        confirmText: "登记",
         success: async (res) => {
           if (!res.confirm) return;
-          this.buying = true;
+          this.ordering = true;
           try {
             await api.createOrder({
+              client: "app",
               productId: product._id || product.id,
               name: product.name,
               price: product.price,
               img: product.img,
               qty: 1,
             });
-            uni.showToast({ title: "下单成功", icon: "success" });
+            uni.showModal({
+              title: "预约已登记",
+              content: "可在「我的预约」查看。",
+              confirmText: "看预约",
+              cancelText: "继续逛",
+              success: (r) => {
+                if (r.confirm) goNavigate("/pages/group/orders");
+              },
+            });
           } catch (e) {
-            uni.showToast({ title: e.message || "下单失败", icon: "none" });
+            uni.showToast({ title: e.message || "登记失败", icon: "none" });
           } finally {
-            this.buying = false;
+            this.ordering = false;
           }
         },
       });
@@ -103,23 +139,25 @@ export default {
 
 <style lang="scss" scoped>
 @import "@/styles/theme.scss";
-
 .page {
   @include rt-page;
-  padding: $rt-page-x;
-  padding-bottom: 48rpx;
+  padding: 0 $rt-page-x $rt-page-bottom;
 }
-
+.hint {
+  padding: 48rpx;
+  text-align: center;
+  color: $rt-text-muted;
+}
 .product-list {
   display: flex;
   flex-direction: column;
-  gap: 20rpx;
+  gap: 16rpx;
 }
-
-.hint {
-  text-align: center;
+.browse-tip {
+  display: block;
+  margin-top: 8rpx;
+  font-size: $rt-type-micro;
   color: $rt-text-muted;
-  padding: 40rpx 0;
-  font-size: 26rpx;
+  line-height: 1.5;
 }
 </style>

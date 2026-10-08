@@ -458,8 +458,19 @@ async function resolveEvidenceUrls(evidence = []) {
 }
 
 exports.main = async (event) => {
-  const { action, data = {} } = event;
-  const wxContext = cloud.getWXContext();
+  const { action, data = {}, token, __appOpenId } = event || {};
+  let wxContext = cloud.getWXContext() || {};
+  // App / HTTP 网关：用本机身份覆盖 OPENID（形如 app_xxx，或登录后下发的 token）
+  const appId =
+    __appOpenId ||
+    (data && data.client === "app" && data.appOpenId) ||
+    (token && String(token).startsWith("app_") ? token : "");
+  if (appId) {
+    wxContext = Object.assign({}, wxContext, { OPENID: String(appId) });
+  } else if (token && !wxContext.OPENID) {
+    // 兼容：小程序侧偶发无上下文时用 token（历史实现里 token===openid）
+    wxContext = Object.assign({}, wxContext, { OPENID: String(token) });
+  }
 
   try {
     switch (action) {
@@ -702,18 +713,30 @@ exports.main = async (event) => {
         if (!user) return fail(401, "请先登录");
         const content = String(data.content || "").trim();
         if (!content) return fail(400, "请填写意见内容");
+        const openidStr = String((wxContext && wxContext.OPENID) || "");
+        const isAppClient =
+          openidStr.startsWith("app_") ||
+          !!(data && data.client === "app") ||
+          !!(appId && String(appId).startsWith("app_"));
+        // 个人主体小程序：不单独落库联系方式；仅 App 可存自愿填写的 contact
+        const contact = isAppClient
+          ? String(data.contact || "")
+              .trim()
+              .slice(0, 40)
+          : "";
         const now = Date.now();
         const payload = {
           userId: user._id,
           nickname: user.nickname || "",
           village: user.village || "示范村",
           content,
-          contact: data.contact || user.phone || "",
+          contact,
           createTime: now,
           status: "pending",
           reply: "",
           replyTime: 0,
           replyBy: "",
+          channel: isAppClient ? "app" : "mp",
         };
         const addRes = await db
           .collection(COL.feedbacks)
@@ -1311,6 +1334,12 @@ exports.main = async (event) => {
             : null,
           disputeWithAi: withAi.length,
           queue: { pending, handling, escalate: escalateQueue },
+          evalBaseline: {
+            disputePass: "42/42",
+            faqPass: "15/15",
+            faqEntries: 26,
+            note: "离线 npm run eval（规则引擎 + FAQ）",
+          },
           recent: events.slice(0, 15).map((e) => ({
             ...e,
             createTimeText: formatDate(e.createTime),
@@ -1480,16 +1509,24 @@ exports.main = async (event) => {
       }
 
       case "createOrder": {
+        // 个人主体小程序禁止线上下单；仅 App（app_ openid / client=app）可建「预约登记」单（无支付）
+        const openidStr = String((wxContext && wxContext.OPENID) || "");
+        const isAppOrder =
+          openidStr.startsWith("app_") ||
+          !!(data && data.client === "app") ||
+          !!(appId && String(appId).startsWith("app_"));
+        if (!isAppOrder) {
+          return fail(403, "个人主体小程序仅展示惠民信息，不提供线上下单");
+        }
         const user = await requireUser(wxContext);
         if (!user) return fail(401, "请先登录");
         const productId = data.productId;
         if (!productId) return fail(400, "缺少商品");
         let product = null;
-        // 支持演示 fallback id
         if (String(productId).startsWith("fallback-")) {
           product = {
             _id: productId,
-            name: data.name || "团购商品",
+            name: data.name || "惠民商品",
             price: data.price || "0",
             img: data.img || "",
           };
@@ -1498,7 +1535,6 @@ exports.main = async (event) => {
             const pr = await db.collection(COL.products).doc(productId).get();
             product = pr.data;
           } catch (e) {
-            // 本地目录 id（p1-p7）或云库暂无时，允许用前端传入字段下单
             if (data.name && data.price != null) {
               product = {
                 _id: productId,
@@ -1521,6 +1557,7 @@ exports.main = async (event) => {
         const now = Date.now();
         const order = {
           userId: user._id,
+          openid: openidStr || user.openid || "",
           nickname: user.nickname || "",
           productId: product._id,
           productName: product.name,
@@ -1530,10 +1567,12 @@ exports.main = async (event) => {
           amount,
           fundRatio,
           fundContribution,
-          status: "paid",
-          statusLabel: "已下单",
+          status: "pending_contact",
+          statusLabel: "待村委联系",
+          channel: "app",
+          payStatus: "none",
           createTime: now,
-          remark: "演示订单：微信云开发记账，未接真实支付",
+          remark: "App 预约登记：无线上支付，村委线下联系确认",
         };
         const addRes = await db.collection(COL.orders).add({ data: order });
         return ok({
@@ -1542,6 +1581,14 @@ exports.main = async (event) => {
       }
 
       case "listMyOrders": {
+        const openidStr = String((wxContext && wxContext.OPENID) || "");
+        const isAppOrder =
+          openidStr.startsWith("app_") ||
+          !!(data && data.client === "app") ||
+          !!(appId && String(appId).startsWith("app_"));
+        if (!isAppOrder) {
+          return ok({ list: [] });
+        }
         const user = await requireUser(wxContext);
         if (!user) return fail(401, "请先登录");
         let list = [];
@@ -1601,34 +1648,8 @@ exports.main = async (event) => {
         });
       }
 
-      /**
-       * 普法视频：云函数侧换临时 HTTPS（管理员权限，绕过客户端 STORAGE_EXCEED_AUTHORITY）
-       * 小程序里 video.src 用该 HTTPS；行业常规也是 CDN/云存储 HTTPS，而不是塞进主包。
-       */
       case "getLawVideoUrl": {
-        const DEFAULT_FID =
-          "cloud://cloud1-d6gqqruqy1d721eb0.636c-cloud1-d6gqqruqy1d721eb0-1435593477/static/law-videos/law.mp4";
-        const fileID =
-          String((data && data.fileID) || "").trim() || DEFAULT_FID;
-        try {
-          const r = await cloud.getTempFileURL({ fileList: [fileID] });
-          const item = (r && r.fileList && r.fileList[0]) || {};
-          if (item.tempFileURL) {
-            return ok({
-              url: String(item.tempFileURL),
-              fileID,
-              maxAge: item.maxAge || 86400,
-            });
-          }
-          const detail = item.errMsg || item.code || "无临时链接";
-          return fail(
-            404,
-            `云视频不可用（${detail}）。请在云开发→存储上传 static/law-videos/law.mp4`
-          );
-        } catch (e) {
-          const msg = (e && (e.message || e.errMsg)) || String(e);
-          return fail(500, `换取视频链接失败：${msg}`);
-        }
+        return fail(403, "个人主体小程序不提供站内视频服务");
       }
 
       case "initSeed":

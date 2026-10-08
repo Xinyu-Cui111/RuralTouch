@@ -1,6 +1,6 @@
 <template>
   <view class="page">
-    <rt-nav-bar title="积分商城" />
+    <rt-nav-bar title="激励礼品" />
     <view class="score-card">
       <text class="score-label">当前可用积分</text>
       <text class="score-num">{{ points.toLocaleString() }}</text>
@@ -19,7 +19,7 @@
       v-else-if="!list.length"
       icon-type="mall"
       icon-tone="gold"
-      title="暂无可兑换商品"
+      title="暂无礼品信息"
     />
     <view v-else class="list">
       <view v-for="item in list" :key="item._id" class="goods-card">
@@ -27,17 +27,20 @@
           <rt-icon name="product" tone="gold" size="sm" />
           <view class="goods-info">
             <text class="goods-name">{{ item.name }}</text>
-            <text class="goods-stock">库存 {{ item.stock }}</text>
+            <text class="goods-stock">参考库存 {{ item.stock }}</text>
           </view>
         </view>
         <view class="goods-right">
           <text class="goods-points">{{ item.points }} 分</text>
           <button class="redeem-btn" size="mini" @click="onRedeem(item)">
-            兑换
+            咨询村委
           </button>
         </view>
       </view>
     </view>
+    <text class="mall-tip"
+      >仅展示激励礼品参考信息，积分核销请联系村委线下办理。</text
+    >
   </view>
 </template>
 
@@ -46,6 +49,8 @@ import EmptyState from "@/components/empty-state/empty-state.vue";
 import RtIcon from "@/components/rt-icon/rt-icon.vue";
 import RtSkeleton from "@/components/rt-skeleton/rt-skeleton.vue";
 import { api } from "@/api/index.js";
+import { isLoggedIn } from "@/utils/cloud.js";
+import { VILLAGE_CONTACT_PHONE } from "@/config/env.js";
 
 export default {
   components: { EmptyState, RtIcon, RtSkeleton },
@@ -63,12 +68,14 @@ export default {
       if (!isRefresh) this.loading = true;
       this.loadError = false;
       try {
-        const [profile, mall] = await Promise.all([
-          api.getMoralProfile(),
-          api.listMallItems(),
-        ]);
-        this.points = profile.data.points || 0;
+        const mall = await api.listMallItems();
         this.list = mall.data.list || [];
+        if (isLoggedIn()) {
+          const profile = await api.getMoralProfile();
+          this.points = profile.data.points || 0;
+        } else {
+          this.points = 0;
+        }
       } catch (e) {
         this.loadError = !this.list.length;
         uni.showToast({ title: e.message || "加载失败", icon: "none" });
@@ -77,14 +84,21 @@ export default {
       }
     },
     async onRedeem(item) {
-      try {
-        const res = await api.redeemMallItem(item._id);
-        this.points = res.data.points;
-        uni.showToast({ title: "兑换成功", icon: "success" });
-        this.loadData(true);
-      } catch (e) {
-        uni.showToast({ title: e.message || "兑换失败", icon: "none" });
-      }
+      const phone = String(VILLAGE_CONTACT_PHONE || "").replace(/\D/g, "");
+      uni.showModal({
+        title: "礼品意向",
+        content: `「${
+          (item && item.name) || "礼品"
+        }」需村委线下核销积分。是否拨打村委电话咨询？`,
+        success: (res) => {
+          if (!res.confirm) return;
+          if (!phone) {
+            uni.showToast({ title: "暂未配置村委电话", icon: "none" });
+            return;
+          }
+          uni.makePhoneCall({ phoneNumber: phone });
+        },
+      });
     },
   },
 };
@@ -197,5 +211,13 @@ export default {
   padding: 0 24rpx;
   height: 56rpx;
   line-height: 56rpx;
+}
+.mall-tip {
+  display: block;
+  margin: 24rpx 8rpx 40rpx;
+  font-size: 22rpx;
+  color: $rt-text-muted;
+  line-height: 1.5;
+  text-align: center;
 }
 </style>

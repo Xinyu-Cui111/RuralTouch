@@ -26,14 +26,16 @@
       <text class="meta-line">办理结果已确认</text>
       <text class="meta-line soft">{{ durationText }}</text>
       <text class="points-line">{{ pointsLine }}</text>
-      <text class="card-desc">积分已可用于兑换日用品，请到积分商城查看。</text>
+      <text class="card-desc"
+        >激励积分可向村委咨询线下礼品核销（本小程序不提供在线交易）。</text
+      >
       <view
         class="cta"
         hover-class="press"
         :hover-stay-time="80"
         @click="goMall"
       >
-        <text class="cta-text">去积分商城兑换</text>
+        <text class="cta-text">查看激励礼品</text>
       </view>
       <text class="link" @click="goHome">返回办事首页</text>
     </rt-card>

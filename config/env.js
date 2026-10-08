@@ -2,11 +2,13 @@
 
  * 云开发环境配置
 
- * 在微信开发者工具 → 云开发 → 设置 中复制环境 ID，替换下方占位符
+ * AppID：wx2dd871f53a658116
+
+ * 云环境：cloud1-d3gi68c7da560e902
 
  */
 
-export const CLOUD_ENV_ID = "cloud1-d6gqqruqy1d721eb0";
+export const CLOUD_ENV_ID = "cloud1-d3gi68c7da560e902";
 
 /** H5 演示模式：无云环境时使用本地 Mock 数据 */
 
@@ -16,9 +18,7 @@ export const USE_MOCK_ON_H5 = true;
 
  * 是否启用微信同声传译语音输入。
 
- * 默认 false：避免未授权插件 wx069ba97219f66d99 导致启动报错。
-
- * 公众平台添加插件并审核通过后，改为 true，并在 manifest.json mp-weixin.plugins 声明 WechatSI。
+ * 默认 false：避免未授权插件导致启动报错。
 
  */
 
@@ -26,45 +26,19 @@ export const ENABLE_WECHAT_SI = false;
 
 /**
 
- * 普法视频（与常见小程序一致：HTTPS / CDN，不靠主包塞大 mp4）
+ * 普法视频（仅 App 播放页使用；小程序不进视频页）。
 
- *
-
- * 优先级：LAW_VIDEO_HTTPS → 云函数换链 → cloud:// → 包内兜底
-
- *
-
- * 正式上线建议：换成自己的 CDN / 云存储永久域名；
-
- * 并在公众平台把该域名加入「downloadFile 合法域名」。
-
- *
-
- * video.poster 只能是网络地址；本地封面请用页面里的 <image>。
+ * 填 HTTPS mp4；空则 App 提示暂无片源并展示要点。
 
  */
 
-export const LAW_VIDEO_SRC = "/static/law-videos/law.mp4";
+export const LAW_VIDEO_SRC = "";
 
-/**
+export const LAW_VIDEO_HTTPS = "";
 
- * 固定 HTTPS（最稳，模拟器/真机都能播）。
+export const USE_LAW_VIDEO_CLOUD = false;
 
- * 当前用仓库公开地址做演示；有自有 CDN 后替换即可。
-
- */
-
-export const LAW_VIDEO_HTTPS =
-  "https://cdn.jsdelivr.net/gh/Xinyu-Cui111/RuralTouch@main/static/law-videos/law.mp4";
-
-/** 是否启用云视频降级（HTTPS 失败时再试） */
-
-export const USE_LAW_VIDEO_CLOUD = true;
-
-/** 云存储 fileID（需在云开发→存储上传同路径文件） */
-
-export const LAW_VIDEO_CLOUD_FILE_ID =
-  "cloud://cloud1-d6gqqruqy1d721eb0.636c-cloud1-d6gqqruqy1d721eb0-1435593477/static/law-videos/law.mp4";
+export const LAW_VIDEO_CLOUD_FILE_ID = "";
 
 /** 村委公开联系电话（演示号，上线请改真实号码） */
 
@@ -78,12 +52,94 @@ export const EMERGENCY_TIP = "人身安全请先拨打 110 / 120";
 
  * 订阅消息模板 ID（公众平台 → 功能 → 订阅消息）
 
- * 配好后建档成功会弹出授权；留空则仅演示提示，不调起系统弹窗。
-
  */
 
 export const SUBSCRIBE_TMPL_IDS = {
-  /** 调解进度提醒（例：受理/办理/办结） */
-
   disputeProgress: "",
 };
+
+/**
+
+ * App S3：业务 HTTP 网关根地址（勿尾斜杠）。
+
+ * 空字符串 = 未接网关，App 自动走 Mock。
+
+ * 示例：云函数 HTTP 化后填
+
+ *   https://xxx.service.tcloudbase.com/rt-http
+
+ * 或本地调试网关：
+
+ *   http://192.168.1.8:3789
+
+ */
+
+export const APP_API_BASE = "";
+
+/**
+
+ * 网关路径。本地网关默认 /api；
+
+ * 云函数 HTTP 访问若直接打到函数根，可改为 ''。
+
+ */
+
+export const APP_API_PATH = "/api";
+
+/** App 请求超时（毫秒） */
+
+export const APP_API_TIMEOUT = 20000;
+
+/**
+
+ * App HTTP 失败时是否回退 Mock（演示/断网友好）。
+
+ * 正式环境建议 false，避免「假数据当真」。
+
+ */
+
+export const APP_FALLBACK_MOCK = true;
+
+/**
+
+ * App 发布信息（与 manifest versionName 保持一致）
+
+ */
+
+export const APP_VERSION_NAME = "1.0.0";
+
+export const APP_VERSION_CODE = 100;
+
+/**
+
+ * 发布渠道标记（展示用）：internal | store
+
+ */
+
+export const APP_RELEASE_CHANNEL = "internal";
+
+/**
+
+ * 隐私政策 / 用户协议公网外链（应用商店必填）。
+
+ * 空 = 仅用应用内协议页；上架前请托管 static/legal 后填写。
+
+ * 示例：https://your-domain.com/legal/privacy.html
+
+ */
+
+export const APP_PRIVACY_URL = "";
+
+export const APP_USER_AGREEMENT_URL = "";
+
+/**
+
+ * 是否允许明文 HTTP（局域网调试）。
+
+ * 正式上架请改为 false，并只用 https 的 APP_API_BASE；
+
+ * 同时改 manifest.json → app-plus.distribute.android.usesCleartextTraffic。
+
+ */
+
+export const APP_ALLOW_CLEARTEXT = true;

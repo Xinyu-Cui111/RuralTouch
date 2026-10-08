@@ -21,6 +21,7 @@
 <script>
 import RtCard from "@/components/rt-card/rt-card.vue";
 import { api } from "@/api/index.js";
+import { ensureLoggedIn } from "@/utils/auth.js";
 
 export default {
   components: { RtCard },
@@ -29,6 +30,7 @@ export default {
   },
   methods: {
     async onSubmit() {
+      if (!ensureLoggedIn({ tip: "积分申报请先登录" })) return;
       if (!this.title.trim()) {
         uni.showToast({ title: "请填写申报事项", icon: "none" });
         return;

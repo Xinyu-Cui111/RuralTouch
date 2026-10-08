@@ -39,12 +39,12 @@ export const COPY = {
 
   // V8 · 双 AI 人设
   aiVillageTitle: "村务协办",
-  aiVillageWelcome: "我是村委协办员，帮您把事说明白、办下去",
-  aiVillageHint: "问进度、问材料、问下一步；要正式调解请去说事建档",
+  aiVillageWelcome: "有事可以说，我帮您理清下一步",
+  aiVillageHint: "办件进度、材料准备、调解流程都可以问",
   aiVillageCta: "去说事建档",
   aiLegalTitle: "普法顾问",
-  aiLegalWelcome: "我帮您把常见规矩说清楚",
-  aiLegalHint: "看土地、邻里、欠薪、防诈等要点；正式调解请走说事建档",
+  aiLegalWelcome: "常见规矩，一问就清楚",
+  aiLegalHint: "土地、邻里、欠薪、防诈等要点",
   aiLegalCta: "去说事建档",
   aiSwitchLegal: "去看法条顾问",
   aiSwitchVillage: "去问村务协办",

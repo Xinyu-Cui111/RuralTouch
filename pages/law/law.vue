@@ -16,9 +16,14 @@
       <text class="primary-cta">去办理</text>
     </view>
 
-    <rt-section title="反诈短片">
+    <!-- App：完整版内嵌视频卡；小程序：图文要点 -->
+    <rt-section
+      v-if="enableVideo"
+      title="反诈短片"
+      link="全屏 ›"
+      @link="openLawVideo"
+    >
       <view class="video-card enter delay-1">
-        <!-- 封面：用 image，避免 video.poster 只认网络地址 -->
         <view
           v-if="!videoStarted"
           class="video-cover"
@@ -32,11 +37,13 @@
               <text class="play-icon">▶</text>
             </view>
             <text class="cover-title">防范电信诈骗</text>
-            <text class="cover-sub">点击播放</text>
+            <text class="cover-sub">{{
+              videoSrc ? "点击播放" : "暂无片源 · 点此看完整页"
+            }}</text>
           </view>
         </view>
         <video
-          v-else
+          v-else-if="videoSrc"
           id="lawHomeVideo"
           class="player"
           :src="videoSrc"
@@ -59,6 +66,34 @@
           <text class="tip-line">· 已转账立即报警并告知村委</text>
           <text class="tips-more" @click="openLawVideo"
             >全屏观看与完整要点 ›</text
+          >
+        </view>
+      </view>
+    </rt-section>
+
+    <rt-section v-else title="反诈要点" link="全部 ›" @link="openLawTips">
+      <view
+        class="fraud-hero enter delay-1"
+        hover-class="press"
+        :hover-stay-time="80"
+        @click="openLawTips"
+      >
+        <image class="fraud-hero-img" :src="coverImg" mode="aspectFill" />
+        <view class="fraud-hero-mask" />
+        <view class="fraud-hero-copy">
+          <text class="fraud-hero-title">防范电信诈骗</text>
+          <text class="fraud-hero-sub">不轻信 · 不转账 · 先核实 · 快报警</text>
+        </view>
+      </view>
+
+      <view class="fraud-card enter delay-1">
+        <text v-for="(line, i) in fraudTips" :key="i" class="fraud-line">{{
+          line
+        }}</text>
+        <view class="fraud-foot">
+          <text class="fraud-link" @click.stop="openLawTips">完整要点 ›</text>
+          <text class="fraud-link warn" @click.stop="onFraudAlert"
+            >已转账求助 ›</text
           >
         </view>
       </view>
@@ -135,11 +170,10 @@ import { ensureLoggedIn } from "@/utils/auth.js";
 import { goNavigate } from "@/utils/nav.js";
 import { setSubmitDraftText } from "@/utils/submit-draft.js";
 import { isElderMode } from "@/utils/elder-mode.js";
-import {
-  getLawVideoCover,
-  getLocalLawVideoSrc,
-  listLawVideoCandidates,
-} from "@/utils/law-video.js";
+import { VILLAGE_CONTACT_PHONE } from "@/config/env.js";
+import { FEATURE_LAW_VIDEO, lawAntiFraudPath } from "@/config/features.js";
+
+const LAW_COVER = "/static/lite/law-cover.jpg";
 
 export default {
   components: { TabBar, PageHero, RtCard, RtSection },
@@ -147,13 +181,16 @@ export default {
     return {
       elderOn: false,
       openId: "land",
-      videoSrc: getLocalLawVideoSrc(),
-      videoCover: getLawVideoCover(),
-      videoStarted: false,
-      videoError: "",
-      videoHint: "",
-      videoCandidates: [],
-      videoCandIndex: 0,
+      coverImg: LAW_COVER,
+      antiFraudLink: FEATURE_LAW_VIDEO ? "看短片 ›" : "全部 ›",
+      antiFraudSub: FEATURE_LAW_VIDEO
+        ? "点此观看反诈短片 · 也可看图文要点"
+        : "不轻信 · 不转账 · 先核实 · 快报警",
+      fraudTips: [
+        "不轻信转账保金、解冻、退款",
+        "自称公检法先挂断，官方渠道核实",
+        "已转账立即报警，并告知村委",
+      ],
       essentials: [
         {
           id: "land",
@@ -185,109 +222,67 @@ export default {
       ],
     };
   },
-  computed: {
-    videoErrorHint() {
-      if (this.videoHint) return this.videoHint;
-      if (!this.videoError) return "";
-      if (/MEDIA_ERR|not supported|解码|格式/i.test(this.videoError)) {
-        return "当前模拟器可能播不了。请点「完整页」或用顶部「真机调试」。";
-      }
-      return this.videoError;
-    },
-  },
   onShow() {
     this.elderOn = isElderMode();
-    ensureLoggedIn();
   },
   onLoad() {
-    this._alive = true;
-    this.prepareSrc();
-  },
-  onUnload() {
-    // 页面销毁时不要再调 videoContext，易触发开发者工具 __subPageFrameEndTime__ 空指针
-    this._alive = false;
-    this.videoStarted = false;
+    // App：反诈入口进视频页；小程序：图文要点（见 features.js）
   },
   methods: {
-    async prepareSrc() {
-      try {
-        const list = await listLawVideoCandidates();
-        this.videoCandidates = list.length
-          ? list
-          : [{ src: getLocalLawVideoSrc(), from: "local" }];
-        this.videoCandIndex = 0;
-        const cur = this.videoCandidates[0];
-        this.videoSrc = cur.src;
-        this.videoHint = cur.hint || "";
-      } catch (e) {
-        this.videoSrc = getLocalLawVideoSrc();
-        this.videoCandidates = [{ src: this.videoSrc, from: "local" }];
-      }
-    },
-    playAfterMount() {
-      if (!this._alive || !this.videoStarted) return;
-      setTimeout(() => {
-        if (!this._alive || !this.videoStarted) return;
-        try {
-          uni.createVideoContext("lawHomeVideo", this).play();
-        } catch (e) {
-          /* ignore */
-        }
-      }, 80);
-    },
-    startVideo() {
-      this.videoError = "";
-      this.videoStarted = true;
-      this.playAfterMount();
-    },
-    onVideoPlay() {
-      this.videoError = "";
-    },
-    onVideoError(e) {
-      if (!this._alive) return;
-      const detail = (e && e.detail) || {};
-      const msg = detail.errMsg || detail.message || "播放失败";
-      const next = this.videoCandIndex + 1;
-      if (next < this.videoCandidates.length) {
-        // 先卸掉再换源，避免同帧连毁连建触发工具内部计时 bug
-        this.videoStarted = false;
-        this.videoCandIndex = next;
-        const cur = this.videoCandidates[next];
-        this.videoSrc = cur.src;
-        this.videoHint = cur.hint || "";
-        this.videoError = "";
-        setTimeout(() => {
-          if (!this._alive) return;
-          this.videoStarted = true;
-          this.playAfterMount();
-        }, 120);
-        return;
-      }
-      this.videoError = msg;
-      this.videoStarted = false;
-      this.videoHint = /MEDIA_ERR|not supported|解码/i.test(msg)
-        ? "当前环境播不了。请用顶部「真机调试」，或检查网络/合法域名。"
-        : msg;
-    },
     toggle(id) {
       this.openId = this.openId === id ? "" : id;
     },
     goSubmit() {
+      if (!ensureLoggedIn({ tip: "说事建档请先登录" })) return;
       goNavigate("/pages/village/submit");
     },
     goSubmitWith(item) {
+      if (!ensureLoggedIn({ tip: "说事建档请先登录" })) return;
       if (item && item.draft) setSubmitDraftText(item.draft, "law");
       goNavigate("/pages/village/submit");
     },
     askAdvisor(item) {
+      if (!ensureLoggedIn({ tip: "咨询普法顾问请先登录" })) return;
       uni.setStorageSync("rt_legal_prefill", item.ask);
       goNavigate("/pages/law/aiLegal");
     },
     goAiLegal() {
+      if (!ensureLoggedIn({ tip: "咨询普法顾问请先登录" })) return;
       goNavigate("/pages/law/aiLegal");
     },
-    openLawVideo() {
-      goNavigate("/pages/law/lawVideo");
+    openLawTips() {
+      goNavigate(lawAntiFraudPath());
+    },
+    onFraudAlert() {
+      const phone = String(VILLAGE_CONTACT_PHONE || "").replace(/\D/g, "");
+      uni.showActionSheet({
+        itemList: phone
+          ? ["拨打 110 报警", "联系村委协助", "查看完整反诈要点"]
+          : ["拨打 110 报警", "查看完整反诈要点"],
+        success: (res) => {
+          const i = res.tapIndex;
+          if (i === 0) {
+            uni.makePhoneCall({
+              phoneNumber: "110",
+              fail: () =>
+                uni.showToast({ title: "请手动拨打 110", icon: "none" }),
+            });
+            return;
+          }
+          if (phone && i === 1) {
+            uni.makePhoneCall({
+              phoneNumber: phone,
+              fail: () =>
+                uni.showToast({
+                  title: "无法拨号，请手动联系村委",
+                  icon: "none",
+                }),
+            });
+            return;
+          }
+          this.openLawTips();
+        },
+      });
     },
   },
 };
@@ -368,98 +363,93 @@ export default {
   font-weight: 800;
 }
 
-.video-card {
+/* 反诈：封面 + 三条要点，干净不堆叠 */
+.fraud-hero {
+  position: relative;
   overflow: hidden;
+  height: 240rpx;
   border-radius: $rt-radius-lg;
-  background: #fff;
-  border: 1rpx solid rgba(50, 40, 30, 0.06);
+  background: #1a2230;
   box-shadow: $rt-shadow-sm;
 }
-.player {
-  width: 100%;
-  height: 380rpx;
-  background: #0a0f0c;
-  display: block;
-}
-.video-cover {
-  position: relative;
-  height: 380rpx;
-  overflow: hidden;
-  background: #0a0f0c;
-}
-.cover-img {
+.fraud-hero-img {
   width: 100%;
   height: 100%;
   display: block;
 }
-.cover-mask {
+.fraud-hero-mask {
   position: absolute;
   inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: rgba(10, 15, 12, 0.42);
+  background: linear-gradient(
+    180deg,
+    rgba(18, 24, 36, 0.12) 0%,
+    rgba(18, 24, 36, 0.78) 100%
+  );
 }
-.play-btn {
-  width: 96rpx;
-  height: 96rpx;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.92);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.25);
+.fraud-hero-copy {
+  position: absolute;
+  left: 28rpx;
+  right: 28rpx;
+  bottom: 24rpx;
 }
-.play-icon {
-  margin-left: 6rpx;
+.fraud-hero-title {
+  display: block;
+  font-family: $rt-font-title;
   font-size: 36rpx;
-  color: $rt-primary-dark;
-  font-weight: 800;
-}
-.cover-title {
-  margin-top: 20rpx;
-  font-size: $rt-type-body;
   font-weight: 800;
   color: #fff;
 }
-.cover-sub {
-  margin-top: 6rpx;
+.fraud-hero-sub {
+  display: block;
+  margin-top: 8rpx;
   font-size: $rt-type-caption;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.84);
 }
-.video-err {
-  padding: 16rpx 24rpx 0;
+.fraud-card {
+  margin-top: 14rpx;
+  padding: 22rpx 24rpx 18rpx;
+  border-radius: $rt-radius-md;
+  background: #fff;
+  border: 1rpx solid rgba(50, 40, 30, 0.06);
+  box-shadow: $rt-shadow-sm;
 }
-.video-err-text {
+.fraud-line {
   display: block;
-  font-size: 22rpx;
-  color: #b86b35;
-  line-height: 1.45;
-}
-.video-tips {
-  padding: 22rpx 24rpx 26rpx;
-}
-.tips-kicker {
-  display: block;
-  margin-bottom: 10rpx;
-  font-size: $rt-type-micro;
-  font-weight: 800;
-  letter-spacing: 1rpx;
-  color: $rt-blue;
-}
-.tip-line {
-  display: block;
+  position: relative;
+  padding-left: 22rpx;
+  margin-top: 10rpx;
   font-size: $rt-type-caption;
   color: $rt-text-secondary;
-  line-height: 1.55;
+  line-height: 1.5;
 }
-.tips-more {
-  display: block;
-  margin-top: 14rpx;
+.fraud-line:first-child {
+  margin-top: 0;
+}
+.fraud-line::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 14rpx;
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background: $rt-blue;
+}
+.fraud-foot {
+  margin-top: 18rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid $rt-border;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.fraud-link {
   font-size: $rt-type-caption;
   font-weight: 700;
-  color: $rt-primary-mid;
+  color: $rt-blue;
+}
+.fraud-link.warn {
+  color: $rt-primary;
 }
 
 .advisor-card {

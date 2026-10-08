@@ -1,6 +1,6 @@
 <template>
   <view class="page">
-    <rt-nav-bar title="我的团购订单" />
+    <rt-nav-bar title="我的预约" />
     <rt-skeleton v-if="loading" variant="case" :count="3" />
     <empty-state
       v-else-if="loadError"
@@ -14,9 +14,9 @@
       v-else-if="!list.length"
       icon-type="product"
       icon-tone="green"
-      title="暂无订单"
-      desc="去团购页下一单"
-      action-text="去团购"
+      title="暂无预约"
+      desc="去好物页登记意向，村委将联系您"
+      action-text="去好物"
       @action="goGroup"
     />
     <rt-card
@@ -30,17 +30,13 @@
     >
       <view class="row">
         <text class="name">{{ item.productName }}</text>
-        <text class="tag">{{ item.statusLabel || "已下单" }}</text>
+        <text class="tag">{{ item.statusLabel || "待村委联系" }}</text>
       </view>
       <text class="meta"
-        >{{ item.createTimeText }} · ¥{{ item.amount }} ×
+        >{{ item.createTimeText }} · 参考 ¥{{ item.amount }} ×
         {{ item.qty || 1 }}</text
       >
-      <text class="fund"
-        >反哺基金 ¥{{ item.fundContribution }}（{{
-          Math.round((item.fundRatio || 0.3) * 100)
-        }}%）</text
-      >
+      <text class="fund">{{ item.remark || "无线上支付，待村委确认" }}</text>
     </rt-card>
   </view>
 </template>
@@ -51,15 +47,22 @@ import RtCard from "@/components/rt-card/rt-card.vue";
 import RtSkeleton from "@/components/rt-skeleton/rt-skeleton.vue";
 import { api } from "@/api/index.js";
 import { ensureLoggedIn } from "@/utils/auth.js";
-import { goReLaunch } from "@/utils/nav.js";
+import { goReLaunch, goRedirect } from "@/utils/nav.js";
+import { FEATURE_GROUP_ORDER } from "@/config/features.js";
 
 export default {
   components: { EmptyState, RtCard, RtSkeleton },
   data() {
     return { loading: true, loadError: false, list: [] };
   },
+  onLoad() {
+    if (!FEATURE_GROUP_ORDER) {
+      goRedirect("/pages/group/group");
+    }
+  },
   onShow() {
-    if (!ensureLoggedIn()) return;
+    if (!FEATURE_GROUP_ORDER) return;
+    if (!ensureLoggedIn({ tip: "查看预约请先登录" })) return;
     this.load();
   },
   onPullDownRefresh() {
@@ -73,8 +76,8 @@ export default {
       if (!isRefresh) this.loading = true;
       this.loadError = false;
       try {
-        const res = await api.listMyOrders();
-        this.list = res.data.list || [];
+        const res = await api.listMyOrders({ client: "app" });
+        this.list = (res.data && res.data.list) || [];
       } catch (e) {
         this.loadError = !this.list.length;
         uni.showToast({ title: e.message || "加载失败", icon: "none" });

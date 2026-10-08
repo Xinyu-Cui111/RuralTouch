@@ -96,9 +96,10 @@ export function filterByCategory(list, category) {
 
 export function normalizeProductImg(item) {
   if (!item || !item.img) return item;
-  const img = String(item.img).replace(
-    /^\/static\/products\//,
-    "/static/lite/products/"
-  );
+  let img = String(item.img);
+  img = img
+    .replace(/^\/static\/products\//, "/static/lite/products/")
+    .replace(/^\/static\/group-icons\//, "/static/lite/group/")
+    .replace(/^\/static\/banner\//, "/static/lite/");
   return { ...item, img };
 }

@@ -1,7 +1,20 @@
 {
   "description": "RuralTouch",
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      {
+        "type": "suffix",
+        "value": ".mp4"
+      },
+      {
+        "type": "file",
+        "value": "static/lite/fund-banner.png"
+      },
+      {
+        "type": "folder",
+        "value": "static/law-videos"
+      }
+    ],
     "include": []
   },
   "setting": {
@@ -43,7 +56,7 @@
   },
   "compileType": "miniprogram",
   "libVersion": "3.5.5",
-  "appid": "wx4d4caabca665eb90",
+  "appid": "wx2dd871f53a658116",
   "projectname": "RuralTouch",
   "cloudfunctionRoot": "cloudfunctions/",
   "condition": {}

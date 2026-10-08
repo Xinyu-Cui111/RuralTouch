@@ -65,7 +65,8 @@ import {
   getLocalLawVideoSrc,
   listLawVideoCandidates,
 } from "@/utils/law-video.js";
-import { goNavigate } from "@/utils/nav.js";
+import { goNavigate, goRedirect } from "@/utils/nav.js";
+import { FEATURE_LAW_VIDEO } from "@/config/features.js";
 
 export default {
   data() {
@@ -87,13 +88,21 @@ export default {
   computed: {
     userError() {
       if (!this.error) return "";
+      if (!this.src && !this.candidates.length) {
+        return "暂未配置视频地址。可在 config/env.js 填写 LAW_VIDEO_HTTPS，或先阅读下方要点。";
+      }
       if (/MEDIA_ERR|not supported|解码|格式/i.test(this.error)) {
-        return "当前环境播不了。请用「真机调试」；正式小程序一般用 CDN/云存储的 HTTPS 地址。";
+        return "当前环境播不了。请用真机；并配置可用的 HTTPS 视频地址。";
       }
       return String(this.error);
     },
   },
   onLoad() {
+    // 小程序个人主体：禁止站内视频，落到图文页
+    if (!FEATURE_LAW_VIDEO) {
+      goRedirect("/pages/law/lawTips");
+      return;
+    }
     this._alive = true;
     this.prepare();
   },
@@ -128,6 +137,11 @@ export default {
     },
     startPlay() {
       this.error = "";
+      if (!this.src) {
+        this.error = "no-src";
+        this.started = false;
+        return;
+      }
       this.started = true;
       this.playAfterMount();
     },

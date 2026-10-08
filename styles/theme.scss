@@ -597,6 +597,12 @@ $rt-font-body: -apple-system, BlinkMacSystemFont, "PingFang SC",
   }
 }
 
+/**
+ * 注意：不要用 fill-mode: both。
+ * 微信端动画偶发不触发时，both 会卡在 from（opacity:0），表现为「卡片加载不出来」。
+ */
 @mixin rt-enter($delay: 0s, $duration: 0.42s) {
-  animation: rt-rise $duration cubic-bezier(0.22, 1, 0.36, 1) $delay both;
+  opacity: 1;
+  transform: translateY(0);
+  animation: rt-rise $duration cubic-bezier(0.22, 1, 0.36, 1) $delay;
 }

@@ -9,6 +9,7 @@ const {
   retrieveFaq,
   formatFaqContext,
   citationsFromHits,
+  buildFaqReply,
 } = require("./knowledge");
 
 const DISPUTE_SCHEMA = `请严格返回 JSON，不要 markdown：
@@ -111,22 +112,6 @@ function withChatActions(data, kind = "village") {
         ? "指尖善治 · 普法顾问（非通用聊天）"
         : "指尖善治 · 村务助手（非通用聊天）"),
   };
-}
-
-function buildFaqReply(hits) {
-  const top = hits[0];
-  const extra = hits
-    .slice(1)
-    .map((h) => `· ${h.title}`)
-    .join("\n");
-  let reply = `${top.body}`;
-  if (top.refs && top.refs.length) {
-    reply += `\n\n参考依据：${top.refs.join("、")}`;
-  }
-  if (extra) reply += `\n\n相关条目：\n${extra}`;
-  reply +=
-    "\n\n以上为普法/村务参考，不构成正式法律意见。复杂情况请申请村委调解。";
-  return reply;
 }
 
 function isOutOfVillageScope(text) {
