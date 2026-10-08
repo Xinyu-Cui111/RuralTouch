@@ -40,7 +40,7 @@ async function main() {
 
   await page.goto(pageUrl("/pages/tools/ai-lab"), { waitUntil: "networkidle" });
   await page.waitForTimeout(800);
-  await page.getByText("土地边界对不上怎么办").first().click({ force: true });
+  await page.getByText("土地边界扯不清").first().click({ force: true });
   await page.waitForTimeout(600);
   await page.screenshot({
     path: join(OUT, "10-ai-lab.png"),
@@ -52,9 +52,9 @@ async function main() {
     waitUntil: "networkidle",
   });
   await page.waitForTimeout(500);
-  await page.getByText("填发票样例").first().click({ force: true });
+  await page.getByText("发票样例").first().click({ force: true });
   await page.waitForTimeout(200);
-  await page.getByText("抽取字段").first().click({ force: true });
+  await page.getByText("抽出字段").first().click({ force: true });
   await page.waitForTimeout(400);
   await page.screenshot({
     path: join(OUT, "11-doc-extract.png"),

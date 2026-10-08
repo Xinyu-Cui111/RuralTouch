@@ -86,9 +86,9 @@
           打开调解工作台
         </button>
         <button class="link-btn" size="mini" @click="goDocExtract">
-          单据结构化
+          拆单据
         </button>
-        <button class="link-btn" size="mini" @click="goAiLab">AI 能力台</button>
+        <button class="link-btn" size="mini" @click="goAiLab">协办工具</button>
       </view>
 
       <view class="block">

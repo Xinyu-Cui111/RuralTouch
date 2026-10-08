@@ -1,144 +1,95 @@
 <template>
   <view class="page">
-    <rt-nav-bar title="AI 能力台" />
-    <view class="hero">
-      <text class="hero-kicker">面试 / JD 对齐展示</text>
-      <text class="hero-title"
-        >文档整理 → 切分 → 向量检索 → 生成/引用 → 字段结构化 → 评测迭代</text
-      >
-      <text class="hero-sub"
-        >场景载体是基层调解；能力面按「AI
-        应用培训生」常见要求铺开，均可点开演示。</text
+    <rt-nav-bar title="协办工具" />
+
+    <view class="mast">
+      <view class="mast-veil" />
+      <text class="mast-eyebrow">指尖善治 · 干部侧</text>
+      <text class="mast-title">查口径、拆单据、看质量</text>
+      <text class="mast-desc"
+        >给调解员用的小工具台：先检索村里的办事口径，再把发票合同抽成字段，出了错能回到评测里改。</text
       >
     </view>
 
-    <view class="metric-grid">
-      <view class="metric" v-for="m in metrics" :key="m.label">
-        <text class="metric-num">{{ m.value }}</text>
-        <text class="metric-label">{{ m.label }}</text>
+    <view class="strip">
+      <view class="strip-item" v-for="m in metrics" :key="m.label">
+        <text class="strip-num">{{ m.value }}</text>
+        <text class="strip-label">{{ m.label }}</text>
       </view>
     </view>
 
-    <view class="block">
-      <text class="block-title">1. 知识库建设与维护</text>
-      <text class="block-body"
-        >FAQ 条目 + 业务手册 Markdown（按标题切分）。改语料后
-        <text class="code">npm run ingest:docs</text> 重建 384
-        维本地向量索引。</text
-      >
-      <view class="tag-row">
-        <text class="tag" v-for="t in kbTags" :key="t">{{ t }}</text>
+    <view class="panel">
+      <view class="panel-head">
+        <text class="panel-title">查办事口径</text>
+        <text class="panel-hint">本地知识库 · 向量 + 关键词</text>
       </view>
-    </view>
-
-    <view class="block">
-      <text class="block-title">2. 混合检索（现场可跑）</text>
-      <text class="block-body"
-        >向量余弦 ×0.55 + 关键词融合；返回 Top3 与引用。不是托管向量库，不是
-        LangChain。</text
-      >
-      <view class="chips">
+      <view class="ask-row">
+        <input
+          class="ask"
+          v-model="query"
+          placeholder="例如：土地边界扯不清怎么办"
+          confirm-type="search"
+          @confirm="runRetrieve(query)"
+        />
+        <view
+          class="ask-btn"
+          hover-class="ask-btn-press"
+          :hover-stay-time="80"
+          @click="runRetrieve(query)"
+        >
+          <text>检索</text>
+        </view>
+      </view>
+      <view class="hints">
         <text
-          class="chip"
           v-for="q in sampleQueries"
           :key="q"
+          class="hint"
           @click="runRetrieve(q)"
           >{{ q }}</text
         >
       </view>
-      <input
-        class="input"
-        v-model="query"
-        placeholder="输入查询，点检索"
-        confirm-type="search"
-        @confirm="runRetrieve(query)"
-      />
-      <button class="primary" size="mini" @click="runRetrieve(query)">
-        检索 Top3
-      </button>
-      <view v-if="hits.length" class="hits">
-        <view v-for="(h, i) in hits" :key="h.id" class="hit">
-          <text class="hit-title">{{ i + 1 }}. {{ h.title }}</text>
-          <text class="hit-meta"
-            >{{ h.method }} · score {{ h.score }} · vec {{ h.vectorScore }} · kw
+      <view v-if="hits.length" class="results">
+        <view v-for="(h, i) in hits" :key="h.id" class="result">
+          <view class="result-top">
+            <text class="result-idx">{{ i + 1 }}</text>
+            <text class="result-title">{{ h.title }}</text>
+          </view>
+          <text class="result-body">{{ h.body }}</text>
+          <text class="result-foot"
+            >相关度 {{ h.score }} · 向量 {{ h.vectorScore }} · 关键词
             {{ h.keywordScore }}</text
           >
-          <text class="hit-body">{{ h.body }}</text>
         </view>
       </view>
-    </view>
-
-    <view class="block">
-      <text class="block-title">3. 大模型应用能力（产品内）</text>
-      <text class="block-body"
-        >知识问答 / 内容总结 / 信息提取（成案结构化）/ 对话；无 Key
-        规则降级。</text
-      >
-      <view class="btn-row">
-        <button
-          class="link-btn"
-          size="mini"
-          @click="go('/pages/village/submit')"
-        >
-          说事成案（结构化）
-        </button>
-        <button class="link-btn" size="mini" @click="go('/pages/ai/assistant')">
-          村务对话
-        </button>
-        <button class="link-btn" size="mini" @click="go('/pages/law/aiLegal')">
-          普法问答
-        </button>
+      <view v-else class="empty-tip">
+        <text>点上面的例句，或自己输入一句村民常问的话。</text>
       </view>
     </view>
 
-    <view class="block">
-      <text class="block-title">4. 单据识别与字段结构化</text>
-      <text class="block-body"
-        >H5 粘贴抽取；仓库管线支持 PDF / 图片 OCR / Excel / Word →
-        JSON。字段评测 3/3。</text
-      >
-      <view class="btn-row">
-        <button
-          class="link-btn"
-          size="mini"
-          @click="go('/pages/tools/doc-extract')"
-        >
-          打开单据结构化
-        </button>
+    <view class="actions">
+      <view class="action" @click="go('/pages/tools/doc-extract')">
+        <text class="action-title">拆单据</text>
+        <text class="action-desc">发票、合同抽字段</text>
       </view>
-      <text class="code-line"
-        >npm run doc:pipeline -- docs/knowledge/samples/invoice-demo.pdf</text
-      >
-      <text class="code-line"
-        >npm run doc:pipeline -- docs/knowledge/samples/invoice-demo.png</text
-      >
-      <text class="code-line">npm run doc:eval</text>
+      <view class="action" @click="go('/pages/village/submit')">
+        <text class="action-title">去说事</text>
+        <text class="action-desc">口述整理成案</text>
+      </view>
+      <view class="action" @click="go('/pages/admin/ai-quality')">
+        <text class="action-title">看质量</text>
+        <text class="action-desc">评测与错案</text>
+      </view>
+      <view class="action" @click="go('/pages/law/aiLegal')">
+        <text class="action-title">普法问答</text>
+        <text class="action-desc">带参考条目</text>
+      </view>
     </view>
 
-    <view class="block">
-      <text class="block-title">5. 效果验证与迭代闭环</text>
-      <text class="block-body"
-        >评测集回归 + Badcase（标→修→关）+ 来源可见。对齐「错误案例整理 /
-        提示词与知识库更新」。</text
-      >
-      <view class="btn-row">
-        <button
-          class="link-btn"
-          size="mini"
-          @click="go('/pages/admin/ai-quality')"
-        >
-          AI 质量看板
-        </button>
-      </view>
-      <text class="code-line">npm run eval</text>
-    </view>
-
-    <view class="block last">
-      <text class="block-title">诚实边界</text>
-      <text class="block-body"
-        >有：本地向量索引、手册切分、OCR/PDF
-        管线、字段评测、业务闭环。没有：云厂商票据验真、版面检测、托管向量库、LangChain
-        套壳。</text
+    <view class="foot">
+      <text class="foot-text"
+        >知识条目 {{ kbCount }} · 手册切块 {{ manualCount }} · 索引
+        {{ indexDim }} 维。改手册后本地执行 npm run ingest:docs。</text
       >
     </view>
   </view>
@@ -153,13 +104,11 @@ export default {
     return {
       query: "",
       hits: [],
-      sampleQueries: [
-        "土地边界对不上怎么办",
-        "知识库维护要重建索引和评测吗",
-        "打架受伤要不要升级",
-      ],
-      kbTags: [],
+      sampleQueries: ["土地边界扯不清", "打架受伤怎么办", "知识库改完要做什么"],
       metrics: [],
+      kbCount: 0,
+      manualCount: 0,
+      indexDim: 384,
     };
   },
   created() {
@@ -167,18 +116,13 @@ export default {
     const manual = faqList.filter(
       (x) => x.category === "manual" || String(x.id || "").startsWith("doc-")
     ).length;
-    const faq = faqList.length - manual;
-    this.kbTags = [
-      `FAQ ${faq} 条`,
-      `手册切块 ${manual}`,
-      `索引 ${meta.vector.docs} 篇`,
-      `${meta.vector.dim} 维`,
-      meta.vector.method,
-    ];
+    this.manualCount = manual;
+    this.kbCount = faqList.length;
+    this.indexDim = (meta.vector && meta.vector.dim) || 384;
     this.metrics = [
-      { value: "42/42", label: "纠纷评测" },
-      { value: "18/18", label: "检索 Top3" },
-      { value: "3/3", label: "字段抽取" },
+      { value: "42", label: "成案用例" },
+      { value: "18", label: "检索用例" },
+      { value: "3", label: "单据用例" },
       { value: String(faqList.length), label: "知识条目" },
     ];
   },
@@ -198,165 +142,249 @@ export default {
 
 <style lang="scss" scoped>
 @import "@/styles/theme.scss";
+
 .page {
-  @include rt-page;
-  padding: $rt-page-x;
-  padding-bottom: 100rpx;
+  min-height: 100vh;
+  padding: 0 $rt-page-x 80rpx;
+  background: radial-gradient(
+      120% 80% at 10% -10%,
+      rgba(158, 52, 40, 0.08),
+      transparent 55%
+    ),
+    radial-gradient(90% 60% at 100% 0%, rgba(90, 107, 56, 0.1), transparent 50%),
+    $rt-bg;
 }
-.hero-kicker {
+
+.mast {
+  position: relative;
+  margin: 12rpx 0 20rpx;
+  padding: 36rpx 28rpx 32rpx;
+  border-radius: 28rpx;
+  overflow: hidden;
+  background: linear-gradient(
+    145deg,
+    $rt-card-ai-top 0%,
+    $rt-card-ai-mid 48%,
+    $rt-card-ai-bottom 100%
+  );
+  border: 1rpx solid rgba(158, 52, 40, 0.12);
+  box-shadow: 0 10rpx 36rpx rgba(106, 70, 40, 0.08);
+}
+.mast-veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    120deg,
+    transparent 40%,
+    rgba(201, 162, 74, 0.12) 100%
+  );
+  pointer-events: none;
+}
+.mast-eyebrow {
+  position: relative;
   display: block;
   font-size: 22rpx;
-  font-weight: 800;
-  color: $rt-accent-dark;
-  margin-bottom: 8rpx;
+  letter-spacing: 0.08em;
+  color: $rt-primary;
+  font-weight: 700;
 }
-.hero-title {
+.mast-title {
+  position: relative;
   display: block;
-  font-size: 32rpx;
+  margin-top: 12rpx;
+  font-size: 40rpx;
   font-weight: 800;
   color: $rt-text;
-  line-height: 1.4;
+  letter-spacing: 0.02em;
 }
-.hero-sub {
+.mast-desc {
+  position: relative;
   display: block;
-  margin-top: 10rpx;
-  font-size: 24rpx;
-  color: $rt-text-muted;
-  line-height: 1.5;
+  margin-top: 14rpx;
+  font-size: 26rpx;
+  line-height: 1.55;
+  color: $rt-text-secondary;
 }
-.metric-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12rpx;
-  margin: 24rpx 0;
+
+.strip {
+  display: flex;
+  justify-content: space-between;
+  gap: 8rpx;
+  margin-bottom: 22rpx;
+  padding: 8rpx 4rpx;
 }
-.metric {
-  background: $rt-surface;
-  border-radius: $rt-radius-md;
-  padding: 20rpx;
+.strip-item {
+  flex: 1;
+  text-align: center;
 }
-.metric-num {
+.strip-num {
   display: block;
-  font-size: 36rpx;
+  font-size: 34rpx;
   font-weight: 800;
-  color: $rt-accent-dark;
+  color: $rt-primary-dark;
+  font-variant-numeric: tabular-nums;
 }
-.metric-label {
+.strip-label {
   display: block;
   margin-top: 4rpx;
-  font-size: 22rpx;
-  color: $rt-text-muted;
-}
-.block {
-  margin-bottom: 28rpx;
-  padding-bottom: 24rpx;
-  border-bottom: 1rpx solid rgba(0, 0, 0, 0.06);
-}
-.block.last {
-  border-bottom: 0;
-}
-.block-title {
-  display: block;
-  font-size: 28rpx;
-  font-weight: 800;
-  margin-bottom: 8rpx;
-}
-.block-body {
-  display: block;
-  font-size: 24rpx;
-  color: $rt-text-secondary;
-  line-height: 1.55;
-}
-.code {
-  font-family: ui-monospace, monospace;
-  font-size: 22rpx;
-  color: $rt-accent-dark;
-}
-.code-line {
-  display: block;
-  margin-top: 10rpx;
   font-size: 20rpx;
-  font-family: ui-monospace, monospace;
   color: $rt-text-muted;
-  background: rgba(0, 0, 0, 0.03);
-  padding: 10rpx 12rpx;
-  border-radius: 8rpx;
 }
-.tag-row,
-.chips,
-.btn-row {
+
+.panel {
+  padding: 28rpx 24rpx;
+  border-radius: 24rpx;
+  background: $rt-surface;
+  border: 1rpx solid $rt-border;
+  box-shadow: 0 8rpx 28rpx rgba(106, 70, 40, 0.05);
+}
+.panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16rpx;
+  margin-bottom: 18rpx;
+}
+.panel-title {
+  font-size: 30rpx;
+  font-weight: 800;
+  color: $rt-text;
+}
+.panel-hint {
+  font-size: 20rpx;
+  color: $rt-text-muted;
+}
+.ask-row {
+  display: flex;
+  gap: 12rpx;
+  align-items: center;
+}
+.ask {
+  flex: 1;
+  height: 80rpx;
+  padding: 0 22rpx;
+  border-radius: 999rpx;
+  background: $rt-bg;
+  border: 1rpx solid $rt-border-strong;
+  font-size: 26rpx;
+}
+.ask-btn {
+  flex-shrink: 0;
+  height: 80rpx;
+  padding: 0 32rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, $rt-primary-dark, $rt-primary-mid);
+  color: #fff;
+  font-size: 26rpx;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+}
+.ask-btn-press {
+  opacity: 0.88;
+  transform: scale(0.98);
+}
+.hints {
   display: flex;
   flex-wrap: wrap;
   gap: 12rpx;
-  margin-top: 14rpx;
-}
-.tag,
-.chip {
-  font-size: 22rpx;
-  font-weight: 700;
-  padding: 8rpx 14rpx;
-  border-radius: 999rpx;
-  background: $rt-accent-soft;
-  color: $rt-accent-dark;
-}
-.chip {
-  background: $rt-surface;
-  border: 1rpx solid rgba(201, 162, 74, 0.35);
-}
-.input {
-  margin-top: 14rpx;
-  padding: 16rpx;
-  background: $rt-surface;
-  border-radius: 12rpx;
-  font-size: 26rpx;
-}
-.primary {
-  @include rt-btn-reset;
-  margin-top: 12rpx;
-  background: linear-gradient(135deg, $rt-accent-dark, $rt-accent);
-  color: #fff;
-  font-size: 24rpx;
-  font-weight: 800;
-  padding: 0 28rpx;
-  height: 64rpx;
-  line-height: 64rpx;
-  border-radius: 999rpx;
-}
-.link-btn {
-  @include rt-btn-reset;
-  background: $rt-surface;
-  color: $rt-accent-dark;
-  border: 1rpx solid rgba(201, 162, 74, 0.35);
-  border-radius: 999rpx;
-  font-size: 22rpx;
-  padding: 0 22rpx;
-  height: 60rpx;
-  line-height: 60rpx;
-  font-weight: 700;
-}
-.hits {
   margin-top: 16rpx;
 }
-.hit {
-  padding: 14rpx 0;
-  border-top: 1rpx solid rgba(0, 0, 0, 0.05);
+.hint {
+  font-size: 22rpx;
+  color: $rt-olive;
+  background: $rt-olive-soft;
+  padding: 10rpx 18rpx;
+  border-radius: 999rpx;
 }
-.hit-title {
-  display: block;
-  font-size: 26rpx;
+.results {
+  margin-top: 20rpx;
+}
+.result {
+  padding: 18rpx 0;
+  border-top: 1rpx solid $rt-border;
+}
+.result-top {
+  display: flex;
+  gap: 12rpx;
+  align-items: flex-start;
+}
+.result-idx {
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  background: $rt-primary-soft;
+  color: $rt-primary;
+  font-size: 20rpx;
+  font-weight: 800;
+  text-align: center;
+  line-height: 36rpx;
+  flex-shrink: 0;
+}
+.result-title {
+  flex: 1;
+  font-size: 28rpx;
   font-weight: 700;
+  color: $rt-text;
+  line-height: 1.35;
 }
-.hit-meta {
+.result-body {
   display: block;
-  margin-top: 4rpx;
+  margin-top: 10rpx;
+  margin-left: 48rpx;
+  font-size: 24rpx;
+  line-height: 1.5;
+  color: $rt-text-secondary;
+}
+.result-foot {
+  display: block;
+  margin-top: 8rpx;
+  margin-left: 48rpx;
   font-size: 20rpx;
   color: $rt-text-muted;
 }
-.hit-body {
+.empty-tip {
+  margin-top: 20rpx;
+  padding: 24rpx;
+  border-radius: 16rpx;
+  background: $rt-olive-soft;
+  font-size: 24rpx;
+  color: $rt-forest-text;
+  line-height: 1.5;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14rpx;
+  margin-top: 22rpx;
+}
+.action {
+  padding: 24rpx 22rpx;
+  border-radius: 20rpx;
+  background: $rt-surface;
+  border: 1rpx solid $rt-border;
+}
+.action-title {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 800;
+  color: $rt-text;
+}
+.action-desc {
   display: block;
   margin-top: 6rpx;
   font-size: 22rpx;
-  color: $rt-text-secondary;
-  line-height: 1.45;
+  color: $rt-text-muted;
+}
+
+.foot {
+  margin-top: 28rpx;
+  padding: 0 8rpx;
+}
+.foot-text {
+  font-size: 22rpx;
+  line-height: 1.5;
+  color: $rt-text-muted;
 }
 </style>

@@ -141,14 +141,14 @@
       "path": "pages/tools/ai-lab",
       "style": {
         "navigationStyle": "custom",
-        "navigationBarTitleText": "AI 能力台"
+        "navigationBarTitleText": "协办工具"
       }
     },
     {
       "path": "pages/tools/doc-extract",
       "style": {
         "navigationStyle": "custom",
-        "navigationBarTitleText": "单据结构化"
+        "navigationBarTitleText": "拆单据"
       }
     },
     {

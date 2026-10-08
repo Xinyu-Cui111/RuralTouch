@@ -371,15 +371,15 @@
         <view v-if="fold.admin" class="fold-body">
           <rt-card compact flush elevated class="group-card">
             <rt-cell
-              title="AI 能力台"
-              desc="检索 / 单据 / 评测 · JD 对齐主入口"
+              title="协办工具"
+              desc="查口径、拆单据、看质量"
               icon="ai"
               icon-tone="blue"
               @click="goPage('/pages/tools/ai-lab')"
             />
             <rt-cell
-              title="单据结构化"
-              desc="发票合同字段抽取"
+              title="拆单据"
+              desc="发票与合同抽字段"
               icon="ai"
               icon-tone="blue"
               @click="goPage('/pages/tools/doc-extract')"

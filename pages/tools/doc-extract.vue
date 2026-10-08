@@ -1,40 +1,64 @@
 <template>
   <view class="page">
-    <rt-nav-bar title="单据结构化" />
-    <view class="hero">
-      <text class="hero-title">解析 → 字段抽取</text>
-      <text class="hero-sub"
-        >H5 演示粘贴发票/合同文本。图片 OCR / PDF 请用仓库 npm run
-        doc:pipeline（tesseract / pdf-parse）。</text
+    <rt-nav-bar title="拆单据" />
+
+    <view class="mast">
+      <text class="mast-title">把票和合同变成字段</text>
+      <text class="mast-desc"
+        >粘贴文字即可试抽。图片、PDF 在仓库里用本地 OCR /
+        解析脚本跑同一套规则。</text
       >
     </view>
 
-    <view class="chips">
-      <text class="chip" @click="loadSample('invoice')">填发票样例</text>
-      <text class="chip" @click="loadSample('contract')">填合同样例</text>
-      <text class="chip ghost" @click="raw = ''">清空</text>
+    <view class="tabs">
+      <text
+        class="tab"
+        :class="{ on: kind === 'invoice' }"
+        @click="loadSample('invoice')"
+        >发票样例</text
+      >
+      <text
+        class="tab"
+        :class="{ on: kind === 'contract' }"
+        @click="loadSample('contract')"
+        >合同样例</text
+      >
+      <text class="tab ghost" @click="clear">清空</text>
     </view>
 
-    <textarea
-      class="area"
-      v-model="raw"
-      maxlength="4000"
-      placeholder="粘贴发票或合同纯文本…"
-    />
-
-    <button class="primary" :disabled="busy || !raw.trim()" @click="run">
-      {{ busy ? "抽取中…" : "抽取字段" }}
-    </button>
-
-    <view v-if="result" class="result">
-      <text class="block-title">结构化结果</text>
-      <text class="meta"
-        >类型 {{ result.docType }} · 解析器 {{ result.parser }}</text
+    <view class="sheet">
+      <textarea
+        class="area"
+        v-model="raw"
+        maxlength="4000"
+        placeholder="把发票或合同正文贴进来…"
+      />
+      <view
+        class="cta"
+        :class="{ disabled: busy || !raw.trim() }"
+        hover-class="cta-press"
+        :hover-stay-time="80"
+        @click="run"
       >
-      <view v-for="row in resultRows" :key="row.k" class="row">
-        <text class="k">{{ row.k }}</text>
-        <text class="v">{{ row.v }}</text>
+        <text>{{ busy ? "正在抽取…" : "抽出字段" }}</text>
       </view>
+    </view>
+
+    <view v-if="result && result.docType !== 'unknown'" class="card">
+      <view class="card-head">
+        <text class="card-title">{{ typeLabel }}</text>
+        <text class="card-badge">已结构化</text>
+      </view>
+      <view v-for="row in resultRows" :key="row.k" class="field">
+        <text class="field-k">{{ row.label }}</text>
+        <text class="field-v">{{ row.v }}</text>
+      </view>
+    </view>
+    <view v-else-if="result" class="warn">
+      <text
+        >没识别成发票或合同模板，换一段带「发票号码 /
+        甲方乙方」的正文再试。</text
+      >
     </view>
   </view>
 </template>
@@ -57,31 +81,65 @@ const SAMPLE_CONTRACT = `合同名称：村委便民服务耗材采购合同
 签订日期：2026年02月10日
 履行期限：2026年02月10日至2026年12月31日`;
 
+const LABELS = {
+  docType: "类型",
+  invoiceNo: "发票号码",
+  date: "开票日期",
+  buyer: "购方",
+  seller: "销方",
+  item: "项目",
+  amount: "金额",
+  currency: "币种",
+  title: "合同名称",
+  partyA: "甲方",
+  partyB: "乙方",
+  signDate: "签订日期",
+  term: "履行期限",
+};
+
 export default {
   data() {
     return {
       raw: "",
       busy: false,
       result: null,
+      kind: "invoice",
     };
   },
   computed: {
+    typeLabel() {
+      if (!this.result) return "";
+      if (this.result.docType === "invoice") return "发票";
+      if (this.result.docType === "contract") return "合同";
+      return this.result.docType;
+    },
     resultRows() {
       if (!this.result) return [];
       return Object.keys(this.result)
-        .filter((k) => !["parser", "preview", "note"].includes(k))
+        .filter(
+          (k) =>
+            !["parser", "preview", "note", "normalized", "docType"].includes(k)
+        )
+        .filter((k) => this.result[k] !== "" && this.result[k] != null)
         .map((k) => ({
           k,
-          v: this.result[k] == null ? "" : String(this.result[k]),
+          label: LABELS[k] || k,
+          v: String(this.result[k]),
         }));
     },
   },
   methods: {
     loadSample(kind) {
+      this.kind = kind;
       this.raw = kind === "contract" ? SAMPLE_CONTRACT : SAMPLE_INVOICE;
       this.result = null;
     },
+    clear() {
+      this.raw = "";
+      this.result = null;
+    },
     run() {
+      if (!this.raw.trim() || this.busy) return;
       this.busy = true;
       try {
         this.result = detectAndExtract(this.raw);
@@ -95,98 +153,147 @@ export default {
 
 <style lang="scss" scoped>
 @import "@/styles/theme.scss";
+
 .page {
-  @include rt-page;
-  padding: $rt-page-x;
-  padding-bottom: 80rpx;
+  min-height: 100vh;
+  padding: 0 $rt-page-x 80rpx;
+  background: radial-gradient(
+      100% 70% at 80% -20%,
+      rgba(184, 107, 53, 0.1),
+      transparent 55%
+    ),
+    $rt-bg;
 }
-.hero-title {
+
+.mast {
+  margin: 12rpx 0 20rpx;
+  padding: 8rpx 4rpx 4rpx;
+}
+.mast-title {
   display: block;
-  font-size: 34rpx;
+  font-size: 40rpx;
   font-weight: 800;
   color: $rt-text;
 }
-.hero-sub {
+.mast-desc {
   display: block;
-  margin-top: 8rpx;
-  font-size: 24rpx;
-  color: $rt-text-muted;
-  line-height: 1.5;
-}
-.chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12rpx;
-  margin: 20rpx 0;
-}
-.chip {
-  font-size: 22rpx;
-  font-weight: 700;
-  color: $rt-accent-dark;
-  background: $rt-accent-soft;
-  padding: 10rpx 18rpx;
-  border-radius: 999rpx;
-}
-.chip.ghost {
-  background: $rt-surface;
-  border: 1rpx solid rgba(0, 0, 0, 0.08);
+  margin-top: 12rpx;
+  font-size: 26rpx;
+  line-height: 1.55;
   color: $rt-text-secondary;
+}
+
+.tabs {
+  display: flex;
+  gap: 12rpx;
+  margin-bottom: 18rpx;
+}
+.tab {
+  font-size: 24rpx;
+  font-weight: 700;
+  padding: 12rpx 22rpx;
+  border-radius: 999rpx;
+  background: $rt-surface;
+  color: $rt-text-secondary;
+  border: 1rpx solid $rt-border;
+}
+.tab.on {
+  background: $rt-warm-soft;
+  color: $rt-warm;
+  border-color: rgba(184, 107, 53, 0.25);
+}
+.tab.ghost {
+  background: transparent;
+}
+
+.sheet {
+  padding: 22rpx;
+  border-radius: 24rpx;
+  background: $rt-surface;
+  border: 1rpx solid $rt-border;
+  box-shadow: 0 8rpx 28rpx rgba(106, 70, 40, 0.05);
 }
 .area {
   width: 100%;
-  min-height: 280rpx;
-  padding: 20rpx;
-  background: $rt-surface;
-  border-radius: $rt-radius-md;
+  min-height: 300rpx;
+  padding: 8rpx;
   font-size: 26rpx;
-  line-height: 1.5;
+  line-height: 1.55;
+  color: $rt-text;
   box-sizing: border-box;
 }
-.primary {
-  @include rt-btn-reset;
-  margin-top: 24rpx;
-  width: 100%;
+.cta {
+  margin-top: 16rpx;
   height: 88rpx;
-  line-height: 88rpx;
   border-radius: 999rpx;
-  background: linear-gradient(135deg, $rt-accent-dark, $rt-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, $rt-primary-dark, $rt-primary-mid);
   color: #fff;
-  font-weight: 800;
-  font-size: 28rpx;
-}
-.primary[disabled] {
-  opacity: 0.5;
-}
-.result {
-  margin-top: 32rpx;
-}
-.block-title {
-  display: block;
   font-size: 28rpx;
   font-weight: 800;
-  margin-bottom: 8rpx;
 }
-.meta {
-  display: block;
-  font-size: 22rpx;
-  color: $rt-text-muted;
-  margin-bottom: 12rpx;
+.cta.disabled {
+  opacity: 0.45;
 }
-.row {
+.cta-press {
+  transform: scale(0.985);
+  opacity: 0.92;
+}
+
+.card {
+  margin-top: 22rpx;
+  padding: 8rpx 24rpx 12rpx;
+  border-radius: 24rpx;
+  background: linear-gradient(180deg, $rt-card-warm-top, $rt-card-warm-bottom);
+  border: 1rpx solid rgba(184, 107, 53, 0.16);
+}
+.card-head {
   display: flex;
   justify-content: space-between;
-  gap: 16rpx;
-  padding: 12rpx 0;
-  border-bottom: 1rpx solid rgba(0, 0, 0, 0.06);
-  font-size: 24rpx;
+  align-items: center;
+  padding: 16rpx 0;
 }
-.k {
-  color: $rt-text-secondary;
+.card-title {
+  font-size: 30rpx;
+  font-weight: 800;
+  color: $rt-text;
+}
+.card-badge {
+  font-size: 20rpx;
+  font-weight: 800;
+  color: $rt-warm;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 6rpx 14rpx;
+  border-radius: 999rpx;
+}
+.field {
+  display: flex;
+  justify-content: space-between;
+  gap: 20rpx;
+  padding: 16rpx 0;
+  border-top: 1rpx solid rgba(184, 107, 53, 0.12);
+}
+.field-k {
+  font-size: 24rpx;
+  color: $rt-text-muted;
   flex-shrink: 0;
 }
-.v {
-  color: $rt-text;
+.field-v {
+  font-size: 26rpx;
   font-weight: 700;
+  color: $rt-text;
   text-align: right;
+}
+
+.warn {
+  margin-top: 22rpx;
+  padding: 22rpx;
+  border-radius: 16rpx;
+  background: $rt-primary-soft;
+  color: $rt-primary-dark;
+  font-size: 24rpx;
+  line-height: 1.5;
 }
 </style>
