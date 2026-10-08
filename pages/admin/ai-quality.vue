@@ -182,7 +182,7 @@ const SOURCE_LABEL = {
   llm: "大模型",
   rule: "规则",
   rule_fallback: "规则降级",
-  rag: "知识检索",
+  rag: "混合检索",
   rag_llm: "检索+大模型",
   cache: "短缓存",
   unknown: "未知",

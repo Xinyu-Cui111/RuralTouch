@@ -956,7 +956,7 @@ export function mockApi(action, data = {}) {
             disputePass: "42/42",
             faqPass: "15/15",
             faqEntries: 26,
-            note: "离线 npm run eval（规则引擎 + FAQ）",
+            note: "离线 npm run eval（规则引擎 + 混合检索）",
           },
           recent: events.slice(0, 15).map((e) => ({
             ...e,

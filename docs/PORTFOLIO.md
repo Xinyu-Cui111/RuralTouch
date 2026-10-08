@@ -11,7 +11,7 @@
 1. 标题 + 一句话
 2. **约 3 分钟** Demo 链接（主推旁白版；备：`screenshots/demo-walkthrough.webm`）
 3. 3 张主图：确认页（依据/风险）· 升级条 · AI 质量看板
-4. 指标：**纠纷 42/42** · **FAQ 15/15** · 知识表 26 条；规则降级可用；轻量 FAQ 检索（非向量）
+4. 指标：**纠纷 42/42** · **FAQ 15/15** · 知识表 26 条；规则降级可用；混合检索：本地向量索引 + 关键词（非托管库）
 5. 链接：本仓库 README · [CASE_STUDY](CASE_STUDY.md) · [COMPLIANCE](COMPLIANCE.md) · [DEMO](DEMO.md)
 
 ## Demo 视频大纲（对齐 [DEMO.md](DEMO.md) 三分钟旁白）

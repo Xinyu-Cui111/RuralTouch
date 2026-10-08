@@ -21,7 +21,9 @@
     "gen:app-icons": "node scripts/gen-app-icons.js",
     "check:release": "node scripts/check-release.js",
     "check:full": "node scripts/check-full-features.js",
-    "pre:apk": "node scripts/pre-apk.js"
+    "pre:apk": "node scripts/pre-apk.js",
+    "build:faq-index": "node scripts/build-faq-index.js",
+    "eval:rag": "npm run build:faq-index && node scripts/eval-faq.js"
   },
   "dependencies": {
     "@dcloudio/uni-app": "3.0.0-alpha-5010120260522001",

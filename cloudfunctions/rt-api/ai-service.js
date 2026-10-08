@@ -63,7 +63,7 @@ function sourceLabel(source) {
   if (source === "llm") return "大模型";
   if (source === "rule") return "规则引擎";
   if (source === "rule_fallback") return "规则降级";
-  if (source === "rag") return "知识检索";
+  if (source === "rag") return "混合检索";
   if (source === "rag_llm") return "检索+大模型";
   if (source === "cache") return "短缓存";
   return source || "未知";
