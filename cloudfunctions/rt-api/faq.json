@@ -215,5 +215,75 @@
     "keywords": ["能做什么", "法律意见", "判决", "输赢", "起诉状"],
     "body": "AI 可协助整理案情、给出流程建议与普法参考，不预判官司输赢、不代写判决或起诉状。正式意见请咨询律师或由村委组织调解。",
     "refs": ["指尖善治 · 使用说明"]
+  },
+  {
+    "id": "doc-mediation-ops-manual-01",
+    "title": "【手册】mediation-ops-manual-段1",
+    "category": "manual",
+    "keywords": ["调解"],
+    "body": "# 村委调解业务操作手册（演示语料）\n\n> 用途：演示「文档整理 → 内容切分 → 向量入库 → 问答」。非真实制度文件。",
+    "refs": ["村委调解业务操作手册（演示）"],
+    "sourceFile": "mediation-ops-manual",
+    "chunkType": "markdown-heading"
+  },
+  {
+    "id": "doc-mediation-ops-manual-02",
+    "title": "【手册】1. 受理范围",
+    "category": "manual",
+    "keywords": ["受理", "建档", "调解", "报警"],
+    "body": "村委调解主要受理土地边界、邻里噪音、劳务薪资、家庭赡养、小额财物损坏等民事纠纷。\n涉及人身伤害、正在实施的暴力冲突，应优先引导报警（110）或急救（120），再补建档。\n不替代法院裁判，不预判诉讼输赢。",
+    "refs": ["村委调解业务操作手册（演示）"],
+    "sourceFile": "mediation-ops-manual",
+    "chunkType": "markdown-heading"
+  },
+  {
+    "id": "doc-mediation-ops-manual-03",
+    "title": "【手册】2. 建档材料清单",
+    "category": "manual",
+    "keywords": ["受理", "建档", "材料", "办理", "调解"],
+    "body": "建议当事人准备：身份与联系方式、事情经过时间线、现场照片或视频、相关合同/确权凭证复印件、双方沟通记录。\n材料不齐也可先受理，由调解员在办理阶段补充。",
+    "refs": ["村委调解业务操作手册（演示）"],
+    "sourceFile": "mediation-ops-manual",
+    "chunkType": "markdown-heading"
+  },
+  {
+    "id": "doc-mediation-ops-manual-04",
+    "title": "【手册】3. 办理阶段说明",
+    "category": "manual",
+    "keywords": ["受理", "办理", "办结", "调解"],
+    "body": "流程一般为：待受理 → 办理中 → 办结。\n待受理阶段完成登记与风险初判；办理中组织双方到场或电话调解并形成笔录；办结后可归档并视情况给予积分激励。\n预计周期因案而异，常见为 7–15 个工作日。",
+    "refs": ["村委调解业务操作手册（演示）"],
+    "sourceFile": "mediation-ops-manual",
+    "chunkType": "markdown-heading"
+  },
+  {
+    "id": "doc-mediation-ops-manual-05",
+    "title": "【手册】4. 高风险升级规则",
+    "category": "manual",
+    "keywords": ["高风险", "升级", "调解"],
+    "body": "出现打架、动手、威胁、受伤、持械等表述时，系统应标记高风险并提示转人工优先。\n调解员工作台应对升级案件优先排序，避免仅依赖 AI 建议结案。",
+    "refs": ["村委调解业务操作手册（演示）"],
+    "sourceFile": "mediation-ops-manual",
+    "chunkType": "markdown-heading"
+  },
+  {
+    "id": "doc-mediation-ops-manual-06",
+    "title": "【手册】5. 知识库维护规范（改条目后重建索引与评测）",
+    "category": "manual",
+    "keywords": ["知识库", "Badcase", "评测"],
+    "body": "新增答疑口径时，应写入知识表并重建向量索引，补充至少 1 条评测问法。\n发现错误回答，应标注 Badcase：写清现象、根因、修复动作（改条目 / 改规则 / 改 Prompt），修好后回归评测。",
+    "refs": ["村委调解业务操作手册（演示）"],
+    "sourceFile": "mediation-ops-manual",
+    "chunkType": "markdown-heading"
+  },
+  {
+    "id": "doc-mediation-ops-manual-07",
+    "title": "【手册】6. AI 使用边界",
+    "category": "manual",
+    "keywords": ["降级"],
+    "body": "AI 可协助整理案情、给出流程建议与普法参考，不得编造具体法条号，不得代写判决书或起诉状。\n无大模型密钥时，应能降级为规则引擎或检索作答，保证现场演示不中断。",
+    "refs": ["村委调解业务操作手册（演示）"],
+    "sourceFile": "mediation-ops-manual",
+    "chunkType": "markdown-heading"
   }
 ]

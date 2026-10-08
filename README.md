@@ -169,7 +169,7 @@ screenshots/        界面与录屏
 - [x] 说事 → 成案 → 办理主链路（小程序 + H5 Mock）
 - [x] 规则引擎兜底与来源标注
 - [x] 知识表 FAQ（26）+ Top3 引用；H5 Mock 与云函数同路径
-- [x] 评测集公开样例与可复现脚本（纠纷 42 + FAQ 15，`npm run eval`）
+- [x] 评测集公开样例与可复现脚本（纠纷 42 + FAQ 18，`npm run eval`）
 - [x] 界面截图与静默录屏（`screenshots/`，含 AI 质量看板）
 - [x] 管理端 AI 质量看板（H5 Mock 可演示；离线基线 42/42 · 15/15）
 - [x] 3 分钟旁白脚本（[docs/DEMO.md](docs/DEMO.md)）；静默走查 `demo-walkthrough.webm`

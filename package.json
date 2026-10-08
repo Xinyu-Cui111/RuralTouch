@@ -23,7 +23,9 @@
     "check:full": "node scripts/check-full-features.js",
     "pre:apk": "node scripts/pre-apk.js",
     "build:faq-index": "node scripts/build-faq-index.js",
-    "eval:rag": "npm run build:faq-index && node scripts/eval-faq.js"
+    "eval:rag": "npm run ingest:docs && node scripts/eval-faq.js",
+    "ingest:docs": "node scripts/ingest-docs.js",
+    "demo:extract": "node scripts/demo-extract-fields.js"
   },
   "dependencies": {
     "@dcloudio/uni-app": "3.0.0-alpha-5010120260522001",

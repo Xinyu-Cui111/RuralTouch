@@ -2,7 +2,7 @@
   "version": 1,
   "updated": "2026-10-08",
   "metric": "faq_retrieve_top3",
-  "note": "无 LLM：仅测本地知识表检索是否命中期望条目",
+  "note": "混合检索：FAQ条目 + 手册切分块；无 LLM",
   "cases": [
     {
       "id": "F01",
@@ -78,6 +78,21 @@
       "id": "F15",
       "query": "民间借贷借条到期不还",
       "expectIds": ["faq-property-02"]
+    },
+    {
+      "id": "F16",
+      "query": "调解受理范围包括哪些纠纷",
+      "expectIds": ["doc-mediation-ops-manual-02", "faq-process-01"]
+    },
+    {
+      "id": "F17",
+      "query": "高风险打架怎么升级处理",
+      "expectIds": ["doc-mediation-ops-manual-05", "faq-process-03"]
+    },
+    {
+      "id": "F18",
+      "query": "知识库维护要重建索引和评测吗",
+      "expectIds": ["doc-mediation-ops-manual-06"]
     }
   ]
 }
