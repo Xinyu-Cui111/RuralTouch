@@ -15,7 +15,7 @@
     "optimize:assets": "python scripts/optimize-assets.py",
     "eval:dispute": "node scripts/eval-dispute.js",
     "eval:faq": "node scripts/eval-faq.js",
-    "eval": "npm run eval:dispute && npm run eval:faq",
+    "eval": "npm run eval:dispute && npm run eval:faq && npm run doc:eval",
     "prepare": "husky install",
     "format": "prettier --write \"**/*.{js,vue,css,scss,json,md}\"",
     "gen:app-icons": "node scripts/gen-app-icons.js",
@@ -25,7 +25,10 @@
     "build:faq-index": "node scripts/build-faq-index.js",
     "eval:rag": "npm run ingest:docs && node scripts/eval-faq.js",
     "ingest:docs": "node scripts/ingest-docs.js",
-    "demo:extract": "node scripts/demo-extract-fields.js"
+    "demo:extract": "node scripts/demo-extract-fields.js",
+    "doc:samples": "node scripts/doc-ai/make-samples.js",
+    "doc:pipeline": "node scripts/doc-ai/run-pipeline.js",
+    "doc:eval": "node scripts/doc-ai/eval-extract.js"
   },
   "dependencies": {
     "@dcloudio/uni-app": "3.0.0-alpha-5010120260522001",
@@ -43,10 +46,15 @@
     "@vitejs/plugin-vue": "5.2.4",
     "husky": "^8.0.0",
     "lint-staged": "^13.0.0",
+    "mammoth": "^1.13.0",
+    "pdf-parse": "^2.4.5",
+    "pdfkit": "^0.20.2",
     "playwright": "^1.55.0",
     "prettier": "^2.8.8",
     "sass": "^1.100.0",
-    "vite": "5.2.8"
+    "tesseract.js": "^7.0.0",
+    "vite": "5.2.8",
+    "xlsx": "^0.18.5"
   },
   "lint-staged": {
     "**/*.{js,vue,css,scss,json,md}": [

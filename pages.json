@@ -138,6 +138,13 @@
       }
     },
     {
+      "path": "pages/tools/doc-extract",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "单据结构化"
+      }
+    },
+    {
       "path": "pages/disputeDetail/disputeDetail",
       "style": {
         "navigationStyle": "custom",

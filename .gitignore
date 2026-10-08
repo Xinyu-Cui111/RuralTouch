@@ -16,3 +16,6 @@ release/*.keystore
 release/keystore.properties
 !release/keystore.properties.example
 release/PACK_FORM.txt
+
+# doc-ai pipeline outputs
+docs/knowledge/samples/_out/

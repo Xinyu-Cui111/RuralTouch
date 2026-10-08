@@ -85,6 +85,9 @@
         <button class="link-btn" size="mini" @click="goWorkbench">
           打开调解工作台
         </button>
+        <button class="link-btn" size="mini" @click="goDocExtract">
+          单据结构化
+        </button>
       </view>
 
       <view class="block">
@@ -285,6 +288,9 @@ export default {
     },
     goWorkbench() {
       uni.navigateTo({ url: "/pages/admin/disputes" });
+    },
+    goDocExtract() {
+      uni.navigateTo({ url: "/pages/tools/doc-extract" });
     },
     openCreate() {
       uni.showModal({
